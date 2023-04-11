@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Analysis_Functions.timeseries &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Analysis_Functions.timeseries</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Analysis_Functions.timeseries</h1><div class="highlight"><pre>
+<span></span>
+<div class="viewcode-block" id="linear_fit"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.linear_fit">[docs]</a><span class="k">def</span> <span class="nf">linear_fit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Ordinary linear least regressions fit to a 1d array of x and y data</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	x : numpy array</span>
+<span class="sd">		the independent variable</span>
+<span class="sd">	y : numpy array</span>
+<span class="sd">		the dependent variable </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	opts : ``LinregressResult`` instance</span>
+<span class="sd">		The return value is an object with the following attributes</span>
+
+<span class="sd">		slope : float</span>
+<span class="sd">			Slope of the regression line.</span>
+<span class="sd">		intercept : float</span>
+<span class="sd">			Intercept of the regression line.</span>
+<span class="sd">		rvalue : float</span>
+<span class="sd">			The Pearson correlation coefficient. The square of ``rvalue``</span>
+<span class="sd">			is equal to the coefficient of determination.</span>
+<span class="sd">		pvalue : float</span>
+<span class="sd">			The p-value for a hypothesis test whose null hypothesis is</span>
+<span class="sd">			that the slope is zero, using Wald Test with t-distribution of</span>
+<span class="sd">			the test statistic. </span>
+<span class="sd">		stderr : float</span>
+<span class="sd">			Standard error of the estimated slope (gradient), under the</span>
+<span class="sd">			assumption of residual normality.</span>
+<span class="sd">		intercept_stderr : float</span>
+<span class="sd">			Standard error of the estimated intercept, under the assumption</span>
+<span class="sd">			of residual normality.</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">linregress</span>
+	
+	<span class="n">opts</span> <span class="o">=</span> <span class="n">linregress</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">opts</span></div>
+
+
+<div class="viewcode-block" id="exponential_decay_correction_time"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.exponential_decay_correction_time">[docs]</a><span class="k">def</span> <span class="nf">exponential_decay_correction_time</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">time_subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_scale</span><span class="o">=</span><span class="mf">100.</span><span class="p">,</span> <span class="n">loss_type</span><span class="o">=</span><span class="s1">&#39;soft_l1&#39;</span><span class="p">):</span>
+	
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Corrects the mean intensities of an input video by fitting an exponential decay curve. The exponential is of the mathematical form</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		y = Ae^{Bt} + C</span>
+
+<span class="sd">	where A, B, C are constants, t is time and y the signal. </span>
+<span class="sd">	Robust regression is used for fitting. See https://scipy-cookbook.readthedocs.io/items/robust_regression.html for more information.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	signal : 1D numpy array</span>
+<span class="sd">		The 1D signal to fit an exponential function. </span>
+<span class="sd">	time_subset :  1D numpy array</span>
+<span class="sd">		A 1D array to mask the fitting to specific contiguous timepoints</span>
+<span class="sd">	f_scale : float</span>
+<span class="sd">		The regularisation parameter in the robust fitting</span>
+<span class="sd">	loss_type: str</span>
+<span class="sd">		One of the 5 robust loss types available in scipy, https://scipy-cookbook.readthedocs.io/items/robust_regression.html</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	correction_factor : 1D numpy array</span>
+<span class="sd">		the multiplication factor at each timepoint to correct the signal</span>
+<span class="sd">	(res_robust.x, robust_y) : 2-tuple</span>
+<span class="sd">		res_robust.x returns the fitted model coefficients for reuse, </span>
+<span class="sd">		robust_y is the prediction of the signal using the fitted model coefficients </span>
+
+<span class="sd">	See Also</span>
+<span class="sd">	--------</span>
+<span class="sd">	unwrap3D.Analysis_Functions.timeseries.baseline_correction_time : </span>
+<span class="sd">		Use weighted least squares to estimate a baseline signal that can be used for correction</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">linregress</span>
+	<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">least_squares</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="n">I_vid</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	
+	<span class="k">if</span> <span class="n">time_subset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="c1"># use the full</span>
+		<span class="n">I_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">I_vid</span><span class="p">))</span>
+		<span class="n">I_time_subset</span> <span class="o">=</span> <span class="n">I_time</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">I_vid_subset</span> <span class="o">=</span> <span class="n">I_vid</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">I_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">I_vid</span><span class="p">))</span>
+		<span class="n">I_time_subset</span> <span class="o">=</span> <span class="n">I_time</span><span class="p">[</span><span class="n">time_subset</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">I_vid_subset</span> <span class="o">=</span> <span class="n">I_vid</span><span class="p">[</span><span class="n">time_subset</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		
+	<span class="c1"># fit equation. y =A*e^(-Bt)</span>
+	<span class="n">log_I_vid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">I_vid_subset</span><span class="p">)</span>
+	<span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">,</span> <span class="n">r_value</span><span class="p">,</span> <span class="n">p_value</span><span class="p">,</span> <span class="n">std_err</span> <span class="o">=</span> <span class="n">linregress</span><span class="p">(</span><span class="n">I_time_subset</span><span class="p">,</span> <span class="n">log_I_vid</span><span class="p">)</span>
+
+	<span class="c1"># initial fit. </span>
+	<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">intercept</span><span class="p">)</span>
+	<span class="n">B</span> <span class="o">=</span> <span class="n">slope</span>
+	<span class="c1"># refined robust fitting. </span>
+	<span class="k">def</span> <span class="nf">exp_decay</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
+		<span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+	
+	<span class="c1"># def exp_decay_line(t,x):    </span>
+		<span class="c1"># return (x[0] * np.exp(x[1] * (t+x[3])) + x[2]) # exp + linear. (rather than this.... might be more correct to be a switch.... )</span>
+	<span class="k">def</span> <span class="nf">res</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+		<span class="c1"># return exp_decay(t,x) - y</span>
+		<span class="k">return</span> <span class="n">exp_decay</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span> 
+	
+	<span class="n">x0</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1">#, 0]</span>
+	<span class="c1"># print(x0)</span>
+	<span class="n">res_robust</span> <span class="o">=</span> <span class="n">least_squares</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss_type</span><span class="p">,</span> <span class="n">f_scale</span><span class="o">=</span><span class="n">f_scale</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">I_time_subset</span><span class="p">,</span> <span class="n">I_vid_subset</span><span class="p">))</span>
+		
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	applying the fitted now on the proper sequence. </span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">robust_y</span> <span class="o">=</span> <span class="n">exp_decay</span><span class="p">(</span><span class="n">I_time</span><span class="p">,</span> <span class="n">res_robust</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+	<span class="n">correction_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">robust_y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">robust_y</span>
+	
+	<span class="k">return</span> <span class="n">correction_factor</span><span class="p">,</span> <span class="p">(</span><span class="n">res_robust</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">robust_y</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="baseline_correction_time"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.baseline_correction_time">[docs]</a><span class="k">def</span> <span class="nf">baseline_correction_time</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Corrects the mean signal using weighted least square means regression to infer a baseline signal. </span>
+<span class="sd">	Specifically we estimate the baseline signal, :math:`z` as the solution to the following optimization problem </span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		z = arg\,min_z \{w(y-z)^2 + \lambda\sum(\Delta z)^2\}</span>
+
+<span class="sd">	where :math:`y` is the input signal, :math:`\Delta z` is the 2nd derivative, :math:`\lambda` is the smoothing regularizer and :math:`w` is an asymmetric weighting</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		w = </span>
+<span class="sd">		\Biggl \lbrace </span>
+<span class="sd">		{ </span>
+<span class="sd">		p ,\text{ if } </span>
+<span class="sd">		  {y&gt;z}</span>
+<span class="sd">		\atop </span>
+<span class="sd">		1-p, \text{ otherwise } </span>
+<span class="sd">		}</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	signal : 1D numpy array</span>
+<span class="sd">		The 1D signal to estimate a baseline signal. </span>
+<span class="sd">	p :  scalar</span>
+<span class="sd">		Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</span>
+<span class="sd">	lam : scalar</span>
+<span class="sd">		Controls the degree of smoothness in the baseline</span>
+<span class="sd">	niter: int</span>
+<span class="sd">		The number of iterations to run the algorithm. Only a few iterations is required generally. </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	correction_factor : 1D numpy array</span>
+<span class="sd">		the multiplication factor at each timepoint to correct the signal</span>
+<span class="sd">	(baseline, corrected) : 2-tuple of 1D numpy array </span>
+<span class="sd">		baseline is the inferred smooth baseline signal, </span>
+<span class="sd">		corrected is the multiplicatively corrected signal using the estimated correction factor from the baseline</span>
+
+<span class="sd">	See Also</span>
+<span class="sd">	--------</span>
+<span class="sd">	unwrap3D.Analysis_Functions.timeseries.baseline_als : </span>
+<span class="sd">		The weighted least squares method used to estimate the baseline</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">linregress</span>
+	<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">least_squares</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="n">I_vid</span> <span class="o">=</span> <span class="n">signal</span>
+	<span class="n">baseline</span> <span class="o">=</span> <span class="n">baseline_als</span><span class="p">(</span><span class="n">I_vid</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="n">lam</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="n">niter</span><span class="p">)</span>
+
+	<span class="n">correction_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">I_vid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">baseline</span>
+	<span class="n">corrected</span> <span class="o">=</span> <span class="n">I_vid</span> <span class="o">*</span> <span class="n">correction_factor</span> 
+	
+	<span class="k">return</span> <span class="n">correction_factor</span><span class="p">,</span> <span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="n">corrected</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="baseline_als"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.baseline_als">[docs]</a><span class="k">def</span> <span class="nf">baseline_als</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Estimates a baseline signal using asymmetric least squares. It can also be used for generic applications where a 1D signal requires smoothing.</span>
+<span class="sd">	Specifically the baseline signal, :math:`z` is the solution to the following optimization problem </span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		z = arg\,min_z \{w(y-z)^2 + \lambda\sum(\Delta z)^2\}</span>
+
+<span class="sd">	where :math:`y` is the input signal, :math:`\Delta z` is the 2nd derivative, :math:`\lambda` is the smoothing regularizer and :math:`w` is an asymmetric weighting</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		w = </span>
+<span class="sd">		\Biggl \lbrace </span>
+<span class="sd">		{ </span>
+<span class="sd">		p ,\text{ if } </span>
+<span class="sd">		  {y&gt;z}</span>
+<span class="sd">		\atop </span>
+<span class="sd">		1-p, \text{ otherwise } </span>
+<span class="sd">		}</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	signal : 1D numpy array</span>
+<span class="sd">		The 1D signal to estimate a baseline signal. </span>
+<span class="sd">	p :  scalar</span>
+<span class="sd">		Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</span>
+<span class="sd">	lam : scalar</span>
+<span class="sd">		Controls the degree of smoothness in the baseline</span>
+<span class="sd">	niter: int</span>
+<span class="sd">		The number of iterations to run the algorithm. Only a few iterations is required generally. </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	z : 1D numpy array</span>
+<span class="sd">		the estimated 1D baseline signal</span>
+
+<span class="sd">	See Also</span>
+<span class="sd">	--------</span>
+<span class="sd">	unwrap3D.Analysis_Functions.timeseries.baseline_correction_time : </span>
+<span class="sd">		Application of this method to estimate a baseline for a 1D signal and correct the signal e.g. for photobleaching</span>
+<span class="sd">	unwrap3D.Analysis_Functions.timeseries.decompose_nonlinear_time_series :</span>
+<span class="sd">		Application of this method to decompose a 1D signal into smooth baseline + high frequency fluctuations. </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
+	<span class="kn">from</span> <span class="nn">scipy.sparse.linalg</span> <span class="kn">import</span> <span class="n">spsolve</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="n">L</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+	<span class="n">D</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">L</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+	<span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">niter</span><span class="p">):</span>
+		<span class="n">W</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">spdiags</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+		<span class="n">Z</span> <span class="o">=</span> <span class="n">W</span> <span class="o">+</span> <span class="n">lam</span> <span class="o">*</span> <span class="n">D</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">D</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+		<span class="n">z</span> <span class="o">=</span> <span class="n">spsolve</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">w</span><span class="o">*</span><span class="n">y</span><span class="p">)</span>
+		<span class="n">w</span> <span class="o">=</span> <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="n">z</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">z</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">z</span></div>
+
+
+<div class="viewcode-block" id="fit_spline"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.fit_spline">[docs]</a><span class="k">def</span> <span class="nf">fit_spline</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">smoothing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Fitting a univariate smoothing spline to x vs y univariate data curve</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : (N,) array</span>
+<span class="sd">        the 1d x- variables</span>
+<span class="sd">    y : (N,) array</span>
+<span class="sd">        the 1d y- variables</span>
+<span class="sd">    smoothing : scalar</span>
+<span class="sd">        Optional control of smoothing, higher gives more smoothing. If None, it is automatically set based on standard deviation of y.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x, y_norm, interp_s : list of (N,) arrays</span>
+<span class="sd">        the 1d x- variables, normalised maximum normalized y_norm=y/y_max variables used to fit and interp_s the smooth y curve  </span>
+<span class="sd">    spl : scipy spline instance object</span>
+<span class="sd">        the interpolating spline object fitted on x, y_norm   </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">UnivariateSpline</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">max_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">y_norm</span> <span class="o">=</span> <span class="n">y</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">max_y</span><span class="p">)</span>   
+    
+    <span class="k">if</span> <span class="n">smoothing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">spl</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_norm</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y_</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">spl</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_norm</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">smoothing</span><span class="p">)</span>
+        
+    <span class="n">interp_s</span> <span class="o">=</span> <span class="n">max_y</span><span class="o">*</span><span class="n">spl</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_norm</span><span class="p">,</span> <span class="n">interp_s</span><span class="p">),</span> <span class="n">spl</span></div>
+
+<div class="viewcode-block" id="decompose_nonlinear_time_series"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.decompose_nonlinear_time_series">[docs]</a><span class="k">def</span> <span class="nf">decompose_nonlinear_time_series</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Decomposes a given signal into smooth + residual components. The smooth signal is estimated using asymmetric least squares.  </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	y : 1D numpy array</span>
+<span class="sd">		The input 1D signal to decompose </span>
+<span class="sd">	lam : scalar</span>
+<span class="sd">		Controls the degree of smoothness in the baseline</span>
+<span class="sd">	p :  scalar</span>
+<span class="sd">		Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</span>
+<span class="sd">	niter: int</span>
+<span class="sd">		The number of iterations to run the algorithm. Only a few iterations is required generally. </span>
+<span class="sd">	padding: int</span>
+<span class="sd">		Padding window to dampen boundary conditions. If None, the entire signal is used for padding otherwise the specified window is used to pad. </span>
+<span class="sd">		Reflecting boundary conditions are used for padding.   </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	z : 1D numpy array</span>
+<span class="sd">		the estimated 1D baseline signal</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="k">if</span> <span class="n">padding</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">y_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">y</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+		<span class="n">y_base</span> <span class="o">=</span> <span class="n">baseline_als</span><span class="p">(</span><span class="n">y_</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="n">lam</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="n">niter</span><span class="p">)</span>
+		<span class="n">y_base</span> <span class="o">=</span> <span class="n">y_base</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">):</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">y_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">y</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="n">padding</span><span class="p">:],</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="n">padding</span><span class="p">]])</span> 
+		<span class="n">y_base</span> <span class="o">=</span> <span class="n">baseline_als</span><span class="p">(</span><span class="n">y_</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="n">lam</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="n">niter</span><span class="p">)</span>
+		<span class="n">y_base</span> <span class="o">=</span> <span class="n">y_base</span><span class="p">[</span><span class="n">padding</span><span class="p">:</span><span class="o">-</span><span class="n">padding</span><span class="p">]</span>
+		
+	<span class="k">return</span> <span class="n">y_base</span><span class="p">,</span> <span class="n">y</span><span class="o">-</span><span class="n">y_base</span></div>
+	
+
+<div class="viewcode-block" id="xcorr"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.xcorr">[docs]</a><span class="k">def</span> <span class="nf">xcorr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Computes the discrete crosscorrelation of two read 1D signals as defined by</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		c_k = \sum_n x_{n+k} \cdot y_n</span>
+
+<span class="sd">	If norm=True, :math:`\hat{x}=\frac{x-\mu}{\sigma}` and :math:`\hat{y}=\frac{y-\mu}{\sigma}` is normalised and the zero-normalised autocorrelation is computed,  </span>
+<span class="sd">	</span>
+<span class="sd">	.. math::</span>
+<span class="sd">		c_k = \frac{1}{T}\sum_n \hat{x}_{n+k} \cdot \hat{y}_n</span>
+
+<span class="sd">	where :math:`T` is the length of the signal :math:`x`</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	x : 1D numpy array</span>
+<span class="sd">		The input 1D signal</span>
+<span class="sd">	y : 1D numpy array</span>
+<span class="sd">		The optional second 1D signal. If None, the autocorrelation of x is computed.   </span>
+<span class="sd">	norm : bool</span>
+<span class="sd">		If true, the normalized autocorrelation is computed such that all values are in the range [-1.,1.]</span>
+<span class="sd">	eps :  scalar</span>
+<span class="sd">		small constant to prevent zero division when norm=True</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	result : 1D numpy array</span>
+<span class="sd">		the 1-sided autocorrelation if y=None, or the full cross-correlation otherwise</span>
+
+<span class="sd">	Notes</span>
+<span class="sd">	-----</span>
+<span class="sd">	The definition of correlation above is not unique and sometimes correlation</span>
+<span class="sd">	may be defined differently. Another common definition is:</span>
+
+<span class="sd">	.. math:: </span>
+<span class="sd">		c&#39;_k = \sum_n x_{n} \cdot {y_{n+k}}</span>
+<span class="sd">	</span>
+<span class="sd">	which is related to :math:`c_k` by :math:`c&#39;_k = c_{-k}`.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="k">if</span> <span class="n">norm</span><span class="p">:</span> 
+		<span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">y</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">a</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">b</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">b</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span> <span class="c1"># this is not normalized!. </span>
+
+	<span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+		<span class="c1"># return the 1-sided autocorrelation. </span>
+		<span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:]</span>
+
+	<span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="xcorr_timeseries_set_1d"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.xcorr_timeseries_set_1d">[docs]</a><span class="k">def</span> <span class="nf">xcorr_timeseries_set_1d</span><span class="p">(</span><span class="n">timeseries_array1</span><span class="p">,</span> <span class="n">timeseries_array2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> <span class="n">stack_final</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Computes the discrete crosscorrelation of two read 1D signals as defined by</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		c_k = \sum_n x_{n+k} \cdot y_n</span>
+
+<span class="sd">	If norm=True, :math:`\hat{x}=\frac{x-\mu}{\sigma}` and :math:`\hat{y}=\frac{y-\mu}{\sigma}` is normalised and the zero-normalised autocorrelation is computed,  </span>
+<span class="sd">	</span>
+<span class="sd">	.. math::</span>
+<span class="sd">		c_k = \frac{1}{T}\sum_n \hat{x}_{n+k} \cdot \hat{y}_n</span>
+
+<span class="sd">	where :math:`T` is the length of the signal :math:`x`</span>
+
+<span class="sd">	given two arrays or lists of 1D signals. The signals in the individual arrays need not have the same temporal length. If they do, by setting stack_final=True, the result can be returned as a numpy array else will be returned as a list  </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	timeseries_array1 : array_like of 1D signals </span>
+<span class="sd">		A input list of 1D signals </span>
+<span class="sd">	timeseries_array2 : array_like of 1D signals </span>
+<span class="sd">		An optional second 1D signal set. If None, the autocorrelation of each timeseries in timeseries_array1 is computed.   </span>
+<span class="sd">	norm : bool</span>
+<span class="sd">		If true, the normalized autocorrelation is computed such that all values are in the range [-1.,1.]</span>
+<span class="sd">	eps :  scalar</span>
+<span class="sd">		small constant to prevent zero division when norm=True</span>
+<span class="sd">	stack_final : bool</span>
+<span class="sd">		if timeseries_array1 or timeseries_array2 are numpy arrays with individual signals within of equal temoporal length, setting this flag to True, will return a numpy array else returns a list of cross-correlation curves</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	xcorr_out : array_list of 1D numpy array</span>
+<span class="sd">		the 1-sided autocorrelation if y=None, or the full cross-correlation otherwise</span>
+
+<span class="sd">	Notes</span>
+<span class="sd">	-----</span>
+<span class="sd">	The definition of correlation above is not unique and sometimes correlation</span>
+<span class="sd">	may be defined differently. Another common definition is:</span>
+
+<span class="sd">	.. math:: </span>
+<span class="sd">		c&#39;_k = \sum_n x_{n} \cdot {y_{n+k}}</span>
+<span class="sd">	</span>
+<span class="sd">	which is related to :math:`c_k` by :math:`c&#39;_k = c_{-k}`.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	<span class="n">compute_xcorr</span><span class="o">=</span><span class="kc">True</span> 
+	<span class="k">if</span> <span class="n">timeseries_array2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">timeseries_array2</span> <span class="o">=</span> <span class="n">timeseries_array1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="c1"># create a copy.</span>
+		<span class="n">compute_xcorr</span><span class="o">=</span><span class="kc">False</span>
+
+	<span class="n">xcorr_out</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">timeseries_array1</span><span class="p">)):</span>
+		<span class="n">timeseries_ii_1</span> <span class="o">=</span> <span class="n">timeseries_array1</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">timeseries_ii_2</span> <span class="o">=</span> <span class="n">timeseries_array2</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">compute_xcorr</span><span class="p">:</span>
+			<span class="n">xcorr_timeseries_ii</span> <span class="o">=</span> <span class="n">xcorr</span><span class="p">(</span><span class="n">timeseries_ii_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">timeseries_ii_2</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">xcorr_timeseries_ii</span> <span class="o">=</span> <span class="n">xcorr</span><span class="p">(</span><span class="n">timeseries_ii_1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+		<span class="n">xcorr_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xcorr_timeseries_ii</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">stack_final</span><span class="p">:</span>
+		<span class="n">xcorr_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">xcorr_out</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">xcorr_out</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">xcorr_out</span></div>
+	
+<div class="viewcode-block" id="stack_xcorr_curves"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.stack_xcorr_curves">[docs]</a><span class="k">def</span> <span class="nf">stack_xcorr_curves</span><span class="p">(</span><span class="n">xcorr_list</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compiles a list of cross-correlation curves of different temporal lengths with NaN representing missing values assuming the midpoint of each curves is time lag = 0</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	xcorr_list : list of 1D arrays</span>
+<span class="sd">		A input list of 1D cross-correlation curves of different lengths </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	out_array : numpy array</span>
+<span class="sd">		a compiled N x T matrix, where N is the number of curves, and T is the length of the longest curve.</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="n">N</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">xcorr_list</span><span class="p">]</span>
+	<span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+	<span class="n">out_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">xcorr_list</span><span class="p">),</span> <span class="n">size</span><span class="p">));</span> <span class="n">out_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+	
+	<span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xcorr_list</span><span class="p">)):</span>
+		<span class="n">xcorr</span> <span class="o">=</span> <span class="n">xcorr_list</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">out_array</span><span class="p">[</span><span class="n">jj</span><span class="p">,</span><span class="n">size</span><span class="o">//</span><span class="mi">2</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">xcorr</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span><span class="n">size</span><span class="o">//</span><span class="mi">2</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">xcorr</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">xcorr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		
+	<span class="k">return</span> <span class="n">out_array</span></div>
+	
+
+<div class="viewcode-block" id="spatialcorr_k_neighbors"><a class="viewcode-back" href="../../../unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.spatialcorr_k_neighbors">[docs]</a><span class="k">def</span> <span class="nf">spatialcorr_k_neighbors</span><span class="p">(</span><span class="n">timeseries_array</span><span class="p">,</span> <span class="n">k_graph</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Computes the spatial correlation of timeseries for a defined number of steps away. That is it assumes the distance has been pre-discretised and the k_graph represents the relevant neighbors at different distance steps away for a timeseries.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	timeseries_array : (NxT) of 1D timeseries</span>
+<span class="sd">		A input list of 1D cross-correlation curves of different lengths </span>
+<span class="sd">	k_graph : N x (adjacency list of neighbors)</span>
+<span class="sd">		adjacency list of each timeseries for N radial spatial steps</span>
+<span class="sd">	norm : bool</span>
+<span class="sd">		if True, returns the zero-normalised correlation coefficient in [-1.,1.]</span>
+<span class="sd">	eps : scalar</span>
+<span class="sd">		small constant to prevent zero division when norm=True</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	vertex_means_pearsonr : 1d numpy array</span>
+<span class="sd">		The average spatial correlation over all timeseries at the given spatial steps away </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="n">z_norm</span> <span class="o">=</span> <span class="n">timeseries_array</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">norm</span><span class="p">:</span>
+		<span class="n">z_norm</span> <span class="o">=</span> <span class="p">(</span><span class="n">z_norm</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">z_norm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">z_norm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span><span class="o">+</span><span class="n">eps</span><span class="p">)</span>
+	
+	<span class="n">adj_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">k_graph</span><span class="p">)</span>
+	<span class="c1">##### too much memory usage. </span>
+	<span class="c1"># N_adj_list = np.hstack([len(aa) for aa in adj_list])</span>
+	
+	<span class="c1"># adj_list_pad = -np.ones((len(N_adj_list), np.max(N_adj_list)), dtype=np.int32)</span>
+	<span class="c1"># for vv_ii in np.arange(len(adj_list)):</span>
+	<span class="c1">#     adj_list_pad[vv_ii, :len(adj_list[vv_ii])] = adj_list[vv_ii]</span>
+	
+	<span class="c1"># series1 = z_norm[adj_list_pad].copy()</span>
+	<span class="c1"># series1_mask = np.ones(adj_list_pad.shape, dtype=bool); series1_mask[adj_list_pad==-1] = 0 </span>
+	
+	<span class="c1"># vertex_means_pearsonr = np.nanmean(z_norm[:,None,:] * series1, axis=-1) </span>
+	<span class="c1"># vertex_means_pearsonr = np.nansum(vertex_means_pearsonr*series1_mask, axis=1) / N_adj_list</span>
+	
+	<span class="c1"># all_ring_corrs.append(vertex_means_pearsonr)</span>
+	<span class="n">vertex_means_pearsonr</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="c1"># iterate over each vertex.</span>
+	<span class="k">for</span> <span class="n">vv_ii</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">adj_list</span><span class="p">)):</span> <span class="c1"># this is likely the longest loop - we can paralellize this if we pad.... </span>
+	<span class="c1">#     series0 = z_norm[vv_ii].copy() # if norm. </span>
+	<span class="c1">#     series1 = z_norm[adj_list[vv_ii]].copy()</span>
+		
+	<span class="c1">#     corrs = np.hstack([spstats.pearsonr(series0, ss)[0] for ss in series1])</span>
+	<span class="c1">#     vertex_means_pearsonr.append(np.nanmean(corrs))</span>
+		
+	<span class="c1">#     # hard code this to make this fast. </span>
+	<span class="c1"># # definition being Sxy / SxxSyy </span>
+	<span class="c1"># # https://stackabuse.com/calculating-pearson-correlation-coefficient-in-python-with-numpy/</span>
+		
+		<span class="n">series0</span> <span class="o">=</span> <span class="n">z_norm</span><span class="p">[</span><span class="n">vv_ii</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">series0</span> <span class="o">=</span> <span class="p">(</span><span class="n">series0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">series0</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">series0</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+		<span class="n">series1</span> <span class="o">=</span> <span class="n">z_norm</span><span class="p">[</span><span class="n">adj_list</span><span class="p">[</span><span class="n">vv_ii</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">series1</span> <span class="o">=</span> <span class="p">(</span><span class="n">series1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">series1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">series1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+		
+		<span class="n">Sxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">series0</span><span class="p">[</span><span class="kc">None</span><span class="p">,:]</span> <span class="o">*</span> <span class="n">series1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+		<span class="n">SxxSxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">series0</span><span class="p">)</span>  <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">series1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+		
+		<span class="n">corrs</span> <span class="o">=</span> <span class="n">Sxy</span> <span class="o">/</span> <span class="p">(</span><span class="n">SxxSxy</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span>
+		<span class="n">vertex_means_pearsonr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">corrs</span><span class="p">))</span>
+		
+	<span class="n">vertex_means_pearsonr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">vertex_means_pearsonr</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">vertex_means_pearsonr</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Visualisation package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Visualisation package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Visualisation.colors">unwrap3D.Visualisation.colors module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Visualisation.grid_img">unwrap3D.Visualisation.grid_img module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Visualisation.imshowpair">unwrap3D.Visualisation.imshowpair module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Visualisation.plotting">unwrap3D.Visualisation.plotting module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Visualisation.volume_img">unwrap3D.Visualisation.volume_img module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Visualisation">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Visualisation package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Visualisation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-visualisation-package">
+<h1>unwrap3D.Visualisation package<a class="headerlink" href="#unwrap3d-visualisation-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Visualisation.colors">
+<span id="unwrap3d-visualisation-colors-module"></span><h2>unwrap3D.Visualisation.colors module<a class="headerlink" href="#module-unwrap3D.Visualisation.colors" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Visualisation.colors.get_colors">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Visualisation.colors.</span></span><span class="sig-name descname"><span class="pre">get_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bg_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Visualisation/colors.html#get_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Visualisation.colors.get_colors" title="Permalink to this definition"></a></dt>
+<dd><p>Maps a given numpy input array with the specified Matplotlib colormap with optional specified minimum and maximum values. For an array that is integer such as that from multi-label segmentation, bg_label helps specify the background class which will automatically be mapped to a background color of [0,0,0,0]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>inp</strong><span class="classifier">numpy array</span></dt><dd><p>input n-d array to color
+colormap :  matplotlib.cm colormap object
+colorscheme to apply e.g. cm.Spectral, cm.Reds, cm.coolwarm_r</p>
+</dd>
+<dt><strong>vmin</strong><span class="classifier">int/float</span></dt><dd><p>specify the optional value to map as the minimum boundary of the colormap</p>
+</dd>
+<dt><strong>vmax</strong><span class="classifier">int/float</span></dt><dd><p>specify the optional value to map as the maximum boundary of the colormap</p>
+</dd>
+<dt><strong>bg_label: int</strong></dt><dd><p>for an input array that is integer such as a segmentation mask, specify which integer label to mark as background. These values will all map to [0,0,0,0]</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>colored</strong><span class="classifier">numpy array</span></dt><dd><p>the colored version of input as RGBA, the 4th being the alpha. colors are specified as floats in range 0.-1.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Visualisation.grid_img">
+<span id="unwrap3d-visualisation-grid-img-module"></span><h2>unwrap3D.Visualisation.grid_img module<a class="headerlink" href="#module-unwrap3D.Visualisation.grid_img" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Visualisation.grid_img.viz_grid">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Visualisation.grid_img.</span></span><span class="sig-name descname"><span class="pre">viz_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gray'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Visualisation/grid_img.html#viz_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Visualisation.grid_img.viz_grid" title="Permalink to this definition"></a></dt>
+<dd><p>given an array of images, plots them montage style in matplotlib</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im_array</strong><span class="classifier">n_img x n_rows x n_cols (x 3) grayscale or color numpy array</span></dt><dd><p>array of n_img images to display</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier">(i,j) integer tuple</span></dt><dd><p>specifys the number of images to display row- and column- wise, if not set, will try np.sqrt, and make as square a panel as possible.</p>
+</dd>
+<dt><strong>cmap</strong><span class="classifier">string</span></dt><dd><p>optional specification of a named matplotlib colormap to apply to view the image.</p>
+</dd>
+<dt><strong>figsize</strong><span class="classifier">(int,int) tuple</span></dt><dd><p>specify the figsize in matplotlib plot, implicitly controlling viewing resolution</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>(fig, ax): figure and ax handles</dt><dd><p>returned for convenience for downstream accessing of plot elements.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Visualisation.imshowpair">
+<span id="unwrap3d-visualisation-imshowpair-module"></span><h2>unwrap3D.Visualisation.imshowpair module<a class="headerlink" href="#module-unwrap3D.Visualisation.imshowpair" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Visualisation.imshowpair.checkerboard_imgs">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Visualisation.imshowpair.</span></span><span class="sig-name descname"><span class="pre">checkerboard_imgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Visualisation/imshowpair.html#checkerboard_imgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Visualisation.imshowpair.checkerboard_imgs" title="Permalink to this definition"></a></dt>
+<dd><p>generate a checkerboard montage of two 2D images, useful for checking misalignment when registering two images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im1</strong><span class="classifier">(M,N) grayscale or (M,N,3) color image as numpy array</span></dt><dd><p>input image 1</p>
+</dd>
+<dt><strong>im2</strong><span class="classifier">(M,N) grayscale or (M,N,3) color image as numpy array</span></dt><dd><p>input image 2</p>
+</dd>
+<dt><strong>grid</strong><span class="classifier">(int,int) tuple</span></dt><dd><p>specifies the number of rows and number of columns in the gridding of the checkerboard.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>im</strong><span class="classifier">(M,N,3) numpy array</span></dt><dd><p>the checkerboard combined image of im1 and im2.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Visualisation.imshowpair.imshowpair">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Visualisation.imshowpair.</span></span><span class="sig-name descname"><span class="pre">imshowpair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Visualisation/imshowpair.html#imshowpair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Visualisation.imshowpair.imshowpair" title="Permalink to this definition"></a></dt>
+<dd><p>Combines two potentially different sized grayscale images into one image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im1</strong><span class="classifier">(M1,N1) grayscale numpy array</span></dt><dd><p>input image 1</p>
+</dd>
+<dt><strong>im2</strong><span class="classifier">(M2,N2) grayscale numpy array</span></dt><dd><p>input image 2</p>
+</dd>
+<dt><strong>ax</strong><span class="classifier">Matplotlib axes object</span></dt><dd><p>optional axis to display the image</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">(M_max,N_max,3) numpy array</span></dt><dd><p>the combined image of im1 and im2, where M_max=max(M_1, M_2), and N_max=(N_1,N_2) are the largest row and column dimensions of im1, im2. The images are automatically centered in the output.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Visualisation.plotting">
+<span id="unwrap3d-visualisation-plotting-module"></span><h2>unwrap3D.Visualisation.plotting module<a class="headerlink" href="#module-unwrap3D.Visualisation.plotting" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Visualisation.plotting.set_axes_equal">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Visualisation.plotting.</span></span><span class="sig-name descname"><span class="pre">set_axes_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">matplotlib.axes._axes.Axes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Visualisation/plotting.html#set_axes_equal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Visualisation.plotting.set_axes_equal" title="Permalink to this definition"></a></dt>
+<dd><p>Set 3D plot axes to equal scale.</p>
+<p>Make axes of 3D plot have equal scale so that spheres appear as
+spheres and cubes as cubes.  Required since <cite>ax.axis(‘equal’)</cite>
+and <cite>ax.set_aspect(‘equal’)</cite> don’t work on 3D.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ax</strong><span class="classifier">Maptlolib axes object</span></dt><dd><p>3D Matplotlib axis to adjust</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Visualisation.volume_img">
+<span id="unwrap3d-visualisation-volume-img-module"></span><h2>unwrap3D.Visualisation.volume_img module<a class="headerlink" href="#module-unwrap3D.Visualisation.volume_img" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Visualisation.volume_img.montage_vol_proj">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Visualisation.volume_img.</span></span><span class="sig-name descname"><span class="pre">montage_vol_proj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">vol</span></em>, <em class="sig-param"><span class="pre">proj_fn=&lt;function</span> <span class="pre">amax&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Visualisation/volume_img.html#montage_vol_proj"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Visualisation.volume_img.montage_vol_proj" title="Permalink to this definition"></a></dt>
+<dd><p>Given a 3D grayscale volumetric imageand a projection function such as np.max, generates projected views onto x-y, x-z, y-z and montages them into one view.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol</strong><span class="classifier">(M,N,L) numpy array</span></dt><dd><p>input grayscale volumetric image</p>
+</dd>
+<dt><strong>proj_fn</strong><span class="classifier">Python function</span></dt><dd><p>this is any suitable projection function that allows the call format, proj_fn(vol, axis=0) to generate a 2D projection image.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>montage_img</strong><span class="classifier">(N+M, L+L) 2D numpy array</span></dt><dd><p>montaged 2D image which puts [top left] view_12, [top right] view_02, [bottom left] view_01</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Visualisation">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Visualisation" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

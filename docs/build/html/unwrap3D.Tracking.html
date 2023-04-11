@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Tracking package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Tracking package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Tracking.tracking">unwrap3D.Tracking.tracking module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Tracking">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Tracking package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Tracking.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-tracking-package">
+<h1>unwrap3D.Tracking package<a class="headerlink" href="#unwrap3d-tracking-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Tracking.tracking">
+<span id="unwrap3d-tracking-tracking-module"></span><h2>unwrap3D.Tracking.tracking module<a class="headerlink" href="#module-unwrap3D.Tracking.tracking" title="Permalink to this headline"></a></h2>
+<p>Created on Fri Jul 15 16:50:05 2022</p>
+<p>&#64;author: felix</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.Eval_dense_optic_flow">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">Eval_dense_optic_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">present</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#Eval_dense_optic_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.Eval_dense_optic_flow" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the optical flow using Farnebacks Method</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>prev</strong><span class="classifier">numpy array</span></dt><dd><p>previous frame, m x n image</p>
+</dd>
+<dt><strong>present</strong><span class="classifier">numpy array</span></dt><dd><p>current frame, m x n image</p>
+</dd>
+<dt><strong>params</strong><span class="classifier">Python dict</span></dt><dd><p>a dict object to pass all algorithm parameters. Fields are the same as that in the opencv documentation, <a class="reference external" href="https://docs.opencv.org/2.4/modules/video/doc/motion_analysis_and_object_tracking.html">https://docs.opencv.org/2.4/modules/video/doc/motion_analysis_and_object_tracking.html</a>. Our recommended starting values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>params[‘pyr_scale’] = 0.5</p></li>
+<li><p>params[‘levels’] = 3</p></li>
+<li><p>params[‘winsize’] = 15</p></li>
+<li><p>params[‘iterations’] = 3</p></li>
+<li><p>params[‘poly_n’] = 5</p></li>
+<li><p>params[‘poly_sigma’] = 1.2</p></li>
+<li><p>params[‘flags’] = 0</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>flow</strong><span class="classifier">finds the displacement field between frames, prev and present such that <span class="math notranslate nohighlight">\(\mathrm{prev}(y,x) = \mathrm{next}(y+\mathrm{flow}(y,x)[1], x+\mathrm{flow}(y,x)[0])\)</span> where (x,y) is the cartesian coordinates of the image.</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.assign_label_detection_to_track_frame_by_frame">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">assign_label_detection_to_track_frame_by_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_array_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_detections_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_iou</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#assign_label_detection_to_track_frame_by_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.assign_label_detection_to_track_frame_by_frame" title="Permalink to this definition"></a></dt>
+<dd><p>bbox_array_time: N_tracks x N_frames x 4
+bbox_detections_time: N_frames list</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.bbox_iou_corner_xy">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">bbox_iou_corner_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bboxes1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bboxes2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#bbox_iou_corner_xy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.bbox_iou_corner_xy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.bbox_scalar_2_array">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">bbox_scalar_2_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vid_scalar_tracks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nframes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#bbox_scalar_2_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.bbox_scalar_2_array" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.bbox_tracks_2_array">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">bbox_tracks_2_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vid_bbox_tracks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nframes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#bbox_tracks_2_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.bbox_tracks_2_array" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.calculate_iou_matrix_time">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">calculate_iou_matrix_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">box_arr1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_arr2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-09</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#calculate_iou_matrix_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.calculate_iou_matrix_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.compute_labeled_to_unlabeled_track">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">compute_labeled_to_unlabeled_track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_label_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#compute_labeled_to_unlabeled_track"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.compute_labeled_to_unlabeled_track" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.extract_optflow">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">extract_optflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optical_flow_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[2,</span> <span class="pre">98]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#extract_optflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.extract_optflow" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.filter_nan_tracks">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">filter_nan_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundary</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#filter_nan_tracks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.filter_nan_tracks" title="Permalink to this definition"></a></dt>
+<dd><p>function removes all tracks that for the entire duration is only nan.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.get_id_cliques">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">get_id_cliques</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#get_id_cliques"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.get_id_cliques" title="Permalink to this definition"></a></dt>
+<dd><p>given a list of identities, merges the common ids into a cluster/clique</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.get_iou">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">get_iou</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bb1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bb2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#get_iou"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.get_iou" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the Intersection over Union (IoU) of two bounding boxes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>bb1</strong><span class="classifier">dict</span></dt><dd><p>Keys: {‘x1’, ‘x2’, ‘y1’, ‘y2’}
+The (x1, y1) position is at the top left corner,
+the (x2, y2) position is at the bottom right corner</p>
+</dd>
+<dt><strong>bb2</strong><span class="classifier">dict</span></dt><dd><p>Keys: {‘x1’, ‘x2’, ‘y1’, ‘y2’}
+The (x, y) position is at the top left corner,
+the (x2, y2) position is at the bottom right corner</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>in [0, 1]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.iou_bbox_tracks">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">iou_bbox_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tra_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tra_2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#iou_bbox_tracks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.iou_bbox_tracks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.iou_boundary_tracks">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">iou_boundary_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tra_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tra_2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#iou_boundary_tracks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.iou_boundary_tracks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.moving_average_bbox_tracks">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">moving_average_bbox_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">list_tracks</span></em>, <em class="sig-param"><span class="pre">avg_func=&lt;function</span> <span class="pre">nanmean&gt;</span></em>, <em class="sig-param"><span class="pre">winsize=3</span></em>, <em class="sig-param"><span class="pre">min_winsize_prop=0.1</span></em>, <em class="sig-param"><span class="pre">pad_mode='edge'</span></em>, <em class="sig-param"><span class="pre">*args</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#moving_average_bbox_tracks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.moving_average_bbox_tracks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.nan_stability_score_tracks">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">nan_stability_score_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#nan_stability_score_tracks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.nan_stability_score_tracks" title="Permalink to this definition"></a></dt>
+<dd><p>simply the fraction of frames for which we were able to successfully track the object.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.non_maxlen_track_suppression_filter">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">non_maxlen_track_suppression_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">obj_vid</span></em>, <em class="sig-param"><span class="pre">org_tracks_list</span></em>, <em class="sig-param"><span class="pre">track_overlap_thresh=0.25</span></em>, <em class="sig-param"><span class="pre">max_obj_frames=5</span></em>, <em class="sig-param"><span class="pre">obj_mean_func=&lt;function</span> <span class="pre">nanmean&gt;</span></em>, <em class="sig-param"><span class="pre">fast_comp=True</span></em>, <em class="sig-param"><span class="pre">debug_viz=False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#non_maxlen_track_suppression_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.non_maxlen_track_suppression_filter" title="Permalink to this definition"></a></dt>
+<dd><dl>
+<dt>Combines the utility codes above to filter the raw organoid boundary tracks. extends to single and multiple channels.  </dt><dd><p>need to absolutely change this…</p>
+<p>obj_vid: the metric to score objectness ….</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.non_stable_track_suppression_filter">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">non_stable_track_suppression_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">obj_vid</span></em>, <em class="sig-param"><span class="pre">org_tracks_list</span></em>, <em class="sig-param"><span class="pre">track_overlap_thresh=0.25</span></em>, <em class="sig-param"><span class="pre">weight_nan=1.0</span></em>, <em class="sig-param"><span class="pre">weight_smooth=0.1</span></em>, <em class="sig-param"><span class="pre">max_obj_frames=5</span></em>, <em class="sig-param"><span class="pre">obj_mean_func=&lt;function</span> <span class="pre">nanmean&gt;</span></em>, <em class="sig-param"><span class="pre">smoothness_mean_func=&lt;function</span> <span class="pre">nanmean&gt;</span></em>, <em class="sig-param"><span class="pre">fast_comp=True</span></em>, <em class="sig-param"><span class="pre">debug_viz=False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#non_stable_track_suppression_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.non_stable_track_suppression_filter" title="Permalink to this definition"></a></dt>
+<dd><dl>
+<dt>Combines the utility codes above to filter the raw organoid boundary tracks. extends to single and multiple channels.  </dt><dd><p>need to absolutely change this…</p>
+<p>obj_vid: the metric to score objectness ….</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.objectness_score_tracks_time">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">objectness_score_tracks_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">track</span></em>, <em class="sig-param"><span class="pre">vid_score</span></em>, <em class="sig-param"><span class="pre">mean_func=&lt;function</span> <span class="pre">nanmean&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#objectness_score_tracks_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.objectness_score_tracks_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.pairwise_iou_tracks">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">pairwise_iou_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundaries_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#pairwise_iou_tracks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.pairwise_iou_tracks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.pairwise_iou_tracks_fast">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">pairwise_iou_tracks_fast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">boundaries_list</span></em>, <em class="sig-param"><span class="pre">eps=1e-09</span></em>, <em class="sig-param"><span class="pre">return_bbox=False</span></em>, <em class="sig-param"><span class="pre">avg_func=&lt;function</span> <span class="pre">nanmean&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#pairwise_iou_tracks_fast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.pairwise_iou_tracks_fast" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.predict_new_boxes_flow_tf">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">predict_new_boxes_flow_tf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boxes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flow</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#predict_new_boxes_flow_tf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.predict_new_boxes_flow_tf" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.remove_very_large_bbox">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">remove_very_large_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boxes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'density'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fast'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#remove_very_large_bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.remove_very_large_bbox" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.rescale_intensity_percent">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">rescale_intensity_percent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[2,</span> <span class="pre">98]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#rescale_intensity_percent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.rescale_intensity_percent" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.smoothness_score_tracks_iou">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">smoothness_score_tracks_iou</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">track</span></em>, <em class="sig-param"><span class="pre">mean_func=&lt;function</span> <span class="pre">nanmean&gt;</span></em>, <em class="sig-param"><span class="pre">second_order=False</span></em>, <em class="sig-param"><span class="pre">use_bbox=True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#smoothness_score_tracks_iou"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.smoothness_score_tracks_iou" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.track_bleb_bbox">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">track_bleb_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vid_flow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vid_bboxes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iou_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_aspect_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dense_bbox_cover</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_tra_len_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_tra_lifetime_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_viz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_eccentric_bbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveanalysisfolder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#track_bleb_bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.track_bleb_bbox" title="Permalink to this definition"></a></dt>
+<dd><p>uses optical flow and registration as a predictor to improve tracking over occlusion.
+# we should preserve the bbox coordinates + the given probability from yolo…..  that way we can always do further processing?</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.track_iou_time">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">track_iou_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#track_iou_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.track_iou_time" title="Permalink to this definition"></a></dt>
+<dd><p>frame to frame iou score</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.tracks2Darray_to_3Darray">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">tracks2Darray_to_3Darray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracks2D_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uv_params_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#tracks2Darray_to_3Darray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.tracks2Darray_to_3Darray" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.unique_pts">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">unique_pts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#unique_pts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.unique_pts" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Tracking.tracking.unpad_bbox_tracks">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Tracking.tracking.</span></span><span class="sig-name descname"><span class="pre">unpad_bbox_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_uniq_tracks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nframes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Tracking/tracking.html#unpad_bbox_tracks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Tracking.tracking.unpad_bbox_tracks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-unwrap3D.Tracking">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Tracking" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

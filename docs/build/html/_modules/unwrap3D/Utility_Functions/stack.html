@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Utility_Functions.stack &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Utility_Functions.stack</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Utility_Functions.stack</h1><div class="highlight"><pre>
+<span></span>        
+<div class="viewcode-block" id="bounding_box"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.stack.bounding_box">[docs]</a><span class="k">def</span> <span class="nf">bounding_box</span><span class="p">(</span><span class="n">mask3D</span><span class="p">):</span>
+
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given a binary mask in 3D, locate the xyz corners of the tightest bounding box without geometric transformation.  </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mask3D : (M,N,L) binary np.bool array </span>
+<span class="sd">        3D binary image to compute the bounding box coordinates for</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bbox : [x1,y1,z1,x2,y2,z2] 1d numpy array </span>
+<span class="sd">        3D bounding box of the given object specified by the &#39;top left&#39; (x1,y1,z1) and &#39;bottom right&#39; (x2,y2,z2) corners in 3D</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">mask3D</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    
+    <span class="n">min_x</span><span class="p">,</span> <span class="n">max_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">min_y</span><span class="p">,</span> <span class="n">max_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">min_z</span><span class="p">,</span> <span class="n">max_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="n">bbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">min_x</span><span class="p">,</span> <span class="n">min_y</span><span class="p">,</span> <span class="n">min_z</span><span class="p">,</span> <span class="n">max_x</span><span class="p">,</span> <span class="n">max_y</span><span class="p">,</span> <span class="n">max_z</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">bbox</span></div>
+    
+    
+<div class="viewcode-block" id="expand_bounding_box"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.stack.expand_bounding_box">[docs]</a><span class="k">def</span> <span class="nf">expand_bounding_box</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">,</span> <span class="n">clip_limits</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">border_x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">border_y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">border_z</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given a bounding box specified with &#39;top left&#39; (x1,y1,z1) and &#39;bottom right&#39; (x2,y2,z2) corners in 3D, return another such bounding box with asymmetrically expanded limits</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bbox3D : [x1,y1,z1,x2,y2,z2] 1d numpy array </span>
+<span class="sd">        original 3D bounding box specified by the &#39;top left&#39; (x1,y1,z1) and &#39;bottom right&#39; (x2,y2,z2) corners in 3D</span>
+<span class="sd">    clip_limits : (M,N,L) integer tuple</span>
+<span class="sd">        the maximum bounds corresponding to the volumetric image size</span>
+<span class="sd">    border : int</span>
+<span class="sd">        the default single scalar for expanding a bounding box, it is overridden in select directions by setting border_x, border_y, border_z the 1st, 2nd, 3rd axes respectively.   </span>
+<span class="sd">    border_x : int</span>
+<span class="sd">        the expansion in the 1st axis</span>
+<span class="sd">    border_y : int </span>
+<span class="sd">        the expansion in the 2nd axis </span>
+<span class="sd">    border_z : int </span>
+<span class="sd">        the expansion in the 3rd axis </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bbox : [x1,y1,z1,x2,y2,z2] 1d numpy array </span>
+<span class="sd">        the coordinates of the expanded 3D bounding box specified by the &#39;top left&#39; (x1,y1,z1) and &#39;bottom right&#39; (x2,y2,z2) corners in 3D</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">clip_x</span><span class="p">,</span> <span class="n">clip_y</span><span class="p">,</span> <span class="n">clip_z</span> <span class="o">=</span> <span class="n">clip_limits</span>
+    
+    <span class="n">new_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_bounds</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">border_x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">border_x</span><span class="p">,</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">border</span><span class="p">,</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">border_x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">border_x</span><span class="p">,</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">border</span><span class="p">,</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">border_y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">border_y</span><span class="p">,</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">border</span><span class="p">,</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">4</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">border_y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">border_y</span><span class="p">,</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">border</span><span class="p">,</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_y</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">border_z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">border_z</span><span class="p">,</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">border</span><span class="p">,</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">5</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">border_z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">border_z</span><span class="p">,</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bbox3D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">border</span><span class="p">,</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clip_z</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">new_bounds</span></div>
+    
+
+<div class="viewcode-block" id="crop_img_2_box"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.stack.crop_img_2_box">[docs]</a><span class="k">def</span> <span class="nf">crop_img_2_box</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">bbox3D</span><span class="p">):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; crop a given 3D volumetric image given a 3D cropping bounding box. Bounding boxes are clipped internally to the size of the volume. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    volume : (M,N,L) numpy array</span>
+<span class="sd">        3D image to crop</span>
+<span class="sd">    bbox3D : [x1,y1,z1,x2,y2,z2] 1d numpy array </span>
+<span class="sd">        3D cropping bounding box specified by the &#39;top left&#39; (x1,y1,z1) and &#39;bottom right&#39; (x2,y2,z2) corners in 3D</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cropped : cropped numpy array</span>
+<span class="sd">        volume[x1:x2,y1:y2,z1:z2]</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+    <span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">z1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span><span class="n">z2</span> <span class="o">=</span> <span class="n">bbox3D</span>
+    
+    <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">M</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">M</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">z2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">cropped</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="n">x1</span><span class="p">:</span><span class="n">x2</span><span class="p">,</span><span class="n">y1</span><span class="p">:</span><span class="n">y2</span><span class="p">,</span><span class="n">z1</span><span class="p">:</span><span class="n">z2</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">cropped</span></div>
+    
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

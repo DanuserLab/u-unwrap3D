@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Analysis_Functions package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Analysis_Functions package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Analysis_Functions.timeseries">unwrap3D.Analysis_Functions.timeseries module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Analysis_Functions.topography">unwrap3D.Analysis_Functions.topography module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Analysis_Functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Analysis_Functions package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Analysis_Functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-analysis-functions-package">
+<h1>unwrap3D.Analysis_Functions package<a class="headerlink" href="#unwrap3d-analysis-functions-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Analysis_Functions.timeseries">
+<span id="unwrap3d-analysis-functions-timeseries-module"></span><h2>unwrap3D.Analysis_Functions.timeseries module<a class="headerlink" href="#module-unwrap3D.Analysis_Functions.timeseries" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.baseline_als">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">baseline_als</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#baseline_als"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.baseline_als" title="Permalink to this definition"></a></dt>
+<dd><p>Estimates a baseline signal using asymmetric least squares. It can also be used for generic applications where a 1D signal requires smoothing.
+Specifically the baseline signal, <span class="math notranslate nohighlight">\(z\)</span> is the solution to the following optimization problem</p>
+<div class="math notranslate nohighlight">
+\[z = arg\,min_z \{w(y-z)^2 + \lambda\sum(\Delta z)^2\}\]</div>
+<p>where <span class="math notranslate nohighlight">\(y\)</span> is the input signal, <span class="math notranslate nohighlight">\(\Delta z\)</span> is the 2nd derivative, <span class="math notranslate nohighlight">\(\lambda\)</span> is the smoothing regularizer and <span class="math notranslate nohighlight">\(w\)</span> is an asymmetric weighting</p>
+<div class="math notranslate nohighlight">
+\[w = 
+\Biggl \lbrace 
+{ 
+p ,\text{ if } 
+  {y&gt;z}
+\atop 
+1-p, \text{ otherwise } 
+}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>signal</strong><span class="classifier">1D numpy array</span></dt><dd><p>The 1D signal to estimate a baseline signal.</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</p>
+</dd>
+<dt><strong>lam</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline</p>
+</dd>
+<dt><strong>niter: int</strong></dt><dd><p>The number of iterations to run the algorithm. Only a few iterations is required generally.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">1D numpy array</span></dt><dd><p>the estimated 1D baseline signal</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Analysis_Functions.timeseries.baseline_correction_time" title="unwrap3D.Analysis_Functions.timeseries.baseline_correction_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.timeseries.baseline_correction_time</span></code></a></dt><dd><p>Application of this method to estimate a baseline for a 1D signal and correct the signal e.g. for photobleaching</p>
+</dd>
+<dt><a class="reference internal" href="#unwrap3D.Analysis_Functions.timeseries.decompose_nonlinear_time_series" title="unwrap3D.Analysis_Functions.timeseries.decompose_nonlinear_time_series"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.timeseries.decompose_nonlinear_time_series</span></code></a></dt><dd><p>Application of this method to decompose a 1D signal into smooth baseline + high frequency fluctuations.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.baseline_correction_time">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">baseline_correction_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#baseline_correction_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.baseline_correction_time" title="Permalink to this definition"></a></dt>
+<dd><p>Corrects the mean signal using weighted least square means regression to infer a baseline signal. 
+Specifically we estimate the baseline signal, <span class="math notranslate nohighlight">\(z\)</span> as the solution to the following optimization problem</p>
+<div class="math notranslate nohighlight">
+\[z = arg\,min_z \{w(y-z)^2 + \lambda\sum(\Delta z)^2\}\]</div>
+<p>where <span class="math notranslate nohighlight">\(y\)</span> is the input signal, <span class="math notranslate nohighlight">\(\Delta z\)</span> is the 2nd derivative, <span class="math notranslate nohighlight">\(\lambda\)</span> is the smoothing regularizer and <span class="math notranslate nohighlight">\(w\)</span> is an asymmetric weighting</p>
+<div class="math notranslate nohighlight">
+\[w = 
+\Biggl \lbrace 
+{ 
+p ,\text{ if } 
+  {y&gt;z}
+\atop 
+1-p, \text{ otherwise } 
+}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>signal</strong><span class="classifier">1D numpy array</span></dt><dd><p>The 1D signal to estimate a baseline signal.</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</p>
+</dd>
+<dt><strong>lam</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline</p>
+</dd>
+<dt><strong>niter: int</strong></dt><dd><p>The number of iterations to run the algorithm. Only a few iterations is required generally.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>correction_factor</strong><span class="classifier">1D numpy array</span></dt><dd><p>the multiplication factor at each timepoint to correct the signal</p>
+</dd>
+<dt><strong>(baseline, corrected)</strong><span class="classifier">2-tuple of 1D numpy array</span></dt><dd><p>baseline is the inferred smooth baseline signal, 
+corrected is the multiplicatively corrected signal using the estimated correction factor from the baseline</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Analysis_Functions.timeseries.baseline_als" title="unwrap3D.Analysis_Functions.timeseries.baseline_als"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.timeseries.baseline_als</span></code></a></dt><dd><p>The weighted least squares method used to estimate the baseline</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.decompose_nonlinear_time_series">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">decompose_nonlinear_time_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#decompose_nonlinear_time_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.decompose_nonlinear_time_series" title="Permalink to this definition"></a></dt>
+<dd><p>Decomposes a given signal into smooth + residual components. The smooth signal is estimated using asymmetric least squares.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">1D numpy array</span></dt><dd><p>The input 1D signal to decompose</p>
+</dd>
+<dt><strong>lam</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</p>
+</dd>
+<dt><strong>niter: int</strong></dt><dd><p>The number of iterations to run the algorithm. Only a few iterations is required generally.</p>
+</dd>
+<dt><strong>padding: int</strong></dt><dd><p>Padding window to dampen boundary conditions. If None, the entire signal is used for padding otherwise the specified window is used to pad. 
+Reflecting boundary conditions are used for padding.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">1D numpy array</span></dt><dd><p>the estimated 1D baseline signal</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.exponential_decay_correction_time">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">exponential_decay_correction_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'soft_l1'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#exponential_decay_correction_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.exponential_decay_correction_time" title="Permalink to this definition"></a></dt>
+<dd><p>Corrects the mean intensities of an input video by fitting an exponential decay curve. The exponential is of the mathematical form</p>
+<div class="math notranslate nohighlight">
+\[y = Ae^{Bt} + C\]</div>
+<p>where A, B, C are constants, t is time and y the signal. 
+Robust regression is used for fitting. See <a class="reference external" href="https://scipy-cookbook.readthedocs.io/items/robust_regression.html">https://scipy-cookbook.readthedocs.io/items/robust_regression.html</a> for more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>signal</strong><span class="classifier">1D numpy array</span></dt><dd><p>The 1D signal to fit an exponential function.</p>
+</dd>
+<dt><strong>time_subset</strong><span class="classifier">1D numpy array</span></dt><dd><p>A 1D array to mask the fitting to specific contiguous timepoints</p>
+</dd>
+<dt><strong>f_scale</strong><span class="classifier">float</span></dt><dd><p>The regularisation parameter in the robust fitting</p>
+</dd>
+<dt><strong>loss_type: str</strong></dt><dd><p>One of the 5 robust loss types available in scipy, <a class="reference external" href="https://scipy-cookbook.readthedocs.io/items/robust_regression.html">https://scipy-cookbook.readthedocs.io/items/robust_regression.html</a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>correction_factor</strong><span class="classifier">1D numpy array</span></dt><dd><p>the multiplication factor at each timepoint to correct the signal</p>
+</dd>
+<dt><strong>(res_robust.x, robust_y)</strong><span class="classifier">2-tuple</span></dt><dd><p>res_robust.x returns the fitted model coefficients for reuse, 
+robust_y is the prediction of the signal using the fitted model coefficients</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Analysis_Functions.timeseries.baseline_correction_time" title="unwrap3D.Analysis_Functions.timeseries.baseline_correction_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.timeseries.baseline_correction_time</span></code></a></dt><dd><p>Use weighted least squares to estimate a baseline signal that can be used for correction</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.fit_spline">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">fit_spline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#fit_spline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.fit_spline" title="Permalink to this definition"></a></dt>
+<dd><p>Fitting a univariate smoothing spline to x vs y univariate data curve</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">(N,) array</span></dt><dd><p>the 1d x- variables</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">(N,) array</span></dt><dd><p>the 1d y- variables</p>
+</dd>
+<dt><strong>smoothing</strong><span class="classifier">scalar</span></dt><dd><p>Optional control of smoothing, higher gives more smoothing. If None, it is automatically set based on standard deviation of y.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>x, y_norm, interp_s</strong><span class="classifier">list of (N,) arrays</span></dt><dd><p>the 1d x- variables, normalised maximum normalized y_norm=y/y_max variables used to fit and interp_s the smooth y curve</p>
+</dd>
+<dt><strong>spl</strong><span class="classifier">scipy spline instance object</span></dt><dd><p>the interpolating spline object fitted on x, y_norm</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.linear_fit">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">linear_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#linear_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.linear_fit" title="Permalink to this definition"></a></dt>
+<dd><p>Ordinary linear least regressions fit to a 1d array of x and y data</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">numpy array</span></dt><dd><p>the independent variable</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">numpy array</span></dt><dd><p>the dependent variable</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>opts</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">LinregressResult</span></code> instance</span></dt><dd><p>The return value is an object with the following attributes</p>
+<dl class="simple">
+<dt>slope<span class="classifier">float</span></dt><dd><p>Slope of the regression line.</p>
+</dd>
+<dt>intercept<span class="classifier">float</span></dt><dd><p>Intercept of the regression line.</p>
+</dd>
+<dt>rvalue<span class="classifier">float</span></dt><dd><p>The Pearson correlation coefficient. The square of <code class="docutils literal notranslate"><span class="pre">rvalue</span></code>
+is equal to the coefficient of determination.</p>
+</dd>
+<dt>pvalue<span class="classifier">float</span></dt><dd><p>The p-value for a hypothesis test whose null hypothesis is
+that the slope is zero, using Wald Test with t-distribution of
+the test statistic.</p>
+</dd>
+<dt>stderr<span class="classifier">float</span></dt><dd><p>Standard error of the estimated slope (gradient), under the
+assumption of residual normality.</p>
+</dd>
+<dt>intercept_stderr<span class="classifier">float</span></dt><dd><p>Standard error of the estimated intercept, under the assumption
+of residual normality.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.spatialcorr_k_neighbors">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">spatialcorr_k_neighbors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#spatialcorr_k_neighbors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.spatialcorr_k_neighbors" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the spatial correlation of timeseries for a defined number of steps away. That is it assumes the distance has been pre-discretised and the k_graph represents the relevant neighbors at different distance steps away for a timeseries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>timeseries_array</strong><span class="classifier">(NxT) of 1D timeseries</span></dt><dd><p>A input list of 1D cross-correlation curves of different lengths</p>
+</dd>
+<dt><strong>k_graph</strong><span class="classifier">N x (adjacency list of neighbors)</span></dt><dd><p>adjacency list of each timeseries for N radial spatial steps</p>
+</dd>
+<dt><strong>norm</strong><span class="classifier">bool</span></dt><dd><p>if True, returns the zero-normalised correlation coefficient in [-1.,1.]</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small constant to prevent zero division when norm=True</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vertex_means_pearsonr</strong><span class="classifier">1d numpy array</span></dt><dd><p>The average spatial correlation over all timeseries at the given spatial steps away</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.stack_xcorr_curves">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">stack_xcorr_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xcorr_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#stack_xcorr_curves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.stack_xcorr_curves" title="Permalink to this definition"></a></dt>
+<dd><p>Compiles a list of cross-correlation curves of different temporal lengths with NaN representing missing values assuming the midpoint of each curves is time lag = 0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>xcorr_list</strong><span class="classifier">list of 1D arrays</span></dt><dd><p>A input list of 1D cross-correlation curves of different lengths</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>out_array</strong><span class="classifier">numpy array</span></dt><dd><p>a compiled N x T matrix, where N is the number of curves, and T is the length of the longest curve.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.xcorr">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">xcorr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#xcorr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.xcorr" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the discrete crosscorrelation of two read 1D signals as defined by</p>
+<div class="math notranslate nohighlight">
+\[c_k = \sum_n x_{n+k} \cdot y_n\]</div>
+<p>If norm=True, <span class="math notranslate nohighlight">\(\hat{x}=\frac{x-\mu}{\sigma}\)</span> and <span class="math notranslate nohighlight">\(\hat{y}=\frac{y-\mu}{\sigma}\)</span> is normalised and the zero-normalised autocorrelation is computed,</p>
+<div class="math notranslate nohighlight">
+\[c_k = \frac{1}{T}\sum_n \hat{x}_{n+k} \cdot \hat{y}_n\]</div>
+<p>where <span class="math notranslate nohighlight">\(T\)</span> is the length of the signal <span class="math notranslate nohighlight">\(x\)</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">1D numpy array</span></dt><dd><p>The input 1D signal</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">1D numpy array</span></dt><dd><p>The optional second 1D signal. If None, the autocorrelation of x is computed.</p>
+</dd>
+<dt><strong>norm</strong><span class="classifier">bool</span></dt><dd><p>If true, the normalized autocorrelation is computed such that all values are in the range [-1.,1.]</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small constant to prevent zero division when norm=True</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>result</strong><span class="classifier">1D numpy array</span></dt><dd><p>the 1-sided autocorrelation if y=None, or the full cross-correlation otherwise</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The definition of correlation above is not unique and sometimes correlation
+may be defined differently. Another common definition is:</p>
+<div class="math notranslate nohighlight">
+\[c'_k = \sum_n x_{n} \cdot {y_{n+k}}\]</div>
+<p>which is related to <span class="math notranslate nohighlight">\(c_k\)</span> by <span class="math notranslate nohighlight">\(c'_k = c_{-k}\)</span>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.timeseries.xcorr_timeseries_set_1d">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.timeseries.</span></span><span class="sig-name descname"><span class="pre">xcorr_timeseries_set_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries_array1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeseries_array2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/timeseries.html#xcorr_timeseries_set_1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.timeseries.xcorr_timeseries_set_1d" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the discrete crosscorrelation of two read 1D signals as defined by</p>
+<div class="math notranslate nohighlight">
+\[c_k = \sum_n x_{n+k} \cdot y_n\]</div>
+<p>If norm=True, <span class="math notranslate nohighlight">\(\hat{x}=\frac{x-\mu}{\sigma}\)</span> and <span class="math notranslate nohighlight">\(\hat{y}=\frac{y-\mu}{\sigma}\)</span> is normalised and the zero-normalised autocorrelation is computed,</p>
+<div class="math notranslate nohighlight">
+\[c_k = \frac{1}{T}\sum_n \hat{x}_{n+k} \cdot \hat{y}_n\]</div>
+<p>where <span class="math notranslate nohighlight">\(T\)</span> is the length of the signal <span class="math notranslate nohighlight">\(x\)</span></p>
+<p>given two arrays or lists of 1D signals. The signals in the individual arrays need not have the same temporal length. If they do, by setting stack_final=True, the result can be returned as a numpy array else will be returned as a list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>timeseries_array1</strong><span class="classifier">array_like of 1D signals</span></dt><dd><p>A input list of 1D signals</p>
+</dd>
+<dt><strong>timeseries_array2</strong><span class="classifier">array_like of 1D signals</span></dt><dd><p>An optional second 1D signal set. If None, the autocorrelation of each timeseries in timeseries_array1 is computed.</p>
+</dd>
+<dt><strong>norm</strong><span class="classifier">bool</span></dt><dd><p>If true, the normalized autocorrelation is computed such that all values are in the range [-1.,1.]</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small constant to prevent zero division when norm=True</p>
+</dd>
+<dt><strong>stack_final</strong><span class="classifier">bool</span></dt><dd><p>if timeseries_array1 or timeseries_array2 are numpy arrays with individual signals within of equal temoporal length, setting this flag to True, will return a numpy array else returns a list of cross-correlation curves</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>xcorr_out</strong><span class="classifier">array_list of 1D numpy array</span></dt><dd><p>the 1-sided autocorrelation if y=None, or the full cross-correlation otherwise</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The definition of correlation above is not unique and sometimes correlation
+may be defined differently. Another common definition is:</p>
+<div class="math notranslate nohighlight">
+\[c'_k = \sum_n x_{n} \cdot {y_{n+k}}\]</div>
+<p>which is related to <span class="math notranslate nohighlight">\(c_k\)</span> by <span class="math notranslate nohighlight">\(c'_k = c_{-k}\)</span>.</p>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Analysis_Functions.topography">
+<span id="unwrap3d-analysis-functions-topography-module"></span><h2>unwrap3D.Analysis_Functions.topography module<a class="headerlink" href="#module-unwrap3D.Analysis_Functions.topography" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.baseline_airPLS2D">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">baseline_airPLS2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#baseline_airPLS2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.baseline_airPLS2D" title="Permalink to this definition"></a></dt>
+<dd><p>Estimates a 1D baseline signal <span class="math notranslate nohighlight">\(z=g(x_1,x_2,...,x_n)\)</span> to a 1D input signal <span class="math notranslate nohighlight">\(y=f(x_1,x_2,...,x_n)\)</span> parametrized by <span class="math notranslate nohighlight">\(n\)</span> dimensions  using Adaptive iteratively reweighted penalized least squares for baseline fitting. It can also be used for generic applications where a multidimensional image requires smoothing.
+Specifically the baseline signal, <span class="math notranslate nohighlight">\(z\)</span> is the solution to the following optimization problem</p>
+<div class="math notranslate nohighlight">
+\[z = arg\,min_z \{w(y-z)^2 + \lambda\sum(\Delta z)^2\}\]</div>
+<p>where <span class="math notranslate nohighlight">\(y\)</span> is the input signal, <span class="math notranslate nohighlight">\(\Delta z\)</span> is the 2nd derivative or Laplacian operator, <span class="math notranslate nohighlight">\(\lambda\)</span> is the smoothing regularizer and <span class="math notranslate nohighlight">\(w\)</span> is an asymmetric weighting</p>
+<div class="math notranslate nohighlight">
+\[w_i = 
+\Biggl \lbrace 
+{ 
+0 ,\text{ if } 
+  {y_i\ge z_i}
+\atop 
+e^{t(y_i-z_i)/|\textbf{d}|}, \text{ otherwise } 
+}\]</div>
+<p>where the vector <span class="math notranslate nohighlight">\(\textbf{d}\)</span> consists of negative elements of the subtraction, <span class="math notranslate nohighlight">\(y - z\)</span> and <span class="math notranslate nohighlight">\(t\)</span> is the iteration number.</p>
+<p>Instead of constant weights in airPLS, the weight <span class="math notranslate nohighlight">\(w\)</span> is adaptively weighted for faster convergence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>signal</strong><span class="classifier">1D signal</span></dt><dd><p>The 1D signal to estimate a baseline signal.</p>
+</dd>
+<dt><strong>D</strong><span class="classifier">(NxN) sparse Laplacian matrix</span></dt><dd><p>the Laplacian matrix for the signal which captures the multidimensional structure of the signal e.g. the grid graph for a 2D or 3D image or the cotangent laplacian for a mesh.</p>
+</dd>
+<dt><strong>lam</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</p>
+</dd>
+<dt><strong>niter: int</strong></dt><dd><p>The number of iterations to run the algorithm. Only a few iterations is required generally.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">1D numpy array</span></dt><dd><p>the estimated 1D baseline signal</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.baseline_als_Laplacian">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">baseline_als_Laplacian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#baseline_als_Laplacian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.baseline_als_Laplacian" title="Permalink to this definition"></a></dt>
+<dd><p>Estimates a 1D baseline signal <span class="math notranslate nohighlight">\(z=g(x_1,x_2,...,x_n)\)</span> to a 1D input signal <span class="math notranslate nohighlight">\(y=f(x_1,x_2,...,x_n)\)</span> parametrized by <span class="math notranslate nohighlight">\(n\)</span> dimensions  using asymmetric least squares. It can also be used for generic applications where a multidimensional image requires smoothing.
+Specifically the baseline signal, <span class="math notranslate nohighlight">\(z\)</span> is the solution to the following optimization problem</p>
+<div class="math notranslate nohighlight">
+\[z = arg\,min_z \{w(y-z)^2 + \lambda\sum(\Delta z)^2\}\]</div>
+<p>where <span class="math notranslate nohighlight">\(y\)</span> is the input signal, <span class="math notranslate nohighlight">\(\Delta z\)</span> is the 2nd derivative or Laplacian operator, <span class="math notranslate nohighlight">\(\lambda\)</span> is the smoothing regularizer and <span class="math notranslate nohighlight">\(w\)</span> is an asymmetric weighting</p>
+<div class="math notranslate nohighlight">
+\[w_i = 
+\Biggl \lbrace 
+{ 
+p ,\text{ if } 
+  {y_i&gt;z_i}
+\atop 
+1-p, \text{ otherwise } 
+}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>signal</strong><span class="classifier">1D signal</span></dt><dd><p>The 1D signal to estimate a baseline signal.</p>
+</dd>
+<dt><strong>D</strong><span class="classifier">(NxN) sparse Laplacian matrix</span></dt><dd><p>the Laplacian matrix for the signal which captures the multidimensional structure of the signal e.g. the grid graph for a 2D or 3D image or the cotangent laplacian for a mesh.</p>
+</dd>
+<dt><strong>lam</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</p>
+</dd>
+<dt><strong>niter: int</strong></dt><dd><p>The number of iterations to run the algorithm. Only a few iterations is required generally.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">1D numpy array</span></dt><dd><p>the estimated 1D baseline signal</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.estimate_base_topography_uv_img">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">estimate_base_topography_uv_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth_binary</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#estimate_base_topography_uv_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.estimate_base_topography_uv_img" title="Permalink to this definition"></a></dt>
+<dd><p>Given a binary in topography space, this function attempts to derive a 1-to-1 height map of the basal surface by projecting straight lines in d at every (u,v) pixel position to find contiguous stretches of intracellular space. The basal surface is given by the highest d in the longest stretch of each (u,v) position 
+The resulting height map is intended to be used for downstream processing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>depth_binary</strong><span class="classifier">(DxUxV) array</span></dt><dd><p>a binary volume in topography space where 1 indicates intracellular space and 0 is background ( extracellular )</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>heigh_func</strong><span class="classifier">(UxV) array</span></dt><dd><p>a grayscale image with intensity = to the height coordinate in d i.e. we express height as a function of (u,v) position, height = f(u,v)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.inpaint_topographical_height_image">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">inpaint_topographical_height_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_labels_binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_smooth_ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_smooth_ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background_height_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpaint_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Telea'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inpaint_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spherical_pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#inpaint_topographical_height_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.inpaint_topographical_height_image" title="Permalink to this definition"></a></dt>
+<dd><p>Given a topographical binary where 1 at (d,u,v) denotes the cell describe the cell surface as a height map where <span class="math notranslate nohighlight">\(d=f(u,v)\)</span> and ‘holes’ are represented with <span class="math notranslate nohighlight">\(d\le h_{thresh}\)</span>, where <span class="math notranslate nohighlight">\(h_{thresh}\)</span> is a minimal height threshold, use image inpainting to ‘infill’ the holes to obtain a complete surface.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>vol_labels_binary</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>unwrapped topographic binary volume</p>
+</dd>
+<dt><strong>pre_smooth_ksize</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>gaussian <span class="math notranslate nohighlight">\(\sigma\)</span> for presmoothing the height image</p>
+</dd>
+<dt><strong>post_smooth_ksize</strong><span class="classifier">scalar</span></dt><dd><p>gaussian <span class="math notranslate nohighlight">\(\sigma\)</span> for postsmoothing the inpainted height image</p>
+</dd>
+<dt><strong>background_height_thresh: scalar</strong></dt><dd><p>all (u,v) pixels with height less than the specified threshold (<span class="math notranslate nohighlight">\(d\le h_{thresh}\)</span>) is marked as ‘holes’ for inpainting</p>
+</dd>
+<dt><strong>inpaint_method</strong><span class="classifier">str</span></dt><dd><p>one of two classical inpainting methods implemented in <a class="reference external" href="https://docs.opencv.org/3.4/df/d3d/tutorial_py_inpainting.html">OpenCV</a>.</p>
+<dl class="simple">
+<dt>‘Telea’<span class="classifier"></span></dt><dd><p>Uses Fast Marching method of <a class="reference external" href="https://docs.opencv.org/3.4/d7/d8b/group__photo__inpaint.html#gga8c5f15883bd34d2537cb56526df2b5d6a892824c38e258feb5e72f308a358d52e">Telea et al.</a>.</p>
+</dd>
+<dt>‘NS’<span class="classifier"></span></dt><dd><p>Uses Navier-Stokes method of <a class="reference external" href="https://docs.opencv.org/3.4/d7/d8b/group__photo__inpaint.html#gga8c5f15883bd34d2537cb56526df2b5d6a892824c38e258feb5e72f308a358d52e">Bertalmio et al.</a>.</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>spherical_pad</strong><span class="classifier">int</span></dt><dd><p>the number of pixels to spherically pad, to soft-mimic the closed spherical boundary conditions in original (x,y,z) space</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>infill_height</strong><span class="classifier">(UxV) numpy array</span></dt><dd><p>Inpainted height image representing the hole-completed topographic surface</p>
+</dd>
+<dt>(background_height, infill_mask) :</dt><dd><dl class="simple">
+<dt>background_height<span class="classifier">(UxV) numpy array</span></dt><dd><p>Height image of the input surface</p>
+</dd>
+<dt>infill_mask<span class="classifier">(UxV) numpy array</span></dt><dd><p>Binary image where 1 denotes the region to be infilled</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.mask_volume_dense_propped_labels_with_height_image">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">mask_volume_dense_propped_labels_with_height_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_largest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#mask_volume_dense_propped_labels_with_height_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.mask_volume_dense_propped_labels_with_height_image" title="Permalink to this definition"></a></dt>
+<dd><p>This function uses a hole-completed basal surface such as that from <a class="reference internal" href="#unwrap3D.Analysis_Functions.topography.inpaint_topographical_height_image" title="unwrap3D.Analysis_Functions.topography.inpaint_topographical_height_image"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.topography.inpaint_topographical_height_image()</span></code></a> to isolate only the protrusions from a volume-dense volumization such as the output from <a class="reference internal" href="#unwrap3D.Analysis_Functions.topography.prop_labels_watershed_depth_slices" title="unwrap3D.Analysis_Functions.topography.prop_labels_watershed_depth_slices"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.topography.prop_labels_watershed_depth_slices()</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol_labels</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>integer labelled volume where background voxels = 0 and unique integers &gt; 0 represent unique connected objects.</p>
+</dd>
+<dt><strong>height_map</strong><span class="classifier">(MxN) numpy array</span></dt><dd><p>height image at every (u,v) pixel position specifying the basal surface <span class="math notranslate nohighlight">\(d=f(u,v)\)</span> such that all voxels in vol_labels with coordinates <span class="math notranslate nohighlight">\(d_{uv}\le d\)</span> will be set to a background label of 0</p>
+</dd>
+<dt><strong>ksize</strong><span class="classifier">int</span></dt><dd><p>Optional morphological dilation of the binary surface specified by height map with a ball kernel of radius ksize. Can be used to control the extent of exclusion of the basal surface. 
+Set this parameter to None to not do morphological processing.</p>
+</dd>
+<dt><strong>min_size: scalar</strong></dt><dd><p>The minimum size of connected components to keep after masking</p>
+</dd>
+<dt><strong>connectivity</strong><span class="classifier">int</span></dt><dd><p>specifies the connectivity of voxel neighbors. If 1, the 6-connected neighborhood, if 2, the full 26-connected neighborhood including the diagonals</p>
+</dd>
+<dt><strong>keep_largest</strong><span class="classifier">bool</span></dt><dd><p>if True, for labels that end up disconnected after the masking, retain only the largest connected region.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vol_labels_new</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>the non excluded integer labelled volume where background voxels = 0 and unique integers &gt; 0 represent unique connected objects.</p>
+</dd>
+<dt><strong>infill_height_mask</strong><span class="classifier">(MxN) numpy array</span></dt><dd><p>the exclusion volume specified by height_map after optional ksize morphological dilation.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.penalized_smooth_topography_uv_img">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">penalized_smooth_topography_uv_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ALS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uv_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#penalized_smooth_topography_uv_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.penalized_smooth_topography_uv_img" title="Permalink to this definition"></a></dt>
+<dd><p>Applies extended 2D asymmetric least squares regression to smooth a topography surface given as a height image, that is where the surface has been parameetrized 1-to-1 with (u,v), <span class="math notranslate nohighlight">\(d=f(u,v)\)</span></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>height_func</strong><span class="classifier">(UxV) array</span></dt><dd><p>an input topography surface given as a height image such that d=f(u,v)</p>
+</dd>
+<dt><strong>ds</strong><span class="classifier">int</span></dt><dd><p>isotropic downsampling factor of the original image, used for imposing additional smoothness + computational efficiency</p>
+</dd>
+<dt><strong>padding_multiplier</strong><span class="classifier">scalar</span></dt><dd><p>this specifies the padding size as a scalar multiple, 1/padding_multiplier of the downsampled image. It is used to soft enforce spherical bounds.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>one of</p>
+<dl class="simple">
+<dt>‘ALS’<span class="classifier">str</span></dt><dd><p>Basic asymmetric least squares algorithm, see <a class="reference internal" href="#unwrap3D.Analysis_Functions.topography.baseline_als_Laplacian" title="unwrap3D.Analysis_Functions.topography.baseline_als_Laplacian"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.topography.baseline_als_Laplacian()</span></code></a></p>
+</dd>
+<dt>‘airPLS’<span class="classifier">str</span></dt><dd><p>adaptive iteratively reweighted Penalized Least Squares algorithm, see <a class="reference internal" href="#unwrap3D.Analysis_Functions.topography.baseline_airPLS2D" title="unwrap3D.Analysis_Functions.topography.baseline_airPLS2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.topography.baseline_airPLS2D()</span></code></a></p>
+</dd>
+</dl>
+</dd>
+<dt><strong>lam</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of asymmetry in the weighting. p=0.5 is the same as smoothness regularized least mean squares.</p>
+</dd>
+<dt><strong>niter</strong><span class="classifier">int</span></dt><dd><p>The number of iterations to run the algorithm. Only a few iterations is required generally.</p>
+</dd>
+<dt><strong>uv_params</strong><span class="classifier">(DxUxV,3) array</span></dt><dd><p>the lookup table mapping the uniform (D,U,V) grid to (x,y,z) in original shape space. If provided the smoothness regularization will take into account the metric distortion.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>out</strong><span class="classifier">(UxV) array</span></dt><dd><p>a smoothened output topography surface given as a height image such that d=f(u,v)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.prop_labels_watershed_depth_slices">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">prop_labels_watershed_depth_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topo_depth_clusters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth_binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rev_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand_labels_2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#prop_labels_watershed_depth_slices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.prop_labels_watershed_depth_slices" title="Permalink to this definition"></a></dt>
+<dd><p>Propagate semantic labels volumetrically from surface labels in topography space using marker-seeded watershed slice-by-slice with markers seeded from surface and from top to bottom (or bottom to top).</p>
+<p>This function is used to propagate surface labels into the volume so as to obtain realistic volumizations of protrusion instance segmentations when mapped back to (x.y.z) space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>topo_depth_clusters</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>integer labelled volume where background voxels = 0 and unique integers &gt; 0 represent unique connected objects.</p>
+</dd>
+<dt><strong>depth_binary</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>the topography binary volume defining the voxels that needs semantic labeling</p>
+</dd>
+<dt><strong>rev_order</strong><span class="classifier">bool</span></dt><dd><p>if True, reverses the scan direction to go from top to bottom instead of bottom to top (default)</p>
+</dd>
+<dt><strong>expand_labels_2d: int</strong></dt><dd><p>a preprocessing expansion of input topo_depth_clusters, to better guide the in-plane watershed propagation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>topo_depth_clusters_</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>new integer labelled volume where background voxels = 0 and unique integers &gt; 0 represent unique connected objects.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.remove_topography_segment_objects_binary">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">remove_topography_segment_objects_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_clusters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uv_params_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#remove_topography_segment_objects_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.remove_topography_segment_objects_binary" title="Permalink to this definition"></a></dt>
+<dd><p>Removes small connected components in the binary image input either by the number of voxels or if provided the mapping to the original space, on the apparent number of voxels after geometric correction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol_clusters</strong><span class="classifier">(D,U,V) array</span></dt><dd><p>a binary volume</p>
+</dd>
+<dt><strong>minsize</strong><span class="classifier">scalar</span></dt><dd><p>the minimum size, any connected components less than this is removed</p>
+</dd>
+<dt><strong>uv_params_depth</strong><span class="classifier">(D,U,V,3) array</span></dt><dd><p>the lookup table mapping the uniform (D,U,V) grid to (x,y,z) in original shape space, if provided the minsize is computed for (x,y,z) space not the current (d,u,v) space</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vol_clusters_new</strong><span class="classifier">(D,U,V) array</span></dt><dd><p>a binary volume where size of connected components with &gt; minsize removed.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.segment_topography_vol_curvature_surface">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">segment_topography_vol_curvature_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_curvature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_binary_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth_ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_curvature_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kmeans'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_feats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#segment_topography_vol_curvature_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.segment_topography_vol_curvature_surface" title="Permalink to this definition"></a></dt>
+<dd><p>Segment protrusions on the unwrapped topography using multiscale mean curvature features.</p>
+<p>The multiscale comes from extracting the <a class="reference external" href="https://en.wikipedia.org/wiki/Mean_curvature">mean curvature</a>, <span class="math notranslate nohighlight">\(H\)</span> computed as the divergence of the normalised gradient vectors of the signed distance function, <span class="math notranslate nohighlight">\(\Phi\)</span></p>
+<div class="math notranslate nohighlight">
+\[H = -\frac{1}{2}\nabla\cdot\left( \frac{\nabla \Phi}{|\nabla \Phi|}\right)\]</div>
+<p>and creating a multi-feature vector concatenating the smoothed <span class="math notranslate nohighlight">\(H\)</span> after Gaussian smoothing with different <span class="math notranslate nohighlight">\(\sigma\)</span> as specified by smooth_curvature_sigma</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>vol_curvature</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>the curvature computed using the definition above using the normalised gradient vector of the signed distance transform of the binary volume</p>
+</dd>
+<dt><strong>vol_binary_mask</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>the topography binary volume from which the vol_curvature was determined form</p>
+</dd>
+<dt><strong>depth_ksize</strong><span class="classifier">scalar</span></dt><dd><p>the width of a ball morphological operator for extracting a binary mask of a thin shell of thickness 2 x depth_ksize capturing the topographic volume surface to be segmented.</p>
+</dd>
+<dt><strong>smooth_curvature_sigma: list of scalars</strong></dt><dd><p>The list of N <span class="math notranslate nohighlight">\(\sigma\)</span>’s which the vol_curvature is smoothed with to generate a N-vector <span class="math notranslate nohighlight">\([H_{\sigma_1},H_{\sigma_2}\cdots H_{\sigma_N}]\)</span> to describe the local surface topography of a voxel</p>
+</dd>
+<dt><strong>seg_method</strong><span class="classifier">str</span></dt><dd><p>one of two clustering methods</p>
+<dl class="simple">
+<dt>kmeans<span class="classifier"></span></dt><dd><p><a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">K-Means</a> clustering algorithm</p>
+</dd>
+<dt>gmm<span class="classifier"></span></dt><dd><p><a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html#sklearn.mixture.GaussianMixture">Gaussian mixture model</a> algorithm with full covariances</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>n_samples</strong><span class="classifier">int</span></dt><dd><p>the number of random sampled point to fit clustering on for computational efficiency</p>
+</dd>
+<dt><strong>n_classes :int</strong></dt><dd><p>the number of clusters desired</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int</span></dt><dd><p>a number to fix the random seed for reproducible clustering.</p>
+</dd>
+<dt><strong>scale_feats</strong><span class="classifier">bool</span></dt><dd><p>if set, the features are standard scaled prior to clustering. For mean curvature feats we find setting this seemed to make the clustering worse.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>depth_binary_mask, H_binary_depth_clusters</strong><span class="classifier">(MxNxL), (MxNxL) numpy array</span></dt><dd><dl class="simple">
+<dt>depth_binary_mask<span class="classifier">(MxNxL) numpy array</span></dt><dd><p>Binary mask of a shell of the topographic surface</p>
+</dd>
+<dt>H_binary_depth_clusters<span class="classifier">(MxNxL) numpy array</span></dt><dd><p>Integer array where background is 0 and, integers refer to the different clusters and arranged such that they reflect increasing mean curvature.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Analysis_Functions.topography.uv_depth_pts3D_to_xyz_pts3D">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Analysis_Functions.topography.</span></span><span class="sig-name descname"><span class="pre">uv_depth_pts3D_to_xyz_pts3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_pts3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uv_depth_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Analysis_Functions/topography.html#uv_depth_pts3D_to_xyz_pts3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Analysis_Functions.topography.uv_depth_pts3D_to_xyz_pts3D" title="Permalink to this definition"></a></dt>
+<dd><p>Linear Interpolation of the corresponding (x,y,z) coordinates given query (d,u,v) topography coordinates where the injective map (d,u,v) -&gt; (x,y,z) is given by uv_depth_params.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>uv_pts3D</strong><span class="classifier">(Nx3) array</span></dt><dd><p>the topography, (d,u,v) coordinate at N positions for which original (x,y,z) coordinates is desired</p>
+</dd>
+<dt><strong>uv_depth_params</strong><span class="classifier">(D,U,V,3) array</span></dt><dd><p>the lookup table mapping the uniform (D,U,V) grid to (x,y,z) in original shape space</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>xyz_pts3D</strong><span class="classifier">(Nx3) array</span></dt><dd><p>The corresponding (x,y,z) coordinates into the space indexed by uv_depth_params.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Analysis_Functions">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Analysis_Functions" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

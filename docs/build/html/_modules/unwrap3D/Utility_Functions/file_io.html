@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Utility_Functions.file_io &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Utility_Functions.file_io</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Utility_Functions.file_io</h1><div class="highlight"><pre>
+<span></span>
+
+<div class="viewcode-block" id="read_czifile"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.file_io.read_czifile">[docs]</a><span class="k">def</span> <span class="nf">read_czifile</span><span class="p">(</span><span class="n">czi_file</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Reads the data of a simple .czi microscope stack into a numpy array using the lightweight czifile library </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    czifile : filepath</span>
+<span class="sd">        path of the .czi file to read</span>
+<span class="sd">    squeeze : bool</span>
+<span class="sd">        specify whether singleton dimensions should be collapsed out</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    image_arrays : numpy array</span>
+<span class="sd">        image stored in the .czi</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>   
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">from</span> <span class="nn">czifile</span> <span class="kn">import</span> <span class="n">CziFile</span>
+    
+    <span class="k">with</span> <span class="n">CziFile</span><span class="p">(</span><span class="n">czi_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">czi</span><span class="p">:</span>
+        <span class="n">image_arrays</span> <span class="o">=</span> <span class="n">czi</span><span class="o">.</span><span class="n">asarray</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">squeeze</span><span class="p">:</span>
+        <span class="n">image_arrays</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">image_arrays</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">image_arrays</span></div>
+    
+<div class="viewcode-block" id="mkdir"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.file_io.mkdir">[docs]</a><span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Recursively creates all directories if they do not exist to make the folder specifed by &#39;directory&#39;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : folderpath</span>
+<span class="sd">        path of the folder to create</span>
+<span class="sd">   </span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+
+    <span class="kn">import</span> <span class="nn">os</span> 
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="get_basename"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.file_io.get_basename">[docs]</a><span class="k">def</span> <span class="nf">get_basename</span><span class="p">(</span><span class="n">pathname</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+   
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;helper to return the base file name minus the extension given an absolute or relative filepath location</span>
+
+<span class="sd">    e.g. This function will return from a filepath, &#39;../long_file_location/filename.tif&#39;, the file name minus the extension, &#39;filename&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pathname : filepath</span>
+<span class="sd">        filepath to parse the file name from</span>
+<span class="sd">    ext : string</span>
+<span class="sd">        extension of the file format e.g. .tif, .png, .docx</span>
+<span class="sd">   </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    basename : string</span>
+<span class="sd">        the name of the file minus extension and location information</span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+
+    <span class="kn">import</span> <span class="nn">os</span> 
+
+    <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">pathname</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">ext</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">basename</span></div>
+    
+
+<div class="viewcode-block" id="read_demons_matlab_tform"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.file_io.read_demons_matlab_tform">[docs]</a><span class="k">def</span> <span class="nf">read_demons_matlab_tform</span><span class="p">(</span> <span class="n">tform_file</span><span class="p">,</span> <span class="n">volshape</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">]):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;helper for reading Matlab generated xyz demons deformation fields accounting for the difference in array convention.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tform_file : .mat (Matlab v5.4 format)</span>
+<span class="sd">        filepath to the .mat of the saved deformation field saved from Matlab </span>
+<span class="sd">    volshape : (M,N,L) tuple</span>
+<span class="sd">        shape of the original volume, the deformation fields correspond to. This shape is used to rescale any downsampled deformation fields to the original size using linear interpolation. </span>
+<span class="sd">    keys :  list of strings</span>
+<span class="sd">        the variable names in the saved .mat corresponding to the x-, y-, z- direction deformation within Matlab </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    w : (M,N,L) numpy array</span>
+<span class="sd">        the &#39;x&#39; deformation in Python tiff image reading convention </span>
+<span class="sd">    v : (M,N,L) numpy array</span>
+<span class="sd">        the &#39;y&#39; deformation in Python tiff image reading convention </span>
+<span class="sd">    u : (M,N,L) numpy array</span>
+<span class="sd">        the &#39;z&#39; deformation in Python tiff image reading convention </span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+    <span class="kn">import</span> <span class="nn">scipy.io</span> <span class="k">as</span> <span class="nn">spio</span>
+    <span class="kn">import</span> <span class="nn">skimage.transform</span> <span class="k">as</span> <span class="nn">sktform</span> 
+    
+    <span class="n">tform_obj</span> <span class="o">=</span> <span class="n">spio</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">tform_file</span><span class="p">)</span> <span class="c1"># this assumes matlab v5.4 format</span>
+
+    <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="n">tform_obj</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">tform_obj</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">tform_obj</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">scaling_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">volshape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+    <span class="c1"># transform this remembering to cast to float32.</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">sktform</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">u</span><span class="o">*</span><span class="n">scaling_factor</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">volshape</span><span class="p">,</span> <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">sktform</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">v</span><span class="o">*</span><span class="n">scaling_factor</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">volshape</span><span class="p">,</span> <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">sktform</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">w</span><span class="o">*</span><span class="n">scaling_factor</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">volshape</span><span class="p">,</span> <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">w</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">u</span></div>
+
+
+    
+<div class="viewcode-block" id="save_array_to_nifti"><a class="viewcode-back" href="../../../unwrap3D.Utility_Functions.html#unwrap3D.Utility_Functions.file_io.save_array_to_nifti">[docs]</a><span class="k">def</span> <span class="nf">save_array_to_nifti</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">savefile</span><span class="p">):</span>
+
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Saves a given numpy array to a nifti format using the nibabel library. The main use is for exporting volumes to annotate in ITKSnap.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : numpy array</span>
+<span class="sd">        input volume image</span>
+<span class="sd">    savefile :  string</span>
+<span class="sd">        filepath to save the output to, user should include the extension in this e.g. .nii.gz for compressed nifty</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span> 
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">savefile</span><span class="p">)</span>  
+
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+    
+    
+    
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

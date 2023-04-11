@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Visualisation.plotting &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Visualisation.plotting</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Visualisation.plotting</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">pylab</span> <span class="k">as</span> <span class="nn">plt</span> 
+
+<div class="viewcode-block" id="set_axes_equal"><a class="viewcode-back" href="../../../unwrap3D.Visualisation.html#unwrap3D.Visualisation.plotting.set_axes_equal">[docs]</a><span class="k">def</span> <span class="nf">set_axes_equal</span><span class="p">(</span><span class="n">ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Set 3D plot axes to equal scale.</span>
+
+<span class="sd">    Make axes of 3D plot have equal scale so that spheres appear as</span>
+<span class="sd">    spheres and cubes as cubes.  Required since `ax.axis(&#39;equal&#39;)`</span>
+<span class="sd">    and `ax.set_aspect(&#39;equal&#39;)` don&#39;t work on 3D.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax : Maptlolib axes object</span>
+<span class="sd">        3D Matplotlib axis to adjust     </span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+    <span class="n">limits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim3d</span><span class="p">(),</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim3d</span><span class="p">(),</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">get_zlim3d</span><span class="p">(),</span>
+    <span class="p">])</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">limits</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">limits</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+    <span class="n">_set_axes_radius</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+<span class="k">def</span> <span class="nf">_set_axes_radius</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
+
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Set 3D plot axes limits to origin +/- radius.</span>
+
+<span class="sd">    This helper is used in set_axes_equal to ensure correct aspect ratio of 3D plots. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax : Maptlolib axes object</span>
+<span class="sd">        3D Matplotlib axis to adjust  </span>
+<span class="sd">    origin: (x,y,z) tuple of position</span>
+<span class="sd">        the center coordinate to set the axis limits </span>
+<span class="sd">    radius: scalar</span>
+<span class="sd">        the isotropic distance around origin to limit the 3D plot view to.  </span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">origin</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim3d</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">radius</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim3d</span><span class="p">([</span><span class="n">y</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">radius</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_zlim3d</span><span class="p">([</span><span class="n">z</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">z</span> <span class="o">+</span> <span class="n">radius</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="p">[]</span>
+    
+    
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

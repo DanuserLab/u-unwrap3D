@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Segmentation.segmentation &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Segmentation.segmentation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Segmentation.segmentation</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+<div class="viewcode-block" id="smooth_vol"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.smooth_vol">[docs]</a><span class="k">def</span> <span class="nf">smooth_vol</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">ds</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;gaussian&#39;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Smoothing particularly a 3D volume image with large Gaussian kernels or Median filters is extremely slow. This function combines downsampling of the original volume image with smaller kernel smoothing on the downsampled image before upsampling to do significantly faster smoothing for large arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vol : array</span>
+<span class="sd">        input image </span>
+<span class="sd">    ds : int</span>
+<span class="sd">        the downsampling factor, the downsampled shape will have size ``vol.shape//ds``</span>
+<span class="sd">    smooth : scalar</span>
+<span class="sd">        the size of smoothing; ``sigma`` for scipy.ndimage.gaussian_filter or ``size`` for scipy.ndimage.median_filter</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ------- </span>
+<span class="sd">    smoothed image, the same size as the input</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">skimage.filters</span> <span class="kn">import</span> <span class="n">gaussian</span>
+    <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">gaussian_filter</span><span class="p">,</span> <span class="n">median_filter</span>
+    <span class="kn">import</span> <span class="nn">skimage.transform</span> <span class="k">as</span> <span class="nn">sktform</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">small</span> <span class="o">=</span> <span class="n">sktform</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">//</span><span class="n">ds</span><span class="p">,</span> <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;gaussian&#39;</span><span class="p">:</span>
+        <span class="n">small</span> <span class="o">=</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="n">small</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+        <span class="n">small</span> <span class="o">=</span> <span class="n">median_filter</span><span class="p">(</span><span class="n">small</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sktform</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">small</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vol_binary</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="largest_component_vol"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.largest_component_vol">[docs]</a><span class="k">def</span> <span class="nf">largest_component_vol</span><span class="p">(</span><span class="n">vol_binary</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given a binary segmentation, return only the largest connected component of the given connectivity</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vol : array</span>
+<span class="sd">        input binary image </span>
+<span class="sd">    connectivity : 1 or 2</span>
+<span class="sd">        if 1, the local 4-neighbors for 2D or 6-neighbors for 3D. </span>
+<span class="sd">        if 2, the local 8-neighbors for 2D or 26-neighbors for 3D. </span>
+<span class="sd">   </span>
+<span class="sd">    Returns</span>
+<span class="sd">    ------- </span>
+<span class="sd">    vol_binary : array</span>
+<span class="sd">        output binary image same size as input retaining only the largest connected component</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span><span class="p">,</span> <span class="n">regionprops</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">vol_binary_labelled</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">vol_binary</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">connectivity</span><span class="p">)</span>
+    <span class="c1"># largest component.</span>
+    <span class="n">vol_binary_props</span> <span class="o">=</span> <span class="n">regionprops</span><span class="p">(</span><span class="n">vol_binary_labelled</span><span class="p">)</span>
+    <span class="n">vol_binary_vols</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">area</span> <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="n">vol_binary_props</span><span class="p">]</span>
+    <span class="n">vol_binary</span> <span class="o">=</span> <span class="n">vol_binary_labelled</span> <span class="o">==</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">vol_binary_labelled</span><span class="p">)[</span><span class="mi">1</span><span class="p">:][</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">vol_binary_vols</span><span class="p">)])</span>
+    
+    <span class="k">return</span> <span class="n">vol_binary</span></div>
+
+<div class="viewcode-block" id="largest_component_vol_labels"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.largest_component_vol_labels">[docs]</a><span class="k">def</span> <span class="nf">largest_component_vol_labels</span><span class="p">(</span><span class="n">vol_labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bg_label</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given a multi-label integer image, return for each unique label, the largest connected component such that 1 label, 1 connected area. Useful to enforce the spatial uniqueness of a label.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vol_labels : array</span>
+<span class="sd">        input multi-label integer image  </span>
+<span class="sd">    connectivity : 1 or 2</span>
+<span class="sd">        if 1, the local 4-neighbors for 2D or 6-neighbors for 3D. </span>
+<span class="sd">        if 2, the local 8-neighbors for 2D or 26-neighbors for 3D. </span>
+<span class="sd">    bg_label : 0 </span>
+<span class="sd">        the integer label of background non-object areas</span>
+<span class="sd">   </span>
+<span class="sd">    Returns</span>
+<span class="sd">    ------- </span>
+<span class="sd">    vol_labels_new : array</span>
+<span class="sd">        output multi-label integer image where every unique label is associated with only one connected region. </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="c1"># now do a round well each only keeps the largest component. </span>
+    <span class="n">uniq_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">vol_labels</span><span class="p">),</span> <span class="n">bg_label</span><span class="p">)</span>
+    <span class="n">vol_labels_new</span> <span class="o">=</span> <span class="n">vol_labels</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">uniq_labels</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">vol_labels</span> <span class="o">==</span> <span class="n">lab</span> 
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">largest_component_vol</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">connectivity</span><span class="p">)</span>
+        <span class="n">vol_labels_new</span><span class="p">[</span><span class="n">mask</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">lab</span> <span class="c1"># put this. </span>
+    
+    <span class="k">return</span> <span class="n">vol_labels_new</span></div>
+
+
+<div class="viewcode-block" id="get_bbox_binary_2D"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.get_bbox_binary_2D">[docs]</a><span class="k">def</span> <span class="nf">get_bbox_binary_2D</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">feature_img</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prop_nan</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given a 2D binary image, return the largest bounding box described in terms of its top left and bottom right coordinate positions. If given the corresponding feature_img, compute the average feature vector describing the contents inside the bounding box and concatenate this with the bounding box coordinates for downstream applications.</span>
+<span class="sd">    This function is primarily useful for describing a region of interest with a bounding box for downstream tracking, classification and clustering applications.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mask : array</span>
+<span class="sd">        input binary image  </span>
+<span class="sd">    feature_img : array </span>
+<span class="sd">        if not None, should be a ``mask.shape + (F,)`` array, where F is the number of features for which we would like the average (using mean) over any detected bounding box to append to the bounding box coordinates to be returned     </span>
+<span class="sd">    prop_nan : bool </span>
+<span class="sd">        if True, when no valid bounding box can be detected e.g. for a 1 pixel only binary area, the bounding box coordinates and associated features (if specified) are subsituted for by ``np.nan``. Otherwise, the empty list [] is returned. This flag is useful for downstream applications where a regular sized array may be required.  </span>
+<span class="sd">   </span>
+<span class="sd">    Returns</span>
+<span class="sd">    ------- </span>
+<span class="sd">    bbox : (N,) array</span>
+<span class="sd">        the bounding box described by its top-left (x1,y1) and bottom right (x2,y2) coordinates given as a 1d array of x1,y1,x2,y2 concatenated if specified by the mean feature vector</span>
+<span class="sd">    </span>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.get_bbox_labels_2D` : </span>
+<span class="sd">        this function does the same for multi-label segmentation images</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    <span class="n">yyxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">mask</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> 
+    <span class="n">yy</span> <span class="o">=</span> <span class="n">yyxx</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xx</span> <span class="o">=</span> <span class="n">yyxx</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">yy</span><span class="p">)</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">yy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">x2</span><span class="o">&gt;</span><span class="n">x1</span> <span class="ow">and</span> <span class="n">y2</span><span class="o">&gt;</span><span class="n">y1</span><span class="p">:</span> 
+        <span class="k">if</span> <span class="n">feature_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">features_box</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">ff</span><span class="p">[</span><span class="n">mask</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">ff</span> <span class="ow">in</span> <span class="n">feature_img</span><span class="p">])</span>
+            <span class="c1"># features_box = np.nanmean(feature_img[mask&gt;0], axis=-1) # average over the last dimension. </span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span> <span class="n">features_box</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">y2</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">prop_nan</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">feature_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">feature_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">[]</span>
+        
+    <span class="k">return</span> <span class="n">bbox</span></div>
+    
+
+<div class="viewcode-block" id="get_bbox_labels_2D"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.get_bbox_labels_2D">[docs]</a><span class="k">def</span> <span class="nf">get_bbox_labels_2D</span><span class="p">(</span><span class="n">label_img</span><span class="p">,</span> <span class="n">feature_img</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prop_nan</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bg_label</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">split_multi_regions</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given a 2D multi-label image, iterate over each unique foreground labelled regions and return the bounding boxes described in terms of its top left and bottom right coordinate positions and label. If given the corresponding feature_img, compute the average feature vector describing the contents inside the bounding box and concatenate this with the bounding box coordinates for downstream applications.</span>
+<span class="sd">    This function is useful for describing regions of interest with a bounding box for downstream tracking, classification and clustering applications.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    label_img : array</span>
+<span class="sd">        input multi-labeled image  </span>
+<span class="sd">    feature_img : array </span>
+<span class="sd">        if not None, should be a ``label_img.shape + (F,)`` array, where F is the number of features for which we would like the average (using mean) over any detected bounding box to append to the bounding box coordinates to be returned     </span>
+<span class="sd">    prop_nan : bool </span>
+<span class="sd">        if True, when no valid bounding box can be detected e.g. for a 1 pixel only area, the bounding box coordinates and associated features (if specified) are subsituted for by ``np.nan``. Otherwise, the empty list [] is returned. This flag is useful for downstream applications where a regular sized array may be required.  </span>
+<span class="sd">    bg_label : int </span>
+<span class="sd">        the integer label marking background regions</span>
+<span class="sd">    split_multi_regions : bool</span>
+<span class="sd">        if True, this function will derive generate a bounding box for each disconnected region with the same label</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ------- </span>
+<span class="sd">    bboxes : list(array) of (N,) arrays</span>
+<span class="sd">        all the detected bounding boxes for all labelled regions where each bounding box is described by the region label and its top-left (x1,y1) and bottom right (x2,y2) coordinates given as a 1d array of label, x1,y1,x2,y2 concatenated if specified by the mean feature vector. The return will be a regular 2-d numpy array if prop_nan is True, otherwise if one region did not detect a valid bounding box the result would be a list of arrays</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.get_bbox_binary_2D` : </span>
+<span class="sd">        this function does the same for binary segmentation images</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    <span class="kn">import</span> <span class="nn">skimage.measure</span> <span class="k">as</span> <span class="nn">skmeasure</span> 
+    
+    <span class="n">bboxes</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">label_img</span><span class="p">),</span> <span class="n">bg_label</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">label_img</span><span class="o">==</span><span class="n">lab</span> 
+        
+        <span class="k">if</span> <span class="n">split_multi_regions</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># if split then we do a separate connected components </span>
+            <span class="n">labelled_mask</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># </span>
+            <span class="n">uniq_regions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labelled_mask</span><span class="p">),</span><span class="mi">0</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">uniq_regions</span><span class="p">:</span>
+                <span class="n">mask_region</span> <span class="o">=</span> <span class="n">labelled_mask</span><span class="o">==</span><span class="n">region</span> 
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">get_bbox_binary_2D</span><span class="p">(</span><span class="n">mask_region</span><span class="p">,</span> <span class="n">feature_img</span><span class="o">=</span><span class="n">feature_img</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> 
+                    <span class="n">bboxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">lab</span><span class="p">,</span> <span class="n">bbox</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">get_bbox_binary_2D</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">feature_img</span><span class="o">=</span><span class="n">feature_img</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> 
+                <span class="n">bboxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">lab</span><span class="p">,</span> <span class="n">bbox</span><span class="p">]))</span>
+                
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bboxes</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">bboxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">bboxes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">bboxes</span></div>
+
+
+<span class="c1"># crops an image box given an image or given a binary</span>
+<div class="viewcode-block" id="crop_box_3D"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.crop_box_3D">[docs]</a><span class="k">def</span> <span class="nf">crop_box_3D</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Derive the 3D bounding box given a volume intensity image or a volume binary image with optional additional padding. The input image is only specified if a constant scalar threshold, ``thresh`` is provided.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    im : array</span>
+<span class="sd">        input image  </span>
+<span class="sd">    thresh : scalar </span>
+<span class="sd">        if None, the input image will be assumed binary and the bounding box will be determined by the largest connected component. If not None, the image is first binarised with ``im&gt;=thresh``.</span>
+<span class="sd">    pad : int </span>
+<span class="sd">        the isotropic padding to expand the found bounding box in all xyz-directions </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ------- </span>
+<span class="sd">    bbox : (6,) array</span>
+<span class="sd">        the bounding box described by its top-left (x1,y1,z1) and bottom right (x2,y2,z2) coordinates concatenated as a vector [x1,y1,z1,x2,y2,z2]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+   
+    <span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">binary</span> <span class="o">=</span> <span class="n">im</span><span class="o">&gt;=</span><span class="n">thresh</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">binary</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="c1"># the input is already binarised. </span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">largest_component_vol</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span>
+    
+    <span class="c1"># min_zz, min_yy, min_xx, max_zz, max_yy, max_xx = bounding_box(binary)</span>
+    <span class="n">ZZ</span><span class="p">,</span> <span class="n">YY</span><span class="p">,</span> <span class="n">XX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+    <span class="n">min_zz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">ZZ</span><span class="p">[</span><span class="n">binary</span><span class="p">])</span>
+    <span class="n">max_zz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">ZZ</span><span class="p">[</span><span class="n">binary</span><span class="p">])</span>
+    <span class="n">min_yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">YY</span><span class="p">[</span><span class="n">binary</span><span class="p">])</span>
+    <span class="n">max_yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">YY</span><span class="p">[</span><span class="n">binary</span><span class="p">])</span>
+    <span class="n">min_xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">XX</span><span class="p">[</span><span class="n">binary</span><span class="p">])</span>
+    <span class="n">max_xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">XX</span><span class="p">[</span><span class="n">binary</span><span class="p">])</span>
+    
+    <span class="n">min_zz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">min_zz</span> <span class="o">-</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">max_zz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">max_zz</span> <span class="o">+</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">min_yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">min_yy</span> <span class="o">-</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">max_yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">max_yy</span> <span class="o">+</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">min_xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">min_xx</span> <span class="o">-</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">max_xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">max_xx</span> <span class="o">+</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">bbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">min_zz</span><span class="p">,</span> <span class="n">min_yy</span><span class="p">,</span> <span class="n">min_xx</span><span class="p">,</span> <span class="n">max_zz</span><span class="p">,</span> <span class="n">max_yy</span><span class="p">,</span> <span class="n">max_xx</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">bbox</span></div>
+
+<div class="viewcode-block" id="segment_vol_thresh"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.segment_vol_thresh">[docs]</a><span class="k">def</span> <span class="nf">segment_vol_thresh</span><span class="p">(</span> <span class="n">vol</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">postprocess</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">post_ksize</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Basic image segmentation based on automatic binary Otsu thresholding or a specified constant threshold with simple morphological postprocessing</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vol : array</span>
+<span class="sd">        the input image to segment on intensity</span>
+<span class="sd">    thresh : scalar</span>
+<span class="sd">        if None, determine the constant threshold using Otsu binary thresholding else the binary is given by ``vol &gt;= thresh``</span>
+<span class="sd">    postprocess : bool</span>
+<span class="sd">        if True, the largest connected component is retained, small holes are closed with a disk (2D) or ball kernel (3D) of radius given by ``post_ksize`` and finally the resulting binary is binary filled.</span>
+<span class="sd">    post_ksize : int</span>
+<span class="sd">        the size of the kernel to morphologically close small holes of ``postprocess=True`` </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    im_binary : array</span>
+<span class="sd">        the final binary segmentation image </span>
+<span class="sd">    im_thresh : scalar</span>
+<span class="sd">        the intensity threshold used </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">skimage.filters</span> <span class="kn">import</span> <span class="n">threshold_otsu</span>
+    <span class="kn">import</span> <span class="nn">skimage.morphology</span> <span class="k">as</span> <span class="nn">skmorph</span>
+    <span class="kn">from</span> <span class="nn">scipy.ndimage.morphology</span> <span class="kn">import</span> <span class="n">binary_fill_holes</span>
+
+    <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">im_thresh</span> <span class="o">=</span> <span class="n">threshold_otsu</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">im_thresh</span> <span class="o">=</span> <span class="n">thresh</span>
+
+    <span class="n">im_binary</span> <span class="o">=</span> <span class="n">vol</span> <span class="o">&gt;=</span> <span class="n">im_thresh</span>
+
+    <span class="k">if</span> <span class="n">postprocess</span><span class="p">:</span> 
+        <span class="n">im_binary</span> <span class="o">=</span> <span class="n">largest_component_vol</span><span class="p">(</span><span class="n">im_binary</span><span class="p">)</span> <span class="c1"># ok. here we keep only the largest component. -&gt; this is crucial to create a watertight segmentation.  </span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> 
+            <span class="n">im_binary</span> <span class="o">=</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">binary_closing</span><span class="p">(</span><span class="n">im_binary</span><span class="p">,</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">ball</span><span class="p">(</span><span class="n">post_ksize</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> 
+            <span class="n">im_binary</span> <span class="o">=</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">binary_closing</span><span class="p">(</span><span class="n">im_binary</span><span class="p">,</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">disk</span><span class="p">(</span><span class="n">post_ksize</span><span class="p">))</span>
+        <span class="n">im_binary</span> <span class="o">=</span> <span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">im_binary</span><span class="p">)</span> <span class="c1"># check there is no holes!</span>
+
+    <span class="c1"># return the volume and the threshold. </span>
+    <span class="k">return</span> <span class="n">im_binary</span><span class="p">,</span> <span class="n">im_thresh</span></div>
+
+
+<span class="c1"># also create a multi-level threshold? algorithm.</span>
+<div class="viewcode-block" id="multi_level_gaussian_thresh"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.multi_level_gaussian_thresh">[docs]</a><span class="k">def</span> <span class="nf">multi_level_gaussian_thresh</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Segments an input volume image into n_classes using bootstrapped Gaussian mixture model (GMM) clustering. This allows multi-dimensional features and not just intensity to be used for segmentation. The final clustering will result in larger/smoother clusters than K-means.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vol : array</span>
+<span class="sd">        the 3D input image or 4D feature image to segment</span>
+<span class="sd">    n_classes : int</span>
+<span class="sd">        the number of desired clusters</span>
+<span class="sd">    n_samples : int</span>
+<span class="sd">        the number of randomly sampled pixels to fit the GMM </span>
+<span class="sd">    random_state : int</span>
+<span class="sd">        if not None, uses this number as the fixed random seed</span>
+<span class="sd">    scale : bool</span>
+<span class="sd">        if True, standard scales input features before GMM fitting, see `scipy.preprocessing.StandardScaler &lt;https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html&gt;`_  </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    labels_ : array</span>
+<span class="sd">        the final clustered image as a multi-label volume image, clusters are sorted in increasing order of the 1st feature by default </span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.multi_level_kmeans_thresh` :</span>
+<span class="sd">        The K-Means clustering equivalent </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">sklearn.mixture</span> <span class="kn">import</span> <span class="n">GaussianMixture</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">GaussianMixture</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    
+    <span class="n">volshape</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span><span class="kc">None</span><span class="p">]</span>
+        
+    <span class="k">if</span> <span class="n">random_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span> <span class="c1"># make this deterministic!. </span>
+    <span class="n">random_select</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">random_select</span><span class="p">)</span>
+    
+    <span class="c1"># if applying scale we need to do standard scaling of features. </span>
+    <span class="k">if</span> <span class="n">scale</span><span class="p">:</span> 
+        <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="c1"># apply the standard scaling of features prior to </span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">random_select</span><span class="p">[:</span><span class="n">n_samples</span><span class="p">]]</span> <span class="c1"># random sample to improve inference time. </span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">labels_means</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">means_</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">labels_means</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">means_</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+    <span class="n">labels_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">labels_means</span><span class="p">)</span>
+    
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+    <span class="n">labels_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">lab</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels_order</span><span class="p">):</span>
+        <span class="n">labels_</span><span class="p">[</span><span class="n">labels</span><span class="o">==</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="n">ii</span>
+    
+    <span class="n">labels_</span> <span class="o">=</span> <span class="n">labels_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">volshape</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">labels_</span></div>
+
+<div class="viewcode-block" id="multi_level_kmeans_thresh"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.multi_level_kmeans_thresh">[docs]</a><span class="k">def</span> <span class="nf">multi_level_kmeans_thresh</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Segments an input volume image into n_classes using bootstrapped K-Means clustering. This allows multi-dimensional features and not just intensity to be used for segmentation. The final clustering will result in smaller/higher-frequency clusters than Gaussian mixture models.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vol : array</span>
+<span class="sd">        the 3D input image or 4D feature image to segment</span>
+<span class="sd">    n_classes : int</span>
+<span class="sd">        the number of desired clusters</span>
+<span class="sd">    n_samples : int</span>
+<span class="sd">        the number of randomly sampled pixels to fit the K-Means </span>
+<span class="sd">    random_state : int</span>
+<span class="sd">        if not None, uses this number as the fixed random seed</span>
+<span class="sd">    scale : bool</span>
+<span class="sd">        if True, standard scales input features before GMM fitting, see `scipy.preprocessing.StandardScaler &lt;https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html&gt;`_  </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    labels_ : array</span>
+<span class="sd">        the final clustered image as a multi-label volume image, clusters are sorted in increasing order of the 1st feature by default </span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.multi_level_gaussian_thresh` :</span>
+<span class="sd">        The Gaussian Mixture Model clustering equivalent </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">KMeans</span>
+    <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">model</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;k-means++&#39;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    
+    <span class="n">volshape</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span><span class="kc">None</span><span class="p">]</span>
+        
+    <span class="k">if</span> <span class="n">random_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span> <span class="c1"># make this deterministic!. </span>
+<span class="c1">#    vals = StandardScaler().fit_transform(vals)</span>
+    <span class="n">random_select</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">random_select</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">scale</span><span class="p">:</span> 
+        <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">random_select</span><span class="p">[:</span><span class="n">n_samples</span><span class="p">]]</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">labels_means</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">cluster_centers_</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">labels_means</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">cluster_centers_</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">labels_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">labels_means</span><span class="p">)</span>
+    
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+    <span class="n">labels_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">lab</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels_order</span><span class="p">):</span>
+        <span class="n">labels_</span><span class="p">[</span><span class="n">labels</span><span class="o">==</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="n">ii</span>
+    
+    <span class="n">labels_</span> <span class="o">=</span> <span class="n">labels_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">volshape</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">labels_</span></div>
+    
+<div class="viewcode-block" id="sdf_distance_transform"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.sdf_distance_transform">[docs]</a><span class="k">def</span> <span class="nf">sdf_distance_transform</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">rev_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;edt&#39;</span><span class="p">):</span> 
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the signed distance function (SDF) of the shape specified by the input n-dimensional binary image. Signed distance function enables shape to be captured as a continuous function which is highly advantageous for shape arithmetic and machine learning applications.</span>
+
+<span class="sd">    see https://en.wikipedia.org/wiki/Signed_distance_function for more details on the SDF. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    binary : array</span>
+<span class="sd">        input n-dimensional binary image </span>
+<span class="sd">    rev_sign : bool</span>
+<span class="sd">        if True, reverses the sign of the computed signed distance function. When this is True, the inside of the shape is +ve distances and -ve distances is the outside of the shape</span>
+<span class="sd">    method : str</span>
+<span class="sd">        specifies the method used to compute the distance transform</span>
+
+<span class="sd">        &#39;edt&#39; : str</span>
+<span class="sd">            This is the Euclidean distance transform computed with scipy.ndimage.distance_transform_edt</span>
+<span class="sd">        &#39;fmm&#39; : str</span>
+<span class="sd">            This is the geodesic distance transform computed with `scikit-fmm &lt;https://github.com/scikit-fmm/scikit-fmm&gt;`_ library</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    res : array</span>
+<span class="sd">        the signed distance function, the same size as the input where the contours of the input binary has a distance of 0. </span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.get_label_distance_transform` :</span>
+<span class="sd">        The multi-label equivalent but here we compute just the one-sided interior distance transform.  </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">pos_binary</span> <span class="o">=</span> <span class="n">binary</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">neg_binary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">pos_binary</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;edt&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">distance_transform_edt</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">distance_transform_edt</span><span class="p">(</span><span class="n">neg_binary</span><span class="p">)</span> <span class="o">*</span> <span class="n">neg_binary</span> <span class="o">-</span> <span class="p">(</span><span class="n">distance_transform_edt</span><span class="p">(</span><span class="n">pos_binary</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">pos_binary</span>
+        
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span><span class="s1">&#39;fmm&#39;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">skmm</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">skmm</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">neg_binary</span><span class="p">)</span> <span class="o">*</span> <span class="n">neg_binary</span> <span class="o">-</span> <span class="p">(</span><span class="n">skmm</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">pos_binary</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">pos_binary</span>
+
+    <span class="k">if</span> <span class="n">rev_sign</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="get_label_distance_transform"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.get_label_distance_transform">[docs]</a><span class="k">def</span> <span class="nf">get_label_distance_transform</span><span class="p">(</span><span class="n">labelled</span><span class="p">,</span> <span class="n">bg_label</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">normalise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rev_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;edt&#39;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the distance function for each label of the input multi-labelled image. The distance function captures the shape as a continuous function which is used to express for example multiple cell instances in a single image for deep learning instance-level segmenters.</span>
+
+<span class="sd">    see https://en.wikipedia.org/wiki/Distance_transform for more details on the distance transform</span>
+<span class="sd">    see https://en.wikipedia.org/wiki/Signed_distance_function for more details on the signed distance function </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    labelled : array</span>
+<span class="sd">        input n-dimensional multi-labelled image </span>
+<span class="sd">    bg_label : int </span>
+<span class="sd">        the integer label of the background areas</span>
+<span class="sd">    normalise : bool</span>
+<span class="sd">        if True, normalizes the distance transform of each label by dividing by the maximum distance</span>
+<span class="sd">    rev_sign : bool</span>
+<span class="sd">        if True, reverses the sign of the computed signed distance function. When this is True, the inside of the shape is +ve distances and -ve distances is the outside of the shape</span>
+<span class="sd">    method : str</span>
+<span class="sd">        specifies the method used to compute the distance transform</span>
+
+<span class="sd">        &#39;edt&#39; : str</span>
+<span class="sd">            This is the Euclidean distance transform computed with scipy.ndimage.distance_transform_edt</span>
+<span class="sd">        &#39;fmm&#39; : str</span>
+<span class="sd">            This is the geodesic distance transform computed with `scikit-fmm &lt;https://github.com/scikit-fmm/scikit-fmm&gt;`_ library</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dist_tform : array</span>
+<span class="sd">        the distance transform of each labelled region with the same size as the input</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.sdf_distance_transform` :</span>
+<span class="sd">        The binary equivalent computing the double-sided interior and exterior signed distance transform.  </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;edt&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">distance_transform_edt</span>
+        <span class="n">dist_fnc</span> <span class="o">=</span> <span class="n">distance_transform_edt</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;fmm&#39;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">skfmm</span> 
+        <span class="n">dist_fnc</span> <span class="o">=</span> <span class="n">skfmm</span><span class="o">.</span><span class="n">distance</span>
+
+        <span class="c1"># iterate over all unique_labels. </span>
+        <span class="n">uniq_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labelled</span><span class="p">),</span> <span class="n">bg_label</span><span class="p">)</span>
+        <span class="n">dist_tform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">labelled</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">uniq_labels</span><span class="p">:</span>
+            <span class="n">binary_mask</span> <span class="o">=</span> <span class="n">labelled</span> <span class="o">==</span> <span class="n">lab</span> 
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">dist_fnc</span><span class="p">(</span><span class="n">binary_mask</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">rev_sign</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">normalise</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span>
+            <span class="n">dist_tform</span><span class="p">[</span><span class="n">binary_mask</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">binary_mask</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">dist_tform</span></div>
+
+
+<div class="viewcode-block" id="gradient_watershed2D_binary"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.gradient_watershed2D_binary">[docs]</a><span class="k">def</span> <span class="nf">gradient_watershed2D_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> 
+                                <span class="n">gradient_img</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                                <span class="n">smooth_sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                <span class="n">smooth_gradient</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                <span class="n">delta</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span> 
+                                <span class="n">n_iter</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+                                <span class="n">min_area</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> 
+                                <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> 
+                                <span class="n">thresh_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                                <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">return_tracks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">interp_bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Parses the instance level segmentation implicitly given as an input binary or a vector field. </span>
+<span class="sd">    The algorithm works as an inverse watershed.</span>
+<span class="sd">    </span>
+<span class="sd">    Step 1: a grid of points is seeds on the image </span>
+
+<span class="sd">    Step 2: points are propagated for n_iter according to the gradient_img, condensing towards cell centers implicitly implied by the gradient image.</span>
+<span class="sd">    </span>
+<span class="sd">    Step 3: individual cluster centers are found by binarisation and connected component, removing objects &lt; min_area</span>
+<span class="sd">    </span>
+<span class="sd">    result is an integer image the same size as binary. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    binary : (MxN) numpy array</span>
+<span class="sd">        input binary image defining the voxels that need labeling</span>
+<span class="sd">    gradient_img :  (MxNx2) numpy array</span>
+<span class="sd">        This is a gradient field such as that from applying np.array(np.gradient(img)).transpose(1,2,0) where img is a potential such as a distance transform or probability map. </span>
+<span class="sd">    smooth_sigma : scalar</span>
+<span class="sd">        controls the catchment area for identifying distinct cells at the final propagation position. Smaller smooth_sigma leads to more oversegmentation. </span>
+<span class="sd">    smooth_gradient : scalar</span>
+<span class="sd">        the isotropic sigma value controlling the Gaussian smoothing of the gradient field. More smoothing results in more cells grouped together</span>
+<span class="sd">    delta: scalar</span>
+<span class="sd">        the voxel size to propagate grid points per iteration. Related to the stability. If too small takes too long. If too large, might not converge. if delta=1, takes a 1 voxel step. </span>
+<span class="sd">    n_iter: int </span>
+<span class="sd">        the number of iterations to run. (To do: monitor convergence and break early to improve speed)</span>
+<span class="sd">    min_area: scalar</span>
+<span class="sd">        volume of cells &lt; min_area are removed. </span>
+<span class="sd">    eps: float</span>
+<span class="sd">        a small number for numerical stability</span>
+<span class="sd">    thresh_factor: scalar</span>
+<span class="sd">        The final cells are identified by thresholding on a threshold mean+thresh_factor*std. Thresh_factor controls what is an object prior to connected components analysis </span>
+<span class="sd">    mask: (MxN) numpy array</span>
+<span class="sd">        optional binary mask to gate the region to parse labels for.</span>
+<span class="sd">    return_tracks : bool</span>
+<span class="sd">        if True, return the grid point trajectories </span>
+<span class="sd">    interp_bool : bool</span>
+<span class="sd">        if True, interpolate the gradient field when advecting at the cost of speed. If False, point positions are clipped and this is much faster. </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_seg_connected_original : (MxN)</span>
+<span class="sd">        an integer image where each unique int &gt; 0 relates to a unique object such that object 1 is retrieved by cell_seg_connected_original==1.</span>
+<span class="sd">    tracks : Nx2</span>
+<span class="sd">        if return_tracks=True, returns as a second argument, the tracks of the initial seeded grid points to its final position</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.gradient_watershed3D_binary` :</span>
+<span class="sd">        Equivalent for 3D images </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">ndimage</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    <span class="kn">import</span> <span class="nn">skimage.morphology</span> <span class="k">as</span> <span class="nn">skmorph</span>
+    <span class="kn">import</span> <span class="nn">pylab</span> <span class="k">as</span> <span class="nn">plt</span> 
+    <span class="kn">import</span> <span class="nn">skimage.measure</span> <span class="k">as</span> <span class="nn">skmeasure</span> 
+    <span class="kn">import</span> <span class="nn">skimage.segmentation</span> <span class="k">as</span> <span class="nn">sksegmentation</span> 
+    <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span> 
+    
+    <span class="k">def</span> <span class="nf">interp2</span><span class="p">(</span><span class="n">query_pts</span><span class="p">,</span> <span class="n">grid_shape</span><span class="p">,</span> <span class="n">I_ref</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">cast_uint8</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+        <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">RegularGridInterpolator</span> 
+        
+        <span class="n">spl</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> 
+                                       <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span> 
+                                       <span class="n">I_ref</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">I_query</span> <span class="o">=</span> <span class="n">spl</span><span class="p">((</span><span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+                       <span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="n">cast_uint8</span><span class="p">:</span>
+            <span class="n">I_query</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">I_query</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">I_query</span>
+
+    <span class="c1"># compute the signed distance transform</span>
+    <span class="k">if</span> <span class="n">gradient_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sdf_normals</span> <span class="o">=</span> <span class="n">gradient_img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># use the supplied gradients! </span>
+        <span class="n">sdf_normals</span> <span class="o">=</span> <span class="n">sdf_normals</span> <span class="o">*</span> <span class="n">binary</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sdf_normals</span><span class="p">,</span> <span class="n">sdf_binary</span> <span class="o">=</span> <span class="n">surf_normal_sdf</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">smooth_gradient</span><span class="o">=</span><span class="n">smooth_gradient</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span> <span class="n">norm_vectors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">sdf_normals</span> <span class="o">=</span> <span class="n">sdf_normals</span> <span class="o">*</span> <span class="n">binary</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+        
+    <span class="c1"># print(sdf_normals.shape)</span>
+    <span class="n">grid</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">binary</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># (N,ndim)</span>
+    <span class="c1"># print(pts.shape)</span>
+    <span class="c1"># plt.figure(figsize=(10,10))</span>
+    <span class="c1"># plt.imshow(binary)</span>
+    <span class="c1"># plt.plot(pts[:,1], pts[:,0], &#39;r.&#39;)</span>
+    <span class="c1"># plt.show()</span>
+    
+    <span class="n">tracks</span> <span class="o">=</span> <span class="p">[</span><span class="n">pts</span><span class="p">]</span>
+    
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_iter</span><span class="p">)):</span>
+        <span class="n">pt_ii</span> <span class="o">=</span> <span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">interp_bool</span><span class="p">:</span>
+            <span class="n">pts_vect_ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">interp2</span><span class="p">(</span><span class="n">pt_ii</span><span class="p">,</span> <span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">I_ref</span><span class="o">=</span><span class="n">sdf_normals</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">cast_uint8</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sdf_normals</span><span class="p">))])</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pts_vect_ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sdf_normals</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="n">pt_ii</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="n">pt_ii</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sdf_normals</span><span class="p">))])</span><span class="o">.</span><span class="n">T</span>
+        
+        <span class="n">pts_vect_ii</span> <span class="o">=</span> <span class="n">pts_vect_ii</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts_vect_ii</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span>
+        <span class="n">pt_ii_next</span> <span class="o">=</span> <span class="n">pt_ii</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="n">pts_vect_ii</span>
+            
+        <span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt_ii_next</span><span class="p">)</span>
+        <span class="c1"># plt.figure(figsize=(10,10))</span>
+        <span class="c1"># plt.imshow(binary)</span>
+        <span class="c1"># plt.plot(pt_ii_next[:,1], pt_ii_next[:,0], &#39;r.&#39;)</span>
+        <span class="c1"># plt.show()</span>
+
+    <span class="n">tracks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tracks</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    a radius neighbor graph or kNN graph here may be much more optimal here.... or use hdbscan? </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># parse ... </span>
+    <span class="n">votes_grid_acc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">votes_grid_acc</span><span class="p">[(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> 
+                   <span class="p">(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span> <span class="o">+=</span> <span class="mf">1.</span> <span class="c1"># add a vote. </span>
+                   
+    <span class="c1"># smooth to get a density (fast KDE estimation)</span>
+    <span class="n">votes_grid_acc</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">smooth_sigma</span><span class="p">)</span>  
+    
+    <span class="k">if</span> <span class="n">thresh_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">votes_grid_binary</span> <span class="o">=</span> <span class="n">votes_grid_acc</span> <span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="o">+</span> <span class="n">thresh_factor</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">votes_grid_binary</span> <span class="o">=</span> <span class="n">votes_grid_acc</span> <span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">)</span> <span class="o">+</span> <span class="n">thresh_factor</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">votes_grid_binary</span> <span class="o">=</span> <span class="n">votes_grid_acc</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">)</span> <span class="c1"># just threshold over the mean. </span>
+        
+    <span class="n">cell_seg_connected</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">votes_grid_binary</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># use the full conditional </span>
+    <span class="n">cell_uniq_regions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">),</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cell_uniq_regions</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">)</span>
+        <span class="n">areas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">re</span><span class="o">.</span><span class="n">area</span> <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="n">props</span><span class="p">])</span>
+        <span class="n">invalid_areas</span> <span class="o">=</span> <span class="n">cell_uniq_regions</span><span class="p">[</span><span class="n">areas</span><span class="o">&lt;=</span><span class="n">min_area</span><span class="p">]</span>
+    
+        <span class="k">for</span> <span class="n">invalid</span> <span class="ow">in</span> <span class="n">invalid_areas</span><span class="p">:</span>
+            <span class="n">cell_seg_connected</span><span class="p">[</span><span class="n">cell_seg_connected</span><span class="o">==</span><span class="n">invalid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        
+    <span class="k">if</span> <span class="n">cell_seg_connected</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">cell_seg_connected</span> <span class="o">=</span> <span class="n">sksegmentation</span><span class="o">.</span><span class="n">relabel_sequential</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="n">cell_seg_connected_original</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">)</span>
+    <span class="n">cell_seg_connected_original</span><span class="p">[(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> 
+                                <span class="p">(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span> <span class="o">=</span> <span class="n">cell_seg_connected</span><span class="p">[(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> 
+                                                                                <span class="p">(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span>
+    
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cell_seg_connected</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        
+    <span class="c1"># plt.figure(figsize=(10,10))</span>
+    <span class="c1"># plt.imshow(cell_seg_connected)</span>
+    <span class="c1"># plt.show()</span>
+    
+    <span class="c1"># plt.figure(figsize=(10,10))</span>
+    <span class="c1"># plt.imshow(cell_seg_connected_original)</span>
+    <span class="c1"># plt.show()</span>
+    <span class="k">if</span> <span class="n">return_tracks</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cell_seg_connected_original</span><span class="p">,</span> <span class="n">tracks</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cell_seg_connected_original</span>    </div>
+
+
+<div class="viewcode-block" id="gradient_watershed3D_binary"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.gradient_watershed3D_binary">[docs]</a><span class="k">def</span> <span class="nf">gradient_watershed3D_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> 
+                                <span class="n">gradient_img</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                                <span class="n">smooth_sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                <span class="n">smooth_gradient</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+                                <span class="n">n_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> 
+                                <span class="n">min_area</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> 
+                                <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> 
+                                <span class="n">thresh_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                                <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">return_tracks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">interp_bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Parses the instance level segmentation implicitly given as an input binary or a vector field. </span>
+<span class="sd">    The algorithm works as an inverse watershed.</span>
+<span class="sd">    </span>
+<span class="sd">    Step 1: a grid of points is seeds on the image </span>
+
+<span class="sd">    Step 2: points are propagated for n_iter according to the gradient_img, condensing towards cell centers implicitly implied by the gradient image.</span>
+<span class="sd">    </span>
+<span class="sd">    Step 3: individual cluster centers are found by binarisation and connected component, removing objects &lt; min_area</span>
+<span class="sd">    </span>
+<span class="sd">    result is an integer image the same size as binary. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    binary : (MxNxL) numpy array</span>
+<span class="sd">        input binary image defining the voxels that need labeling</span>
+<span class="sd">    gradient_img :  (MxNxLx3) numpy array</span>
+<span class="sd">        This is a gradient field such as that from applying np.array(np.gradient(img)).transpose(1,2,3,0) where img is a potential such as a distance transform or probability map. </span>
+<span class="sd">    smooth_sigma : scalar</span>
+<span class="sd">        controls the catchment area for identifying distinct cells at the final propagation position. Smaller smooth_sigma leads to more oversegmentation. </span>
+<span class="sd">    smooth_gradient : scalar</span>
+<span class="sd">        the isotropic sigma value controlling the Gaussian smoothing of the gradient field. More smoothing results in more cells grouped together</span>
+<span class="sd">    delta: scalar</span>
+<span class="sd">        the voxel size to propagate grid points per iteration. Related to the stability. If too small takes too long. If too large, might not converge. if delta=1, takes a 1 voxel step. </span>
+<span class="sd">    n_iter: int </span>
+<span class="sd">        the number of iterations to run. (To do: monitor convergence and break early to improve speed)</span>
+<span class="sd">    min_area: scalar</span>
+<span class="sd">        volume of cells &lt; min_area are removed. </span>
+<span class="sd">    eps: float</span>
+<span class="sd">        a small number for numerical stability</span>
+<span class="sd">    thresh_factor: scalar</span>
+<span class="sd">        The final cells are identified by thresholding on a threshold mean+thresh_factor*std. Thresh_factor controls what is an object prior to connected components analysis </span>
+<span class="sd">    mask: (MxNxL) numpy array</span>
+<span class="sd">        optional binary mask to gate the region to parse labels for.</span>
+<span class="sd">    return_tracks : bool</span>
+<span class="sd">        if True, return the grid point trajectories </span>
+<span class="sd">    interp_bool : bool</span>
+<span class="sd">        if True, interpolate the gradient field when advecting at the cost of speed. If False, point positions are clipped and this is much faster. </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_seg_connected_original : (MxNxL)</span>
+<span class="sd">        an integer image where each unique int &gt; 0 relates to a unique object such that object 1 is retrieved by cell_seg_connected_original==1.</span>
+<span class="sd">    tracks : Nx3</span>
+<span class="sd">        if return_tracks=True, returns as a second argument, the tracks of the initial seeded grid points to its final position</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.gradient_watershed2D_binary` :</span>
+<span class="sd">        Equivalent for 2D images </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">ndimage</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    <span class="kn">import</span> <span class="nn">skimage.morphology</span> <span class="k">as</span> <span class="nn">skmorph</span>
+    <span class="kn">import</span> <span class="nn">pylab</span> <span class="k">as</span> <span class="nn">plt</span> 
+    <span class="kn">import</span> <span class="nn">skimage.measure</span> <span class="k">as</span> <span class="nn">skmeasure</span> 
+    <span class="kn">import</span> <span class="nn">skimage.segmentation</span> <span class="k">as</span> <span class="nn">sksegmentation</span> 
+    <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span> 
+
+    <span class="k">def</span> <span class="nf">interp3</span><span class="p">(</span><span class="n">query_pts</span><span class="p">,</span> <span class="n">grid_shape</span><span class="p">,</span> <span class="n">I_ref</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">cast_uint8</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    
+        <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">RegularGridInterpolator</span>
+        <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">ndimage</span>
+        
+        <span class="n">spl_3</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> 
+                                             <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> 
+                                             <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])),</span> 
+                                             <span class="n">I_ref</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">I_query</span> <span class="o">=</span> <span class="n">spl_3</span><span class="p">((</span><span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+                          <span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+                          <span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">cast_uint8</span><span class="p">:</span>
+            <span class="n">I_query</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">I_query</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">I_query</span>
+    
+    <span class="k">if</span> <span class="n">gradient_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sdf_normals</span> <span class="o">=</span> <span class="n">gradient_img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># use the supplied gradients! </span>
+        <span class="n">sdf_normals</span> <span class="o">=</span> <span class="n">sdf_normals</span> <span class="o">*</span> <span class="n">binary</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># compute the signed distance transform</span>
+        <span class="n">sdf_normals</span><span class="p">,</span> <span class="n">sdf_binary</span> <span class="o">=</span> <span class="n">surf_normal_sdf</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">smooth_gradient</span><span class="o">=</span><span class="n">smooth_gradient</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span> <span class="n">norm_vectors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">sdf_normals</span> <span class="o">=</span> <span class="n">sdf_normals</span> <span class="o">*</span> <span class="n">binary</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    
+    <span class="n">grid</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">binary</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># (N,ndim)</span>
+    
+    <span class="n">tracks</span> <span class="o">=</span> <span class="p">[</span><span class="n">pts</span><span class="p">]</span>
+    
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_iter</span><span class="p">)):</span>
+        <span class="n">pt_ii</span> <span class="o">=</span> <span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">interp_bool</span><span class="p">:</span>
+            <span class="n">pts_vect_ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">interp3</span><span class="p">(</span><span class="n">pt_ii</span><span class="p">,</span> <span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">I_ref</span><span class="o">=</span><span class="n">sdf_normals</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">cast_uint8</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sdf_normals</span><span class="p">))])</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pts_vect_ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sdf_normals</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="n">pt_ii</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="n">pt_ii</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="n">pt_ii</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sdf_normals</span><span class="p">))])</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">pts_vect_ii</span> <span class="o">=</span> <span class="n">pts_vect_ii</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts_vect_ii</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span>
+        
+        <span class="n">pt_ii_next</span> <span class="o">=</span> <span class="n">pt_ii</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="n">pts_vect_ii</span>            
+        <span class="c1"># clip to volume bounds</span>
+        <span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">pt_ii_next</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pt_ii_next</span> <span class="c1"># overwrite </span>
+        <span class="c1"># plt.figure(figsize=(10,10))</span>
+        <span class="c1"># plt.imshow(binary.max(axis=0))</span>
+        <span class="c1"># plt.plot(pt_ii_next[:,2], </span>
+        <span class="c1">#          pt_ii_next[:,1], &#39;r.&#39;)</span>
+        <span class="c1"># plt.show()</span>
+    <span class="n">tracks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tracks</span><span class="p">)</span>
+    
+    <span class="c1"># parse ... </span>
+    <span class="n">votes_grid_acc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">binary</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">votes_grid_acc</span><span class="p">[(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> 
+                   <span class="p">(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+                   <span class="p">(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span> <span class="o">+=</span> <span class="mf">1.</span> <span class="c1"># add a vote. </span>
+                   
+    <span class="c1"># smooth to get a density (fast KDE estimation)</span>
+    <span class="n">votes_grid_acc</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">smooth_sigma</span><span class="p">)</span>  
+    
+    <span class="k">if</span> <span class="n">thresh_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">votes_grid_binary</span> <span class="o">=</span> <span class="n">votes_grid_acc</span> <span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="o">+</span> <span class="n">thresh_factor</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">votes_grid_binary</span> <span class="o">=</span> <span class="n">votes_grid_acc</span> <span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">)</span> <span class="o">+</span> <span class="n">thresh_factor</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">votes_grid_binary</span> <span class="o">=</span> <span class="n">votes_grid_acc</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">votes_grid_acc</span><span class="p">)</span> <span class="c1"># just threshold over the mean. </span>
+        
+    <span class="n">cell_seg_connected</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">votes_grid_binary</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">cell_uniq_regions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">),</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cell_uniq_regions</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">)</span>
+        <span class="n">areas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">re</span><span class="o">.</span><span class="n">area</span> <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="n">props</span><span class="p">])</span>
+        <span class="n">invalid_areas</span> <span class="o">=</span> <span class="n">cell_uniq_regions</span><span class="p">[</span><span class="n">areas</span><span class="o">&lt;=</span><span class="n">min_area</span><span class="p">]</span>
+    
+        <span class="k">for</span> <span class="n">invalid</span> <span class="ow">in</span> <span class="n">invalid_areas</span><span class="p">:</span>
+            <span class="n">cell_seg_connected</span><span class="p">[</span><span class="n">cell_seg_connected</span><span class="o">==</span><span class="n">invalid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        
+    <span class="k">if</span> <span class="n">cell_seg_connected</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">cell_seg_connected</span> <span class="o">=</span> <span class="n">sksegmentation</span><span class="o">.</span><span class="n">relabel_sequential</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    
+    
+    <span class="n">cell_seg_connected_original</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">cell_seg_connected</span><span class="p">)</span>
+    <span class="n">cell_seg_connected_original</span><span class="p">[(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> 
+                                <span class="p">(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+                                <span class="p">(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span> <span class="o">=</span> <span class="n">cell_seg_connected</span><span class="p">[(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> 
+                                                                                <span class="p">(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+                                                                                <span class="p">(</span><span class="n">tracks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)]</span>
+                                                 
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cell_seg_connected</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        
+    <span class="c1"># plt.figure(figsize=(10,10))</span>
+    <span class="c1"># plt.imshow(cell_seg_connected.max(axis=0))</span>
+    <span class="c1"># plt.show()</span>
+    
+    <span class="c1"># plt.figure(figsize=(10,10))</span>
+    <span class="c1"># plt.imshow(cell_seg_connected_original.max(axis=0))</span>
+    <span class="c1"># plt.show()</span>
+
+    <span class="k">if</span> <span class="n">return_tracks</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cell_seg_connected_original</span><span class="p">,</span> <span class="n">tracks</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cell_seg_connected_original</span>    </div>
+
+
+<div class="viewcode-block" id="surf_normal_sdf"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.surf_normal_sdf">[docs]</a><span class="k">def</span> <span class="nf">surf_normal_sdf</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">smooth_gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> <span class="n">norm_vectors</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given an input binary compute the signed distance function with positive distances for the shape interior and the gradient vector field of the signed distance function. The gradient vector field passes through the boundaries of the binary at normal angles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    binary : array</span>
+<span class="sd">        input n-dimensional binary image</span>
+<span class="sd">    smooth_gradient : scalar</span>
+<span class="sd">        if not None, Gaussian smoothes the gradient vector field with ``sigma=smooth_gradient``</span>
+<span class="sd">    eps : scalar </span>
+<span class="sd">        small value for numerical stabilty</span>
+<span class="sd">    norm_vectors : bool</span>
+<span class="sd">        if True, normalise the gradient vector field such that all vectors have unit magnitude</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sdf_vol_normal : array</span>
+<span class="sd">        the gradient vector field of the signed distance function of the binary</span>
+<span class="sd">    sdf_vol : array </span>
+<span class="sd">        the signed distance function of the binary, with positive distances denoting the interior and negative distances the exterior</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.sdf_distance_transform` :</span>
+<span class="sd">        For computing just the signed distance function</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">ndimage</span>
+
+    <span class="n">sdf_vol</span> <span class="o">=</span> <span class="n">sdf_distance_transform</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">rev_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># so that we have it pointing outwards!. </span>
+    
+    <span class="c1"># compute surface normal of the signed distance function. </span>
+    <span class="n">sdf_vol_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">sdf_vol</span><span class="p">))</span>
+    <span class="c1"># smooth gradient</span>
+    <span class="k">if</span> <span class="n">smooth_gradient</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># smoothing needs to be done before normalization of magnitude. </span>
+        <span class="n">sdf_vol_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">sdf</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">smooth_gradient</span><span class="p">)</span> <span class="k">for</span> <span class="n">sdf</span> <span class="ow">in</span> <span class="n">sdf_vol_normal</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">norm_vectors</span><span class="p">:</span>
+        <span class="n">sdf_vol_normal</span> <span class="o">=</span> <span class="n">sdf_vol_normal</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sdf_vol_normal</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="kc">None</span><span class="p">,:]</span><span class="o">+</span><span class="n">eps</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sdf_vol_normal</span><span class="p">,</span> <span class="n">sdf_vol</span></div>
+
+
+<div class="viewcode-block" id="edge_attract_gradient_vector"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.edge_attract_gradient_vector">[docs]</a><span class="k">def</span> <span class="nf">edge_attract_gradient_vector</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> 
+                                 <span class="n">return_sdf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                                 <span class="n">smooth_gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                                 <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> 
+                                 <span class="n">norm_vectors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                 <span class="n">rev_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given an input binary compute an edge aware signed distance function which pulls all points in the volume towards the boundary edge of the binary. The construction is based on computing the signed distance function. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    binary : array</span>
+<span class="sd">        input n-dimensional binary image</span>
+<span class="sd">    return_sdf : bool</span>
+<span class="sd">        if True, return the signed distance function </span>
+<span class="sd">    smooth_gradient : scalar</span>
+<span class="sd">        if not None, Gaussian smoothes the gradient vector field with ``sigma=smooth_gradient``</span>
+<span class="sd">    eps : scalar </span>
+<span class="sd">        small value for numerical stabilty</span>
+<span class="sd">    norm_vectors : bool</span>
+<span class="sd">        if True, normalise the gradient vector field such that all vectors have unit magnitude</span>
+<span class="sd">    rev_sign : bool</span>
+<span class="sd">        if True, create the opposite edge repelling field </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sdf_vol_vector : array</span>
+<span class="sd">        the edge attracting or edge repelling gradient vector field of the signed distance function of the binary</span>
+<span class="sd">    sdf_vol : array </span>
+<span class="sd">        the signed distance function of the binary, with positive distances denoting the interior and negative distances the exterior</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.surf_normal_sdf` :</span>
+<span class="sd">        Similar gradient vector field, but pulls every point in the volume towards a central point within the binary</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">ndimage</span>
+
+    <span class="n">pos_binary</span> <span class="o">=</span> <span class="n">binary</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">neg_binary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">pos_binary</span><span class="p">)</span>
+
+    <span class="n">sdf_vol_vector</span><span class="p">,</span> <span class="n">sdf_vol</span> <span class="o">=</span> <span class="n">surf_normal_sdf</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> 
+                                            <span class="n">smooth_gradient</span><span class="o">=</span><span class="n">smooth_gradient</span><span class="p">,</span> 
+                                            <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span> 
+                                            <span class="n">norm_vectors</span><span class="o">=</span><span class="n">norm_vectors</span><span class="p">)</span>
+
+    <span class="c1"># now we can invert the vectors.... </span>
+    <span class="n">sdf_vol_vector</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">sdf_vol_vector</span><span class="p">)</span> <span class="o">*</span> <span class="n">pos_binary</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">sdf_vol_vector</span><span class="p">)</span> <span class="o">*</span> <span class="n">neg_binary</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">sdf_vol_vector</span><span class="p">,</span> <span class="n">sdf_vol</span></div>
+
+
+<div class="viewcode-block" id="mean_curvature_field"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.mean_curvature_field">[docs]</a><span class="k">def</span> <span class="nf">mean_curvature_field</span><span class="p">(</span><span class="n">sdf_normal</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the mean curvature given a vector field, :math:`V`. This is defined as </span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        H = -\frac{1}{2}\nabla\cdot\left( V\right)</span>
+<span class="sd">    </span>
+<span class="sd">    The output is a scalar field. The vector dimension is the first axis. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sdf_normal : array</span>
+<span class="sd">        input (d,) + n-dimensional gradient field </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    H : array</span>
+<span class="sd">        output n-dimensional divergence </span>
+<span class="sd">       </span>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.mean_curvature_binary` :</span>
+<span class="sd">        Function wraps this function to compute the mean curvature given a binary </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">divergence</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the divergence of the vector field f, corresponding to dFx/dx + dFy/dy + ...</span>
+<span class="sd">        :param f: List of ndarrays, where every item of the list is one dimension of the vector field</span>
+<span class="sd">        :return: Single ndarray of the same shape as each of the items in f, which corresponds to a scalar field</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ufunc</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_dims</span><span class="p">)])</span>
+        
+    <span class="c1"># add the negative so that it is consistent with a positive distance tranform for the internal! </span>
+    <span class="n">H</span> <span class="o">=</span> <span class="o">-</span><span class="mf">.5</span><span class="o">*</span><span class="p">(</span><span class="n">divergence</span><span class="p">(</span><span class="n">sdf_normal</span><span class="p">))</span><span class="c1"># total curvature is the divergence of the normal. </span>
+    
+    <span class="k">return</span> <span class="n">H</span> </div>
+
+<div class="viewcode-block" id="mean_curvature_binary"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.mean_curvature_binary">[docs]</a><span class="k">def</span> <span class="nf">mean_curvature_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth_gradient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; All in one function to compute the signed distance function, :math:`\Phi`, its normalised gradient field, :math:`\nabla\Phi /|\nabla\Phi|` and the mean curvature defined as </span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        H = -\frac{1}{2}\nabla\cdot\left( \frac{\nabla \Phi}{|\nabla \Phi|}\right)</span>
+<span class="sd">    </span>
+<span class="sd">    The output is a scalar field. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    binary : array</span>
+<span class="sd">        input n-dimensional binary image  </span>
+<span class="sd">    smooth : scalar</span>
+<span class="sd">        the sigma of the Gaussian smoother for smoothing the computed mean curvature field and the width of the derived surface mask if ``mask=True``</span>
+<span class="sd">    mask : bool</span>
+<span class="sd">        if True, the mean curvature is restricted to the surface captured by binary derived internally as a thin shell of width ``smooth``. Non surface values will then be returned as np.nan</span>
+<span class="sd">    smooth_gradient : scalar</span>
+<span class="sd">        if not None, Gaussian smoothes the gradient vector field with the provided sigma value before computing mean curvature</span>
+<span class="sd">    eps : scalar</span>
+<span class="sd">        small number for numerics</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    H_normal : array</span>
+<span class="sd">        output n-dimensional mean curvature</span>
+<span class="sd">    sdf_vol_normal : array </span>
+<span class="sd">        (n,) + n-dimensional gradient of the signed distance function. The first axis is the vectors.</span>
+<span class="sd">    sdf_vol : array</span>
+<span class="sd">        n-dimensional signed distance function</span>
+<span class="sd">       </span>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.mean_curvature_field` :</span>
+<span class="sd">        for the computation of mean curvature where the input vector field is the normalised gradient vector the binary signed distance function.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">skimage.morphology</span> <span class="k">as</span> <span class="nn">skmorph</span> 
+    <span class="kn">import</span> <span class="nn">scipy.ndimage</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+    <span class="n">sdf_vol_normal</span><span class="p">,</span> <span class="n">sdf_vol</span> <span class="o">=</span> <span class="n">surf_normal_sdf</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">smooth_gradient</span><span class="o">=</span><span class="n">smooth_gradient</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+    <span class="n">H_normal</span> <span class="o">=</span> <span class="n">mean_curvature_field</span><span class="p">(</span><span class="n">sdf_vol_normal</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">smooth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">H_normal</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">H_normal</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mask</span><span class="p">:</span>
+        <span class="c1"># do we really need to pass an additional mask here? </span>
+        <span class="n">mask_outer</span> <span class="o">=</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">ball</span><span class="p">(</span><span class="n">smooth</span><span class="p">))</span>
+        <span class="n">mask_inner</span> <span class="o">=</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">binary_erosion</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">skmorph</span><span class="o">.</span><span class="n">ball</span><span class="p">(</span><span class="n">smooth</span><span class="p">))</span>
+        <span class="n">mask_binary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask_outer</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask_inner</span><span class="p">))</span>
+        <span class="n">H_normal</span><span class="p">[</span><span class="n">mask_binary</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">H_normal</span><span class="p">,</span> <span class="n">sdf_vol_normal</span><span class="p">,</span> <span class="n">sdf_vol</span></div>
+
+
+<div class="viewcode-block" id="extract_2D_contours_img_and_curvature"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.extract_2D_contours_img_and_curvature">[docs]</a><span class="k">def</span> <span class="nf">extract_2D_contours_img_and_curvature</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">presmooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given an input binary image, extract the largest closed 2D contour and compute the curvature at every point of the curve using splines.</span>
+<span class="sd">    </span>
+<span class="sd">    It is assumed there is only 1 region, 1 contour. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    binary : (MxN) image</span>
+<span class="sd">        input 2D binary image</span>
+<span class="sd">    presmooth : scalar</span>
+<span class="sd">        if not None, smoothes the binary before running ``skimage.measure.find_contours`` with an isolevel of 0.5 to extract the 2D contour otherwise no smoothing is applied and we extract at isolevel of 0.</span>
+<span class="sd">    k : int</span>
+<span class="sd">        the polynomial order of the interpolating spline used for computing line curvature</span>
+<span class="sd">    error : scalar</span>
+<span class="sd">        The allowed error in the spline fitting. Controls the smoothness of the fitted spline. The larger the error, the more smooth the fitting and curvature value variation. </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    contour : (N,2) array</span>
+<span class="sd">        array of xy coordinates of the contour line </span>
+<span class="sd">    contour_prime : (N,2) array</span>
+<span class="sd">        array of the 1st derivative of the contour line </span>
+<span class="sd">    contour_prime_prime : (N,2) array</span>
+<span class="sd">        array of the 2nd derivative of the contour line </span>
+<span class="sd">    kappa :  (N,) array</span>
+<span class="sd">        array of the line curvature values at each point on the contour</span>
+<span class="sd">    orientation : angle in radians</span>
+<span class="sd">        the orientation of the region </span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :func:`unwrap3D.Segmentation.segmentation.curvature_splines` : </span>
+<span class="sd">        Function used to compute line curvature </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">skimage.measure</span> <span class="k">as</span> <span class="nn">skmeasure</span>
+    <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">ndimage</span>
+
+    <span class="k">if</span> <span class="n">presmooth</span><span class="p">:</span>
+        <span class="n">binary_smooth</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">binary</span><span class="o">*</span><span class="mi">1</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">presmooth</span><span class="p">)</span>
+        <span class="n">contour</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">find_contours</span><span class="p">(</span><span class="n">binary_smooth</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># contour = contour[np.argmax([len(cc) for cc in contour])] # largest</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">binary_smooth</span> <span class="o">=</span> <span class="n">binary</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">contour</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">find_contours</span><span class="p">(</span><span class="n">binary_smooth</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># contour = contour[np.argmax([len(cc) for cc in contour])] # largest </span>
+
+    <span class="n">orientation</span> <span class="o">=</span> <span class="n">skmeasure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="n">binary</span><span class="o">*</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">orientation</span> <span class="c1"># this is the complementary angle</span>
+    <span class="n">orientation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.</span> <span class="o">-</span> <span class="n">orientation</span>
+    <span class="n">contour</span> <span class="o">=</span> <span class="n">contour</span><span class="p">[:,::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="c1"># to convert to x-y convention </span>
+
+    <span class="c1"># refine this with errors. </span>
+    <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">x_prime</span><span class="p">,</span> <span class="n">y_prime</span><span class="p">),</span> <span class="p">(</span><span class="n">x_prime_prime</span><span class="p">,</span> <span class="n">y_prime_prime</span><span class="p">),</span> <span class="n">kappa</span> <span class="o">=</span> <span class="n">curvature_splines</span><span class="p">(</span><span class="n">contour</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">contour</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">contour</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">contour_prime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x_prime</span><span class="p">,</span><span class="n">y_prime</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">contour_prime_prime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x_prime_prime</span><span class="p">,</span><span class="n">y_prime_prime</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+ 
+    <span class="k">return</span> <span class="n">contour</span><span class="p">,</span> <span class="n">contour_prime</span><span class="p">,</span> <span class="n">contour_prime_prime</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">orientation</span></div>
+
+
+<span class="c1"># curvature of line using spline fitting. </span>
+<div class="viewcode-block" id="curvature_splines"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.curvature_splines">[docs]</a><span class="k">def</span> <span class="nf">curvature_splines</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the signed curvature of a 2D curve at each point using interpolating splines.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x,y : numpy.array(dtype=float) shape (n_points,)</span>
+<span class="sd">         or</span>
+<span class="sd">         y=None and</span>
+<span class="sd">         x is a numpy.array(dtype=complex) shape (n_points, )</span>
+<span class="sd">         In the second case the curve is represented as a np.array</span>
+<span class="sd">         of complex numbers.</span>
+<span class="sd">    k : int </span>
+<span class="sd">        The order of the interpolating spline </span>
+<span class="sd">    error : float</span>
+<span class="sd">        The admisible error when interpolating the splines</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    [x_, y_] : list of [(n_points,), (n_points,)] numpy.array(dtype=float)</span>
+<span class="sd">        the x, y coordinates of the interpolating spline where curvature was evaluated. </span>
+<span class="sd">    [x_prime, y_prime] : list of [(n_points,), (n_points,)] numpy.array(dtype=float)</span>
+<span class="sd">        the x, y first derivatives of the interpolating spline </span>
+<span class="sd">    [x_prime_prime,y_prime_prime] : list of [(n_points,), (n_points,)] numpy.array(dtype=float)</span>
+<span class="sd">        the x, y second derivatives of the interpolating spline </span>
+<span class="sd">    curvature: numpy.array shape (n_points,)</span>
+<span class="sd">        The line curvature at each (x,y) point</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">UnivariateSpline</span>
+    <span class="c1"># handle list of complex case</span>
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">imag</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">std</span> <span class="o">=</span> <span class="n">error</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">fx</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">std</span><span class="p">))</span>
+    <span class="n">fy</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">std</span><span class="p">))</span>
+    <span class="c1"># fx = UnivariateSpline(t, x, k=k, s=smooth)</span>
+    <span class="c1"># fy = UnivariateSpline(t, y, k=k, s=smooth)</span>
+    
+    <span class="n">x_</span> <span class="o">=</span> <span class="n">fx</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">y_</span> <span class="o">=</span> <span class="n">fy</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="n">x_prime</span> <span class="o">=</span> <span class="n">fx</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">)(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">x_prime_prime</span> <span class="o">=</span> <span class="n">fx</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">2</span><span class="p">)(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">y_prime</span> <span class="o">=</span> <span class="n">fy</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">)(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">y_prime_prime</span> <span class="o">=</span> <span class="n">fy</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">2</span><span class="p">)(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">curvature</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_prime</span> <span class="o">*</span> <span class="n">y_prime_prime</span> <span class="o">-</span> <span class="n">y_prime</span><span class="o">*</span> <span class="n">x_prime_prime</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">x_prime</span><span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y_prime</span><span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">3.</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+<span class="c1">#    return [x_, y_], [xˈ, yˈ], curvature</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">x_</span><span class="p">,</span> <span class="n">y_</span><span class="p">],</span> <span class="p">[</span><span class="n">x_prime</span><span class="p">,</span> <span class="n">y_prime</span><span class="p">],</span> <span class="p">[</span><span class="n">x_prime_prime</span><span class="p">,</span><span class="n">y_prime_prime</span><span class="p">],</span> <span class="n">curvature</span></div>
+
+<div class="viewcode-block" id="reorient_line"><a class="viewcode-back" href="../../../unwrap3D.Segmentation.html#unwrap3D.Segmentation.segmentation.reorient_line">[docs]</a><span class="k">def</span> <span class="nf">reorient_line</span><span class="p">(</span><span class="n">xy</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convenience function to reorient a given xy line to be anticlockwise orientation using the sign of the vector area</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters </span>
+<span class="sd">    ----------</span>
+<span class="sd">    xy : (n_points,2) array</span>
+<span class="sd">        The input contour in xy coordinates </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xy_reorient : (n_points,2) array</span>
+<span class="sd">        The reoriented input contour in xy coordinates </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># mean_xy = np.mean(xy, axis=0)</span>
+    <span class="c1"># xy_ = xy - mean_xy[None,:]</span>
+    
+    <span class="c1"># angle = np.arctan2(xy_[:,1], xy_[:,0])</span>
+    <span class="c1"># # angle_diff = np.mean(angle[1:] - angle[:-1]) # which way to go. # is this the correct way to average? </span>
+    <span class="c1"># angle_diff = np.mean(np.sign(angle[1:] - angle[:-1])) # correct assumption -&gt; this average was key. </span>
+    <span class="kn">from</span> <span class="nn">..Geometry</span> <span class="kn">import</span> <span class="n">geometry</span> <span class="k">as</span> <span class="n">geom</span>
+
+    <span class="n">area</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">polyarea_2D</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">area</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">xy_orient</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">xy_orient</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xy_orient</span> <span class="o">=</span> <span class="n">xy</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">xy_orient</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

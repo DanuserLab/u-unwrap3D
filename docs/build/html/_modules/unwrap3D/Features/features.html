@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Features.features &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Features.features</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Features.features</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">..Utility_Functions</span> <span class="kn">import</span> <span class="n">file_io</span> <span class="k">as</span> <span class="n">fio</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
+
+
+<div class="viewcode-block" id="DsiftExtractor"><a class="viewcode-back" href="../../../unwrap3D.Features.html#unwrap3D.Features.features.DsiftExtractor">[docs]</a><span class="k">class</span> <span class="nc">DsiftExtractor</span><span class="p">:</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	The class that does dense sift feature extractor. See https://github.com/Yangqing/dsift-python</span>
+<span class="sd">	Sample Usage:</span>
+<span class="sd">		extractor = DsiftExtractor(gridSpacing,patchSize,[optional params])</span>
+<span class="sd">		feaArr,positions = extractor.process_image(Image)</span>
+<span class="sd">	</span>
+<span class="sd">	Reference : </span>
+<span class="sd">		Y. Jia and T. Darrell. &quot;Heavy-tailed Distances for Gradient Based Image Descriptors&quot;. NIPS 2011.</span>
+<span class="sd">		</span>
+<span class="sd">		Lowe, David G. &quot;Object recognition from local scale-invariant features.&quot; Proceedings of the seventh IEEE international conference on computer vision. Vol. 2. Ieee, 1999.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gridSpacing</span><span class="p">,</span> <span class="n">patchSize</span><span class="p">,</span>
+				 <span class="n">nrml_thres</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>\
+				 <span class="n">sigma_edge</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span>\
+				 <span class="n">sift_thres</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+				 <span class="n">Nangles</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+				 <span class="n">Nbins</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+				 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">9.0</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		gridSpacing: </span>
+<span class="sd">			the spacing for sampling dense descriptors</span>
+<span class="sd">		patchSize: int</span>
+<span class="sd">			the size of each sift patch</span>
+<span class="sd">		nrml_thres: scalar</span>
+<span class="sd">			low contrast normalization threshold</span>
+<span class="sd">		sigma_edge: scalar</span>
+<span class="sd">			the standard deviation for the gaussian smoothing before computing the gradient</span>
+<span class="sd">		sift_thres: scalar</span>
+<span class="sd">			sift thresholding (0.2 works well based on Lowe&#39;s SIFT paper)</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">Nangles</span> <span class="o">=</span> <span class="n">Nangles</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">Nbins</span> <span class="o">=</span> <span class="n">Nbins</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">Nsamples</span> <span class="o">=</span> <span class="n">Nbins</span><span class="o">**</span><span class="mi">2</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">Nangles</span><span class="p">))</span><span class="o">*</span><span class="mf">2.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="n">Nangles</span> <span class="c1"># the thresholds of the angle histogram [0,2pi]</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">gS</span> <span class="o">=</span> <span class="n">gridSpacing</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pS</span> <span class="o">=</span> <span class="n">patchSize</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">nrml_thres</span> <span class="o">=</span> <span class="n">nrml_thres</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma_edge</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">sift_thres</span> <span class="o">=</span> <span class="n">sift_thres</span>
+		<span class="c1"># compute the weight contribution map</span>
+		<span class="n">sample_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pS</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">Nbins</span><span class="p">)</span> <span class="c1"># spatial resolution. </span>
+		<span class="n">sample_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pS</span><span class="p">))</span>
+		<span class="n">sample_ph</span><span class="p">,</span> <span class="n">sample_pw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">sample_p</span><span class="p">,</span><span class="n">sample_p</span><span class="p">)</span> <span class="c1"># this is 32 x 32 (image squared?)</span>
+		<span class="n">sample_ph</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">sample_ph</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+		<span class="n">sample_pw</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">sample_pw</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+		<span class="n">bincenter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">Nbins</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">Nbins</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pS</span> <span class="o">-</span> <span class="mf">0.5</span> 
+<span class="c1">#        print(bincenter)</span>
+		<span class="n">bincenter_h</span><span class="p">,</span> <span class="n">bincenter_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">bincenter</span><span class="p">,</span><span class="n">bincenter</span><span class="p">)</span>
+<span class="c1">#        print(bincenter_h)</span>
+<span class="c1">#        print(bincenter_w)</span>
+		<span class="n">bincenter_h</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">bincenter_h</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+		<span class="n">bincenter_w</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">bincenter_w</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+		<span class="n">dist_ph</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">sample_ph</span> <span class="o">-</span> <span class="n">bincenter_h</span><span class="p">)</span>
+		<span class="n">dist_pw</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">sample_pw</span> <span class="o">-</span> <span class="n">bincenter_w</span><span class="p">)</span>
+		<span class="n">weights_h</span> <span class="o">=</span> <span class="n">dist_ph</span> <span class="o">/</span> <span class="n">sample_res</span>
+		<span class="n">weights_w</span> <span class="o">=</span> <span class="n">dist_pw</span> <span class="o">/</span> <span class="n">sample_res</span>
+		<span class="n">weights_h</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">weights_h</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">weights_h</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="n">weights_w</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">weights_w</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">weights_w</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="c1"># weights is the contribution of each pixel to the corresponding bin center</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights_h</span> <span class="o">*</span> <span class="n">weights_w</span>
+
+<div class="viewcode-block" id="DsiftExtractor.gen_dgauss"><a class="viewcode-back" href="../../../unwrap3D.Features.html#unwrap3D.Features.features.DsiftExtractor.gen_dgauss">[docs]</a>	<span class="k">def</span> <span class="nf">gen_dgauss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sigma</span><span class="p">):</span>
+		<span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		generates a derivative of Gaussian filter with the same specified :math:`\sigma` in both the X and Y</span>
+<span class="sd">		directions.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">fwid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">sigma</span><span class="p">))</span>
+		<span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">fwid</span><span class="p">,</span><span class="n">fwid</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+		<span class="n">G</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">G</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">G</span>
+		<span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span> <span class="n">G</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">sigma</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span>
+		<span class="n">G</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+		<span class="n">GH</span><span class="p">,</span><span class="n">GW</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+		<span class="n">GH</span> <span class="o">*=</span> <span class="mf">2.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">GH</span><span class="p">))</span>
+		<span class="n">GW</span> <span class="o">*=</span> <span class="mf">2.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">GW</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">GH</span><span class="p">,</span><span class="n">GW</span></div>
+		
+<div class="viewcode-block" id="DsiftExtractor.process_image"><a class="viewcode-back" href="../../../unwrap3D.Features.html#unwrap3D.Features.features.DsiftExtractor.process_image">[docs]</a>	<span class="k">def</span> <span class="nf">process_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">positionNormalize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>\
+					   <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		processes a single image, return the locations</span>
+<span class="sd">		and the values of detected SIFT features.</span>
+<span class="sd">		image: a M*N image which is a numpy 2D array. If you pass a color image, it will automatically be convertedto a grayscale image.</span>
+<span class="sd">		positionNormalize: whether to normalize the positions to [0,1]. If False, the pixel-based positions of the top-right position of the patches is returned.</span>
+<span class="sd">		</span>
+<span class="sd">		Return values:</span>
+<span class="sd">		feaArr: the feature array, each row is a feature</span>
+<span class="sd">		positions: the positions of the features</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+
+		<span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+			<span class="c1"># we do not deal with color images.</span>
+			<span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">image</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+		<span class="c1"># compute the grids</span>
+		<span class="n">H</span><span class="p">,</span><span class="n">W</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+		<span class="n">gS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gS</span>
+		<span class="n">pS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pS</span>
+		<span class="n">remH</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">H</span><span class="o">-</span><span class="n">pS</span><span class="p">,</span> <span class="n">gS</span><span class="p">)</span>
+		<span class="n">remW</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">W</span><span class="o">-</span><span class="n">pS</span><span class="p">,</span> <span class="n">gS</span><span class="p">)</span>
+		<span class="n">offsetH</span> <span class="o">=</span> <span class="n">remH</span><span class="o">//</span><span class="mi">2</span>
+		<span class="n">offsetW</span> <span class="o">=</span> <span class="n">remW</span><span class="o">//</span><span class="mi">2</span>
+		<span class="n">gridH</span><span class="p">,</span><span class="n">gridW</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">offsetH</span><span class="p">,</span><span class="n">H</span><span class="o">-</span><span class="n">pS</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">gS</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">offsetW</span><span class="p">,</span><span class="n">W</span><span class="o">-</span><span class="n">pS</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">gS</span><span class="p">))</span>
+		<span class="n">gridH</span> <span class="o">=</span> <span class="n">gridH</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+		<span class="n">gridW</span> <span class="o">=</span> <span class="n">gridW</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;Image: w </span><span class="si">{}</span><span class="s1">, h </span><span class="si">{}</span><span class="s1">, gs </span><span class="si">{}</span><span class="s1">, ps </span><span class="si">{}</span><span class="s1">, nFea </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span>\
+					<span class="nb">format</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">H</span><span class="p">,</span><span class="n">gS</span><span class="p">,</span><span class="n">pS</span><span class="p">,</span><span class="n">gridH</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+		<span class="n">feaArr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_sift_grid</span><span class="p">(</span><span class="n">image</span><span class="p">,</span><span class="n">gridH</span><span class="p">,</span><span class="n">gridW</span><span class="p">)</span> <span class="c1"># this is the heavy lifting. </span>
+		<span class="n">feaArr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_sift</span><span class="p">(</span><span class="n">feaArr</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">positionNormalize</span><span class="p">:</span>
+			<span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">gridH</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">H</span><span class="p">),</span> <span class="n">gridW</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">W</span><span class="p">)))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">gridH</span><span class="p">,</span> <span class="n">gridW</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">feaArr</span><span class="p">,</span> <span class="n">positions</span></div>
+
+<div class="viewcode-block" id="DsiftExtractor.calculate_sift_grid"><a class="viewcode-back" href="../../../unwrap3D.Features.html#unwrap3D.Features.features.DsiftExtractor.calculate_sift_grid">[docs]</a>	<span class="k">def</span> <span class="nf">calculate_sift_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">image</span><span class="p">,</span><span class="n">gridH</span><span class="p">,</span><span class="n">gridW</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		This function calculates the unnormalized sift features at equidistantly spaced control points in the image as specified by the number in height (gridH) and in width (gridW)</span>
+<span class="sd">		It is called by process_image().</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
+
+		<span class="n">H</span><span class="p">,</span><span class="n">W</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+		<span class="n">Npatches</span> <span class="o">=</span> <span class="n">gridH</span><span class="o">.</span><span class="n">size</span>
+		<span class="n">feaArr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Npatches</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nsamples</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Nangles</span><span class="p">))</span> <span class="c1"># Nsamples is the number of grid positions of the image being taken. # number of angles </span>
+		
+		<span class="c1"># calculate gradient</span>
+		<span class="n">GH</span><span class="p">,</span><span class="n">GW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_dgauss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span> <span class="c1"># this is the gradient filter for the image. </span>
+		
+		<span class="n">IH</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">convolve2d</span><span class="p">(</span><span class="n">image</span><span class="p">,</span><span class="n">GH</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+		<span class="n">IW</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">convolve2d</span><span class="p">(</span><span class="n">image</span><span class="p">,</span><span class="n">GW</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+		<span class="n">Imag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">IH</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">IW</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+		<span class="n">Itheta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">IH</span><span class="p">,</span><span class="n">IW</span><span class="p">)</span>
+		<span class="n">Iorient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Nangles</span><span class="p">,</span><span class="n">H</span><span class="p">,</span><span class="n">W</span><span class="p">))</span>
+		
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nangles</span><span class="p">):</span>
+			<span class="n">Iorient</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Imag</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Itheta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># either increment the count or not. </span>
+			<span class="c1">#pyplot.imshow(Iorient[i])</span>
+			<span class="c1">#pyplot.show()</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Npatches</span><span class="p">):</span>
+			<span class="n">currFeature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Nangles</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Nsamples</span><span class="p">))</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nangles</span><span class="p">):</span>
+				<span class="c1"># this is the gaussian spatial weights in each cell. </span>
+				<span class="n">currFeature</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>\
+						<span class="n">Iorient</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">gridH</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="n">gridH</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">pS</span><span class="p">,</span> <span class="n">gridW</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="n">gridW</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">pS</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+			<span class="n">feaArr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">currFeature</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+		<span class="k">return</span> <span class="n">feaArr</span></div>
+
+<div class="viewcode-block" id="DsiftExtractor.normalize_sift"><a class="viewcode-back" href="../../../unwrap3D.Features.html#unwrap3D.Features.features.DsiftExtractor.normalize_sift">[docs]</a>	<span class="k">def</span> <span class="nf">normalize_sift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">feaArr</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		This function does sift feature normalization</span>
+<span class="sd">		following David Lowe&#39;s definition (normalize length -&gt;</span>
+<span class="sd">		thresholding at 0.2 -&gt; renormalize length)</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">siftlen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">feaArr</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># this is the L2</span>
+		<span class="n">hcontrast</span> <span class="o">=</span> <span class="p">(</span><span class="n">siftlen</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrml_thres</span><span class="p">)</span>
+		<span class="n">siftlen</span><span class="p">[</span><span class="n">siftlen</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrml_thres</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrml_thres</span>
+		<span class="c1"># normalize with contrast thresholding</span>
+		<span class="n">feaArr</span> <span class="o">/=</span> <span class="n">siftlen</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">siftlen</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+		<span class="c1"># suppress large gradients</span>
+		<span class="n">feaArr</span><span class="p">[</span><span class="n">feaArr</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">sift_thres</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sift_thres</span>
+		<span class="c1"># renormalize high-contrast ones</span>
+		<span class="n">feaArr</span><span class="p">[</span><span class="n">hcontrast</span><span class="p">]</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">feaArr</span><span class="p">[</span><span class="n">hcontrast</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span>\
+				<span class="n">reshape</span><span class="p">((</span><span class="n">feaArr</span><span class="p">[</span><span class="n">hcontrast</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">feaArr</span></div></div>
+
+<div class="viewcode-block" id="SingleSiftExtractor"><a class="viewcode-back" href="../../../unwrap3D.Features.html#unwrap3D.Features.features.SingleSiftExtractor">[docs]</a><span class="k">class</span> <span class="nc">SingleSiftExtractor</span><span class="p">(</span><span class="n">DsiftExtractor</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	The simple wrapper class that does feature extraction, treating</span>
+<span class="sd">	the whole image as a local image patch.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patchSize</span><span class="p">,</span>
+				 <span class="n">nrml_thres</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>\
+				 <span class="n">sigma_edge</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span>\
+				 <span class="n">sift_thres</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+				 <span class="n">Nangles</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+				 <span class="n">Nbins</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+				 <span class="n">alpha</span> <span class="o">=</span> <span class="mf">9.0</span><span class="p">):</span>
+		<span class="c1"># simply call the super class __init__ with a large gridSpace</span>
+		<span class="n">DsiftExtractor</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patchSize</span><span class="p">,</span> <span class="n">patchSize</span><span class="p">,</span> <span class="n">nrml_thres</span><span class="p">,</span> <span class="n">sigma_edge</span><span class="p">,</span> <span class="n">sift_thres</span><span class="p">)</span>   
+	
+<div class="viewcode-block" id="SingleSiftExtractor.process_image"><a class="viewcode-back" href="../../../unwrap3D.Features.html#unwrap3D.Features.features.SingleSiftExtractor.process_image">[docs]</a>	<span class="k">def</span> <span class="nf">process_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">DsiftExtractor</span><span class="o">.</span><span class="n">process_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div></div>
+
+	
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Utility_Functions package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Utility_Functions package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Utility_Functions.file_io">unwrap3D.Utility_Functions.file_io module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Utility_Functions.stack">unwrap3D.Utility_Functions.stack module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Utility_Functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Utility_Functions package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Utility_Functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-utility-functions-package">
+<h1>unwrap3D.Utility_Functions package<a class="headerlink" href="#unwrap3d-utility-functions-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Utility_Functions.file_io">
+<span id="unwrap3d-utility-functions-file-io-module"></span><h2>unwrap3D.Utility_Functions.file_io module<a class="headerlink" href="#module-unwrap3D.Utility_Functions.file_io" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.file_io.get_basename">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.file_io.</span></span><span class="sig-name descname"><span class="pre">get_basename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/file_io.html#get_basename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.file_io.get_basename" title="Permalink to this definition"></a></dt>
+<dd><p>helper to return the base file name minus the extension given an absolute or relative filepath location</p>
+<p>e.g. This function will return from a filepath, ‘../long_file_location/filename.tif’, the file name minus the extension, ‘filename’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pathname</strong><span class="classifier">filepath</span></dt><dd><p>filepath to parse the file name from</p>
+</dd>
+<dt><strong>ext</strong><span class="classifier">string</span></dt><dd><p>extension of the file format e.g. .tif, .png, .docx</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">string</span></dt><dd><p>the name of the file minus extension and location information</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.file_io.mkdir">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.file_io.</span></span><span class="sig-name descname"><span class="pre">mkdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/file_io.html#mkdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.file_io.mkdir" title="Permalink to this definition"></a></dt>
+<dd><p>Recursively creates all directories if they do not exist to make the folder specifed by ‘directory’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>directory</strong><span class="classifier">folderpath</span></dt><dd><p>path of the folder to create</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.file_io.read_czifile">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.file_io.</span></span><span class="sig-name descname"><span class="pre">read_czifile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">czi_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">squeeze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/file_io.html#read_czifile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.file_io.read_czifile" title="Permalink to this definition"></a></dt>
+<dd><p>Reads the data of a simple .czi microscope stack into a numpy array using the lightweight czifile library</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>czifile</strong><span class="classifier">filepath</span></dt><dd><p>path of the .czi file to read</p>
+</dd>
+<dt><strong>squeeze</strong><span class="classifier">bool</span></dt><dd><p>specify whether singleton dimensions should be collapsed out</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>image_arrays</strong><span class="classifier">numpy array</span></dt><dd><p>image stored in the .czi</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.file_io.read_demons_matlab_tform">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.file_io.</span></span><span class="sig-name descname"><span class="pre">read_demons_matlab_tform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tform_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volshape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['u',</span> <span class="pre">'v',</span> <span class="pre">'w']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/file_io.html#read_demons_matlab_tform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.file_io.read_demons_matlab_tform" title="Permalink to this definition"></a></dt>
+<dd><p>helper for reading Matlab generated xyz demons deformation fields accounting for the difference in array convention.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tform_file</strong><span class="classifier">.mat (Matlab v5.4 format)</span></dt><dd><p>filepath to the .mat of the saved deformation field saved from Matlab</p>
+</dd>
+<dt><strong>volshape</strong><span class="classifier">(M,N,L) tuple</span></dt><dd><p>shape of the original volume, the deformation fields correspond to. This shape is used to rescale any downsampled deformation fields to the original size using linear interpolation.</p>
+</dd>
+<dt><strong>keys</strong><span class="classifier">list of strings</span></dt><dd><p>the variable names in the saved .mat corresponding to the x-, y-, z- direction deformation within Matlab</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>w</strong><span class="classifier">(M,N,L) numpy array</span></dt><dd><p>the ‘x’ deformation in Python tiff image reading convention</p>
+</dd>
+<dt><strong>v</strong><span class="classifier">(M,N,L) numpy array</span></dt><dd><p>the ‘y’ deformation in Python tiff image reading convention</p>
+</dd>
+<dt><strong>u</strong><span class="classifier">(M,N,L) numpy array</span></dt><dd><p>the ‘z’ deformation in Python tiff image reading convention</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.file_io.save_array_to_nifti">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.file_io.</span></span><span class="sig-name descname"><span class="pre">save_array_to_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savefile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/file_io.html#save_array_to_nifti"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.file_io.save_array_to_nifti" title="Permalink to this definition"></a></dt>
+<dd><p>Saves a given numpy array to a nifti format using the nibabel library. The main use is for exporting volumes to annotate in ITKSnap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">numpy array</span></dt><dd><p>input volume image</p>
+</dd>
+<dt><strong>savefile</strong><span class="classifier">string</span></dt><dd><p>filepath to save the output to, user should include the extension in this e.g. .nii.gz for compressed nifty</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Utility_Functions.stack">
+<span id="unwrap3d-utility-functions-stack-module"></span><h2>unwrap3D.Utility_Functions.stack module<a class="headerlink" href="#module-unwrap3D.Utility_Functions.stack" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.stack.bounding_box">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.stack.</span></span><span class="sig-name descname"><span class="pre">bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask3D</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/stack.html#bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.stack.bounding_box" title="Permalink to this definition"></a></dt>
+<dd><p>Given a binary mask in 3D, locate the xyz corners of the tightest bounding box without geometric transformation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>mask3D</strong><span class="classifier">(M,N,L) binary np.bool array</span></dt><dd><p>3D binary image to compute the bounding box coordinates for</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>bbox</strong><span class="classifier">[x1,y1,z1,x2,y2,z2] 1d numpy array</span></dt><dd><p>3D bounding box of the given object specified by the ‘top left’ (x1,y1,z1) and ‘bottom right’ (x2,y2,z2) corners in 3D</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.stack.crop_img_2_box">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.stack.</span></span><span class="sig-name descname"><span class="pre">crop_img_2_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox3D</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/stack.html#crop_img_2_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.stack.crop_img_2_box" title="Permalink to this definition"></a></dt>
+<dd><p>crop a given 3D volumetric image given a 3D cropping bounding box. Bounding boxes are clipped internally to the size of the volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>volume</strong><span class="classifier">(M,N,L) numpy array</span></dt><dd><p>3D image to crop</p>
+</dd>
+<dt><strong>bbox3D</strong><span class="classifier">[x1,y1,z1,x2,y2,z2] 1d numpy array</span></dt><dd><p>3D cropping bounding box specified by the ‘top left’ (x1,y1,z1) and ‘bottom right’ (x2,y2,z2) corners in 3D</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>cropped</strong><span class="classifier">cropped numpy array</span></dt><dd><p>volume[x1:x2,y1:y2,z1:z2]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Utility_Functions.stack.expand_bounding_box">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Utility_Functions.stack.</span></span><span class="sig-name descname"><span class="pre">expand_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_limits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">border</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">border_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">border_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">border_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Utility_Functions/stack.html#expand_bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Utility_Functions.stack.expand_bounding_box" title="Permalink to this definition"></a></dt>
+<dd><p>Given a bounding box specified with ‘top left’ (x1,y1,z1) and ‘bottom right’ (x2,y2,z2) corners in 3D, return another such bounding box with asymmetrically expanded limits</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>bbox3D</strong><span class="classifier">[x1,y1,z1,x2,y2,z2] 1d numpy array</span></dt><dd><p>original 3D bounding box specified by the ‘top left’ (x1,y1,z1) and ‘bottom right’ (x2,y2,z2) corners in 3D</p>
+</dd>
+<dt><strong>clip_limits</strong><span class="classifier">(M,N,L) integer tuple</span></dt><dd><p>the maximum bounds corresponding to the volumetric image size</p>
+</dd>
+<dt><strong>border</strong><span class="classifier">int</span></dt><dd><p>the default single scalar for expanding a bounding box, it is overridden in select directions by setting border_x, border_y, border_z the 1st, 2nd, 3rd axes respectively.</p>
+</dd>
+<dt><strong>border_x</strong><span class="classifier">int</span></dt><dd><p>the expansion in the 1st axis</p>
+</dd>
+<dt><strong>border_y</strong><span class="classifier">int</span></dt><dd><p>the expansion in the 2nd axis</p>
+</dd>
+<dt><strong>border_z</strong><span class="classifier">int</span></dt><dd><p>the expansion in the 3rd axis</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>bbox</strong><span class="classifier">[x1,y1,z1,x2,y2,z2] 1d numpy array</span></dt><dd><p>the coordinates of the expanded 3D bounding box specified by the ‘top left’ (x1,y1,z1) and ‘bottom right’ (x2,y2,z2) corners in 3D</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Utility_Functions">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Utility_Functions" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Image_Functions.image &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Image_Functions.image</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Image_Functions.image</h1><div class="highlight"><pre>
+<span></span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+<div class="viewcode-block" id="pad_vol_2_size"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.pad_vol_2_size">[docs]</a><span class="k">def</span> <span class="nf">pad_vol_2_size</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">fill_method</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Utility function to center and copy the given volumetric image into a larger volume.  </span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	im : (MxNxL) array</span>
+<span class="sd">		input volume to copy</span>
+<span class="sd">	shape : (m,n,l) array</span>
+<span class="sd">		new volume shape</span>
+<span class="sd">	fill_method : str</span>
+<span class="sd">		method of specifying the missing pixels, one of </span>
+
+<span class="sd">		&#39;constant&#39; : str</span>
+<span class="sd">			fill with a constant value specifed by the additional argument ``fill_value``</span>
+<span class="sd">		&#39;mean&#39; : str</span>
+<span class="sd">			fill with the mean value of ``im``</span>
+<span class="sd">		&#39;median&#39; : str</span>
+<span class="sd">			fill with the median value of ``im``</span>
+<span class="sd">	</span>
+<span class="sd">	fill_value : scalar</span>
+<span class="sd">		the constant value to initialise the new array if ``fill_method==&#39;constant&#39;``</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	new_im : (MxNxL) array</span>
+<span class="sd">		output volume the same shape as that specified by ``shape``</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="n">shift_1</span> <span class="o">=</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
+	<span class="n">shift_2</span> <span class="o">=</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
+	<span class="n">shift_3</span> <span class="o">=</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
+	
+	<span class="n">new_im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+	<span class="n">new_im</span><span class="p">[</span><span class="n">shift_1</span><span class="p">:</span><span class="n">shift_1</span><span class="o">+</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+		   <span class="n">shift_2</span><span class="p">:</span><span class="n">shift_2</span><span class="o">+</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+		   <span class="n">shift_3</span><span class="p">:</span><span class="n">shift_3</span><span class="o">+</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+	<span class="k">return</span> <span class="n">new_im</span></div>
+
+
+<div class="viewcode-block" id="mean_vol_img"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.mean_vol_img">[docs]</a><span class="k">def</span> <span class="nf">mean_vol_img</span><span class="p">(</span><span class="n">vol_img_list</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">fill_method</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Utility function to find the mean volume image given a list of volumetric image files. The volumes will automatically be padded to the specified target shape. </span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	vol_img_list : array of filepaths</span>
+<span class="sd">		list of volumetric image filepaths to compute the mean image for </span>
+<span class="sd">	target_shape : (m,n,l) array</span>
+<span class="sd">		desired volume shape, must be at least the size of the largest volume shape. </span>
+<span class="sd">	fill_method : str</span>
+<span class="sd">		method of specifying the missing pixels, one of </span>
+
+<span class="sd">		&#39;constant&#39; : str</span>
+<span class="sd">			fill with a constant value specifed by the additional argument ``fill_value``</span>
+<span class="sd">		&#39;mean&#39; : str</span>
+<span class="sd">			fill with the mean value of ``im``</span>
+<span class="sd">		&#39;median&#39; : str</span>
+<span class="sd">			fill with the median value of ``im``</span>
+<span class="sd">	</span>
+<span class="sd">	fill_value : scalar</span>
+<span class="sd">		the constant value to initialise the new array if ``fill_method==&#39;constant&#39;``</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	mean_vol : (MxNxL) array</span>
+<span class="sd">		mean volume with the same datatype as that of the input volumes</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">skimage.io</span> <span class="k">as</span> <span class="nn">skio</span> 
+	<span class="c1"># work in float but convert to ubytes for allocation? </span>
+	<span class="n">mean_vol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">target_shape</span><span class="p">)</span> 
+	<span class="n">n_imgs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vol_img_list</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vol_img_list</span><span class="p">:</span>
+		<span class="n">im</span> <span class="o">=</span> <span class="n">skio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+		<span class="n">im</span> <span class="o">=</span> <span class="n">pad_vol_2_size</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">fill_method</span><span class="o">=</span><span class="n">fill_method</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span> 
+		<span class="n">mean_vol</span> <span class="o">+=</span> <span class="n">im</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">n_imgs</span><span class="p">)</span>
+	
+	<span class="n">mean_vol</span> <span class="o">=</span> <span class="n">mean_vol</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">mean_vol</span> <span class="c1"># cast to the same type</span></div>
+
+
+<div class="viewcode-block" id="max_vol_img"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.max_vol_img">[docs]</a><span class="k">def</span> <span class="nf">max_vol_img</span><span class="p">(</span><span class="n">vol_img_list</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">fill_method</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Utility function to find the maximum intensty volume image given a list of volumetric image files. The volumes will automatically be padded to the specified target shape. </span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	vol_img_list : array of filepaths</span>
+<span class="sd">		list of volumetric image filepaths to compute the mean image for </span>
+<span class="sd">	target_shape : (m,n,l) array</span>
+<span class="sd">		desired volume shape, must be at least the size of the largest volume shape. </span>
+<span class="sd">	fill_method : str</span>
+<span class="sd">		method of specifying the missing pixels, one of </span>
+
+<span class="sd">		&#39;constant&#39; : str</span>
+<span class="sd">			fill with a constant value specifed by the additional argument ``fill_value``</span>
+<span class="sd">		&#39;mean&#39; : str</span>
+<span class="sd">			fill with the mean value of ``im``</span>
+<span class="sd">		&#39;median&#39; : str</span>
+<span class="sd">			fill with the median value of ``im``</span>
+<span class="sd">	</span>
+<span class="sd">	fill_value : scalar</span>
+<span class="sd">		the constant value to initialise the new array if ``fill_method==&#39;constant&#39;``</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	max_vol : (MxNxL) array</span>
+<span class="sd">		maximum intensity volume with the same datatype as that of the input volumes</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">skimage.io</span> <span class="k">as</span> <span class="nn">skio</span>  
+	<span class="n">max_vol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">target_shape</span><span class="p">)</span> 
+
+	<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vol_img_list</span><span class="p">:</span>
+		<span class="n">im</span> <span class="o">=</span> <span class="n">skimage</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+		<span class="n">im</span> <span class="o">=</span> <span class="n">pad_vol_2_size</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">fill_method</span><span class="o">=</span><span class="n">fill_method</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span> 
+		<span class="n">max_vol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">max_vol</span><span class="p">,</span> <span class="n">im</span><span class="p">)</span>       
+		
+	<span class="k">return</span> <span class="n">max_vol</span></div>
+
+
+<div class="viewcode-block" id="imadjust"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.imadjust">[docs]</a><span class="k">def</span> <span class="nf">imadjust</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span> 
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; A crucial preprocessing for many applications is to contrast stretch the original microscopy volume intensities. This is done here through percentiles similar to Matlabs imadjust function.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	vol : nd array</span>
+<span class="sd">		arbitrary n-dimensional image</span>
+<span class="sd">	p1 : scalar</span>
+<span class="sd">		lower percentile of intensity, specified as a number in the range 0-100. All intensities in a lower percentile than p1 will be mapped to 0.</span>
+<span class="sd">	p2 : scalar</span>
+<span class="sd">		upper percentile of intensity, specified as a number in the range 0-100. All intensities in the upper percentile than p2 will be mapped to the maximum value of the data type.</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	vol_rescale : nd array</span>
+<span class="sd">		image of the same dimensions as the input with contrast enchanced</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	<span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="kn">import</span> <span class="n">rescale_intensity</span>
+	<span class="c1"># this is based on contrast stretching and is used by many of the biological image processing algorithms.</span>
+	<span class="n">p1_</span><span class="p">,</span> <span class="n">p2_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">))</span>
+	<span class="n">vol_rescale</span> <span class="o">=</span> <span class="n">rescale_intensity</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">in_range</span><span class="o">=</span><span class="p">(</span><span class="n">p1_</span><span class="p">,</span><span class="n">p2_</span><span class="p">))</span>
+	<span class="k">return</span> <span class="n">vol_rescale</span></div>
+
+<div class="viewcode-block" id="normalize_mi_ma"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.normalize_mi_ma">[docs]</a><span class="k">def</span> <span class="nf">normalize_mi_ma</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mi</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Linear image intensity rescaling based on the given minimum and maximum intensities, with optional clipping</span>
+<span class="sd">	</span>
+<span class="sd">	The new intensities will be </span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		x_{new} = \frac{x-\text{mi}}{\text{ma}-\text{mi} + \text{eps}}</span>
+<span class="sd">		</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	x : nd array</span>
+<span class="sd">		arbitrary n-dimensional image</span>
+<span class="sd">	mi : scalar</span>
+<span class="sd">		minimum intensity value </span>
+<span class="sd">	ma : scalar</span>
+<span class="sd">		maximum intensity value </span>
+<span class="sd">	clip : bool</span>
+<span class="sd">		whether to clip the transformed image intensities to [0,1] </span>
+<span class="sd">	eps : scalar</span>
+<span class="sd">		small number for numerical stability </span>
+<span class="sd">	dtype : np.dtype</span>
+<span class="sd">		if not None, casts the input x into the specified dtype </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	x : nd array</span>
+<span class="sd">		normalized output image of the same dimensionality as the input image</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">x</span>   <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+		<span class="n">mi</span>  <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="n">mi</span><span class="p">)</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">mi</span><span class="p">)</span> <span class="k">else</span> <span class="n">mi</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+		<span class="n">ma</span>  <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="n">ma</span><span class="p">)</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">ma</span><span class="p">)</span> <span class="k">else</span> <span class="n">ma</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+		<span class="n">eps</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">numexpr</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="n">numexpr</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s2">&quot;(x - mi) / ( ma - mi + eps )&quot;</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+		<span class="n">x</span> <span class="o">=</span>                   <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span> <span class="n">ma</span> <span class="o">-</span> <span class="n">mi</span> <span class="o">+</span> <span class="n">eps</span> <span class="p">)</span>
+	<span class="k">if</span> <span class="n">clip</span><span class="p">:</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pmin</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pmax</span><span class="o">=</span><span class="mf">99.8</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Percentile-based image normalization, same as :func:`unwrap3D.Image_Functions.image.imadust` but exposes more flexibility in terms of axis selection and optional clipping. </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	x : nd array</span>
+<span class="sd">		arbitrary n-dimensional image</span>
+<span class="sd">	pmin : scalar</span>
+<span class="sd">		lower percentile of intensity, specified as a number in the range 0-100. All intensities in a lower percentile than p1 will be mapped to 0.</span>
+<span class="sd">	pmax : scalar</span>
+<span class="sd">		upper percentile of intensity, specified as a number in the range 0-100. All intensities in the upper percentile than p2 will be mapped to the maximum value of the data type.</span>
+<span class="sd">	axis : int</span>
+<span class="sd">		if not None, compute the percentiles restricted to the specified axis, otherwise they will be based on the statistics of the whole image.</span>
+<span class="sd">	clip : bool</span>
+<span class="sd">		whether to clip to the maximum and minimum of [0,1] for float32 or float64 data types.    </span>
+<span class="sd">	eps : scalar</span>
+<span class="sd">		small number for numerical stability </span>
+<span class="sd">	dtype : np.dtype</span>
+<span class="sd">		if not None, casts the input x into the specified dtype </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	x_out : nd array</span>
+<span class="sd">		normalized output image of the same dimensionality as the input image</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">mi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">pmin</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span><span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+	<span class="n">ma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">pmax</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span><span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+	<span class="n">x_out</span> <span class="o">=</span> <span class="n">normalize_mi_ma</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mi</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">x_out</span></div>
+
+
+<div class="viewcode-block" id="std_norm"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.std_norm">[docs]</a><span class="k">def</span> <span class="nf">std_norm</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Contrast normalization using the mean and standard deviation with optional clipping. </span>
+
+<span class="sd">	The intensities are transformed relative to mean :math:`\mu` and standard deviation :math:`\sigma`. The transformed pixel intensities can then be effectively gated based on properties of a Gaussian distribution. Compared to percentile normalisation this methods is easier to tune.</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		I_{new} = \frac{I-\mu}{\text{factor}\cdot\sigma + \text{eps}}</span>
+<span class="sd">		</span>
+<span class="sd">	The extent of enhancement is effectively adjusted through ``factor``. If clipping is specified through ``cutoff`` the positive intensities up to ``cutoff`` is retained</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		I_{final} &amp;= \text{clip}(I_{new}, 0, \text{cutoff}) \\</span>
+<span class="sd">		I_{final} &amp;= \frac{I_{final}-\min(I_{final})}{\max(I_{final})-\min(I_{final}) + \text{eps}}</span>
+
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	im : nd array</span>
+<span class="sd">		arbitrary n-dimensional image</span>
+<span class="sd">	mean : scalar</span>
+<span class="sd">		The mean intensity to subtract off. if None, it is computed as the global mean of `im`. </span>
+<span class="sd">	factor : scalar</span>
+<span class="sd">		adjusts the extent of contrast enhancment. </span>
+<span class="sd">	cutoff : int</span>
+<span class="sd">		if not None, clip the transformed intensities to the range [0, cutoff] and then rescale the result to [0,1]</span>
+<span class="sd">	eps : scalar</span>
+<span class="sd">		small number for numerical stability </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	im_ : nd array</span>
+<span class="sd">		normalized output image of the same dimensionality as the input image</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">mean</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">im_</span> <span class="o">=</span> <span class="n">im</span> <span class="o">-</span> <span class="n">im</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">im_</span> <span class="o">=</span> <span class="n">im</span> <span class="o">-</span> <span class="n">mean</span>
+	<span class="n">im_</span> <span class="o">=</span> <span class="n">im_</span><span class="o">/</span><span class="p">(</span><span class="n">factor</span><span class="o">*</span><span class="n">im</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">im_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">im_</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span> <span class="c1"># implement clipping. </span>
+		<span class="n">im_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im_</span> <span class="o">-</span> <span class="n">im_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="c1"># rescale. </span>
+	
+	<span class="k">return</span> <span class="n">im_</span> </div>
+
+
+<div class="viewcode-block" id="map_intensity_interp2"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.map_intensity_interp2">[docs]</a><span class="k">def</span> <span class="nf">map_intensity_interp2</span><span class="p">(</span><span class="n">query_pts</span><span class="p">,</span> 
+						  <span class="n">grid_shape</span><span class="p">,</span> 
+						  <span class="n">I_ref</span><span class="p">,</span> 
+						  <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> 
+						  <span class="n">cast_uint8</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+						  <span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+						  <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Interpolate a 2D image at specified coordinate points. </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	query_pts : (n_points,2) array</span>
+<span class="sd">		array of (y,x) image coordinates to interpolate intensites at from ``I_ref``</span>
+<span class="sd">	grid_shape : (M,N) tuple</span>
+<span class="sd">		shape of the image to get intensities from </span>
+<span class="sd">	I_ref : (M,N) array</span>
+<span class="sd">		2D image to interpolate intensities from </span>
+<span class="sd">	method : str</span>
+<span class="sd">		Interpolating algorithm. Either &#39;spline&#39; to use scipy.interpolate.RectBivariateSpline or any other e.g. &#39;linear&#39; from scipy.interpolate.RegularGridInterpolator</span>
+<span class="sd">	cast_uint8 : bool</span>
+<span class="sd">		Whether to return the result as a uint8 image. </span>
+<span class="sd">	s : scalar</span>
+<span class="sd">		if method=&#39;spline&#39;, s=0 is a interpolating spline else s&gt;0 is a smoothing spline.</span>
+<span class="sd">	fill_value : scalar</span>
+<span class="sd">		specifies the imputation value if any of query_pts needs to extrapolated. </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	I_query : (n_points,) array</span>
+<span class="sd">		the intensities of ``I_ref`` interpolated at the specified ``query_pts`` </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">RectBivariateSpline</span><span class="p">,</span> <span class="n">RegularGridInterpolator</span> 
+	
+	<span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;spline&#39;</span><span class="p">:</span>
+		<span class="n">spl</span> <span class="o">=</span> <span class="n">RectBivariateSpline</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> 
+								  <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> 
+								  <span class="n">I_ref</span><span class="p">,</span>
+								  <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+		<span class="n">I_query</span> <span class="o">=</span> <span class="n">spl</span><span class="o">.</span><span class="n">ev</span><span class="p">(</span><span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+						 <span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">spl</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> 
+									   <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span> 
+									   <span class="n">I_ref</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+									   <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span>
+		<span class="n">I_query</span> <span class="o">=</span> <span class="n">spl</span><span class="p">((</span><span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+					   <span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+
+	<span class="k">if</span> <span class="n">cast_uint8</span><span class="p">:</span>
+		<span class="n">I_query</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">I_query</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">I_query</span></div>
+
+<div class="viewcode-block" id="scattered_interp2d"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.scattered_interp2d">[docs]</a><span class="k">def</span> <span class="nf">scattered_interp2d</span><span class="p">(</span><span class="n">pts2D</span><span class="p">,</span> <span class="n">pts2Dvals</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">cast_uint8</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Given an unordered set of 2D points with associated intensities, use Delaunay triangulation to interpolate a 2D image of the given size. Grid points outside of the convex hull of the points will be set to the given ``fill_value`` </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	pts2D : (n_points,2)</span>
+<span class="sd">		array of (y,x) image coordinates where intensites are known </span>
+<span class="sd">	pts2Dvals : (n_points,)</span>
+<span class="sd">		array of corresponding image intensities at ``pts2D``</span>
+<span class="sd">	gridsize : (M,N) tupe</span>
+<span class="sd">		shape of the image to get intensities</span>
+<span class="sd">	method : str</span>
+<span class="sd">		one of the interpolatiion methods in ``scipy.interpolate.griddata``</span>
+<span class="sd">	cast_uint8 : bool</span>
+<span class="sd">		Whether to return the result as a uint8 image. </span>
+<span class="sd">	fill_value :</span>
+<span class="sd">		specifies the imputation value if any of query_pts needs to extrapolated. </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	img : (M,N)</span>
+<span class="sd">		the interpolated dense image intensities of the given unordered 2D points</span>
+<span class="sd">	</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">scipy.interpolate</span> <span class="k">as</span> <span class="nn">scinterpolate</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="k">if</span> <span class="n">fill_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">fill_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+	<span class="n">YY</span><span class="p">,</span> <span class="n">XX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">gridsize</span><span class="p">)</span>
+
+	<span class="n">img</span> <span class="o">=</span> <span class="n">scinterpolate</span><span class="o">.</span><span class="n">griddata</span><span class="p">(</span><span class="n">pts2D</span><span class="p">,</span> 
+								 <span class="n">pts2Dvals</span><span class="p">,</span> 
+								 <span class="p">(</span><span class="n">YY</span><span class="p">,</span> <span class="n">XX</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">img</span></div>
+
+<div class="viewcode-block" id="map_intensity_interp3"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.image.map_intensity_interp3">[docs]</a><span class="k">def</span> <span class="nf">map_intensity_interp3</span><span class="p">(</span><span class="n">query_pts</span><span class="p">,</span> 
+							<span class="n">grid_shape</span><span class="p">,</span> 
+							<span class="n">I_ref</span><span class="p">,</span> 
+							<span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> 
+							<span class="n">cast_uint8</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+							<span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Interpolate a 3D volume image at specified coordinate points. </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	query_pts : (n_points,3) array</span>
+<span class="sd">		array of (x,y,z) image coordinates to interpolate intensites at from ``I_ref``</span>
+<span class="sd">	grid_shape : (M,N,L) tuple</span>
+<span class="sd">		shape of the volume image to get intensities from </span>
+<span class="sd">	I_ref : (M,N,L) array</span>
+<span class="sd">		3D image to interpolate intensities from </span>
+<span class="sd">	method : str</span>
+<span class="sd">		Interpolating order. One of those e.g. &#39;linear&#39; from scipy.interpolate.RegularGridInterpolator</span>
+<span class="sd">	cast_uint8 : bool</span>
+<span class="sd">		Whether to return the result as a uint8 image. </span>
+<span class="sd">	fill_value : scalar</span>
+<span class="sd">		specifies the imputation value if any of query_pts needs to extrapolated. </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	I_query : (n_points,) array</span>
+<span class="sd">		the intensities of ``I_ref`` interpolated at the specified ``query_pts`` </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1"># interpolate instead of discretising to avoid artifact.</span>
+	<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">RegularGridInterpolator</span> <span class="c1">#, RBFInterpolator</span>
+	<span class="c1"># from scipy.interpolate import griddata</span>
+	<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">ndimage</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="n">spl_3</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> 
+									 <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> 
+									 <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])),</span> 
+									 <span class="n">I_ref</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+									 <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span>
+
+	<span class="n">I_query</span> <span class="o">=</span> <span class="n">spl_3</span><span class="p">((</span><span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+					  <span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+					  <span class="n">query_pts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">]))</span>
+	
+	<span class="k">if</span> <span class="n">cast_uint8</span><span class="p">:</span>
+		<span class="n">I_query</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">I_query</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">I_query</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

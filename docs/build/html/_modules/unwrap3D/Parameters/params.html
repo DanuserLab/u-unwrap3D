@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Parameters.params &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Parameters.params</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Parameters.params</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module generates some general default parameter settings to help get started with certain functions with many parameters </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="optimesh_relaxation_config"><a class="viewcode-back" href="../../../unwrap3D.Parameters.html#unwrap3D.Parameters.params.optimesh_relaxation_config">[docs]</a><span class="k">def</span> <span class="nf">optimesh_relaxation_config</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; parameters for doing CVT relaxation of meshes using the optimesh library </span>
+<span class="sd">    </span>
+<span class="sd">    see https://pypi.org/project/optimesh/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;relax_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;CVT (block-diagonal)&#39;</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;tol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0e-5</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_iters&#39;</span><span class="p">]</span><span class="o">=</span><span class="mi">20</span>
+
+    <span class="k">return</span> <span class="n">params</span> </div>
+
+<span class="c1"># Farneback 2D optical flow</span>
+<div class="viewcode-block" id="farneback2D_optical_flow"><a class="viewcode-back" href="../../../unwrap3D.Parameters.html#unwrap3D.Parameters.params.farneback2D_optical_flow">[docs]</a><span class="k">def</span> <span class="nf">farneback2D_optical_flow</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; parameters for extracting optical flow using Farneback method  </span>
+<span class="sd">    </span>
+<span class="sd">    see :func:`unwrap3D.Tracking.tracking.Eval_dense_optic_flow`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;pyr_scale&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;levels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;winsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">15</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;iterations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;poly_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;poly_sigma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.2</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;flags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> 
+
+    <span class="k">return</span> <span class="n">params</span></div>
+
+
+<div class="viewcode-block" id="affine_register_matlab"><a class="viewcode-back" href="../../../unwrap3D.Parameters.html#unwrap3D.Parameters.params.affine_register_matlab">[docs]</a><span class="k">def</span> <span class="nf">affine_register_matlab</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; specify parameters for running Matlab imregtform to do Affine registration </span>
+<span class="sd">    </span>
+<span class="sd">    see :func:`unwrap3D.Registration.registration.matlab_affine_register` for registering two timepoints and </span>
+
+<span class="sd">    see :func:`unwrap3D.Registration.registration.matlab_group_register_batch` for registering a video with switching of reference images.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;downsample&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">16.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">],</span> <span class="c1"># the scales to do registration at. [16, 8, 4, 2, 1] will continue on 2x downsampled and original resolution.</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;modality&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;multimodal&#39;</span> <span class="c1"># str specifying we want the multimodal registration option of imregtform</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;similarity&#39;</span> <span class="c1"># type of transform </span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="demons_register_matlab"><a class="viewcode-back" href="../../../unwrap3D.Parameters.html#unwrap3D.Parameters.params.demons_register_matlab">[docs]</a><span class="k">def</span> <span class="nf">demons_register_matlab</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; specify parameters for running Matlab imregdemons to do Demon&#39;s registration </span>
+<span class="sd">    </span>
+<span class="sd">    see :func:`unwrap3D.Registration.registration.nonregister_3D_demons_matlab`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;levels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;warps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="gradient_descent_affine_reg"><a class="viewcode-back" href="../../../unwrap3D.Parameters.html#unwrap3D.Parameters.params.gradient_descent_affine_reg">[docs]</a><span class="k">def</span> <span class="nf">gradient_descent_affine_reg</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; parameters for affine registration using simpleITK using Gradient Descent optimizer </span>
+<span class="sd">    </span>
+<span class="sd">    see :func:`unwrap3D.Registration.registration.SITK_multiscale_affine_registration`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;learningRate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;numberOfIterations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">500</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;convergenceMinimumValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;convergenceWindowSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> 
+
+    <span class="k">return</span> <span class="n">params</span> </div>
+
+<div class="viewcode-block" id="evolutionary_affine_reg"><a class="viewcode-back" href="../../../unwrap3D.Parameters.html#unwrap3D.Parameters.params.evolutionary_affine_reg">[docs]</a><span class="k">def</span> <span class="nf">evolutionary_affine_reg</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; parameters for affine registration using simpleITK using Evolutionary optimizer</span>
+<span class="sd">    </span>
+<span class="sd">    see :func:`unwrap3D.Registration.registration.SITK_multiscale_affine_registration`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;numberOfIterations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.5e-4</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;initialRadius&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">6.25e-3</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;growthFactor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.01</span>
+    <span class="n">params</span><span class="p">[</span><span class="s1">&#39;shrinkFactor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> 
+
+    <span class="k">return</span> <span class="n">params</span> </div>
+
+<span class="c1"># demons multiscale registration in simpleITK</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Registration.registration &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Registration.registration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Registration.registration</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">This module implements various different registration algorithms</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+	
+<span class="c1"># these that are commented out should now be incorporated into individual functions below </span>
+<span class="c1"># from ..Utility_Functions import file_io as fio</span>
+<span class="c1"># from ..Visualisation import imshowpair as imshowpair</span>
+<span class="c1"># from ..Geometry import geometry as geom</span>
+<span class="c1"># from transforms3d.affines import decompose44, compose</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+<div class="viewcode-block" id="matlab_affine_register"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.matlab_affine_register">[docs]</a><span class="k">def</span> <span class="nf">matlab_affine_register</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">,</span> <span class="n">moving_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">reg_config</span><span class="p">,</span> <span class="n">multiscale</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Use Python-Matlab interface to conduct affine registration. The transformed image is saved to file to bypass speed bottleneck in transferring Matlab to Python</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	fixed_file : filepath</span>
+<span class="sd">		the filepath of the image to be used as reference for registration.</span>
+<span class="sd">	moving_file : filepath</span>
+<span class="sd">		the filepath of the image to be registered to the fixed image. </span>
+<span class="sd">	save_file : filepath</span>
+<span class="sd">		the output filepath to save the registered image of the moving_file</span>
+<span class="sd">	reg_config : dict</span>
+<span class="sd">		Python dict specifying the parameters for running the registration. See :func:`unwrap3D.Parameters.params.affine_register_matlab` for the parameters required to be set. </span>
+<span class="sd">	multiscale : bool</span>
+<span class="sd">		if True, do multiscale registration given by the ``register3D_intensity_multiscale`` script, otherwise run the ``register3D_rigid_faster`` script.</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	transform : 4x4 array</span>
+<span class="sd">		the forward homogeneous transformation matrix to map fixed to moving. </span>
+<span class="sd">	im1 : array</span>
+<span class="sd">		return the fixed image as numpy array from fixed_file if ``reg_config[&#39;return_img&#39;]!=1``. if ``reg_config[&#39;return_img&#39;]==1``, the transform is directly applied within Matlab and the result saved to save_file</span>
+<span class="sd">	im2_ : array</span>
+<span class="sd">		return the transformed moving image after applying the transform as a numpy array if ``reg_config[&#39;return_img&#39;]!=1``. if ``reg_config[&#39;return_img&#39;]==1``, the transform is directly applied within Matlab and the result saved to save_file</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">matlab.engine</span>
+	<span class="kn">import</span> <span class="nn">scipy.io</span> <span class="k">as</span> <span class="nn">spio</span> 
+	<span class="kn">import</span> <span class="nn">skimage.io</span> <span class="k">as</span> <span class="nn">skio</span> 
+	<span class="kn">from</span> <span class="nn">transforms3d.affines</span> <span class="kn">import</span> <span class="n">decompose44</span><span class="p">,</span> <span class="n">compose</span>
+	<span class="kn">from</span> <span class="nn">..Geometry</span> <span class="kn">import</span> <span class="n">geometry</span> <span class="k">as</span> <span class="n">geom</span>
+
+	<span class="n">eng</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">start_matlab</span><span class="p">()</span> 
+	
+	<span class="k">if</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+		<span class="c1"># use initialisation. </span>
+		<span class="n">initial_tf</span> <span class="o">=</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;initial_tf&#39;</span><span class="p">]</span>
+
+		<span class="c1"># decompose the initialisation to comply with Matlab checks. # might be better ways to do this?</span>
+		<span class="n">T</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">Z</span><span class="p">,</span><span class="n">S</span> <span class="o">=</span> <span class="n">decompose44</span><span class="p">(</span><span class="n">initial_tf</span><span class="p">)</span> <span class="c1"># S is shear!</span>
+		
+		<span class="k">if</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;similarity&#39;</span><span class="p">:</span>
+			<span class="c1"># initialise with just rigid instead -&gt; checks on this normally are too stringent.</span>
+			<span class="n">affine</span> <span class="o">=</span> <span class="n">compose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="c1"># the similarity criteria too difficult for matlab </span>
+		<span class="k">if</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;rigid&#39;</span><span class="p">:</span>
+			<span class="n">affine</span> <span class="o">=</span> <span class="n">compose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+		<span class="k">if</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;translation&#39;</span><span class="p">:</span>
+			<span class="n">affine</span> <span class="o">=</span> <span class="n">compose</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+		<span class="k">if</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;affine&#39;</span><span class="p">:</span>
+			<span class="n">affine</span> <span class="o">=</span> <span class="n">initial_tf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		
+		<span class="c1"># save the tform as temporary for matlab to read. </span>
+		<span class="n">spio</span><span class="o">.</span><span class="n">savemat</span><span class="p">(</span><span class="s1">&#39;tform.mat&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;tform&#39;</span><span class="p">:</span><span class="n">affine</span><span class="p">})</span> <span class="c1"># transpose for matlab </span>
+		
+		<span class="k">if</span> <span class="n">multiscale</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+			<span class="n">transform</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">register3D_rigid_faster</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">moving_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">save_file</span><span class="p">),</span> 
+													<span class="s1">&#39;tform.mat&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;downsample&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;modality&#39;</span><span class="p">],</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">],</span> 
+													<span class="n">nargout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> 
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">transform</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">register3D_intensity_multiscale</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">moving_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">save_file</span><span class="p">),</span> 
+													<span class="s1">&#39;tform.mat&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;downsample&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;modality&#39;</span><span class="p">],</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">],</span> 
+													<span class="n">nargout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">multiscale</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+			<span class="n">transform</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">register3D_rigid_faster</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">moving_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">save_file</span><span class="p">),</span> 
+													<span class="s1">&#39;tform.mat&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;downsample&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;modality&#39;</span><span class="p">],</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">],</span> 
+													<span class="n">nargout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>    
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># print(&#39;multiscale&#39;)</span>
+			<span class="c1"># convert to matlab arrays. </span>
+			<span class="n">levels</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;downsample&#39;</span><span class="p">])</span>
+			<span class="n">warps</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">])</span>
+			<span class="n">transform</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">register3D_intensity_multiscale</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">moving_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">save_file</span><span class="p">),</span> 
+													<span class="s1">&#39;tform.mat&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;modality&#39;</span><span class="p">],</span> <span class="n">warps</span><span class="p">,</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">],</span> 
+													<span class="n">nargout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+	<span class="n">transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">]</span><span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="c1"># then the transform is applied within python </span>
+		<span class="n">im1</span> <span class="o">=</span> <span class="n">skio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">)</span>
+		<span class="n">im2</span> <span class="o">=</span> <span class="n">skio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">moving_file</span><span class="p">)</span>
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">apply_affine_tform</span><span class="p">(</span><span class="n">im2</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> 
+						<span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">transform</span><span class="p">),</span> 
+						<span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">)[[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]))</span>
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">im2_</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># flip back</span>
+	
+		<span class="k">return</span> <span class="n">transform</span><span class="p">,</span> <span class="n">im1</span><span class="p">,</span> <span class="n">im2_</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">transform</span> </div>
+		
+
+<span class="c1"># add multiscale capability </span>
+<div class="viewcode-block" id="matlab_group_register_batch"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.matlab_group_register_batch">[docs]</a><span class="k">def</span> <span class="nf">matlab_group_register_batch</span><span class="p">(</span><span class="n">dataset_files</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">,</span> <span class="n">in_folder</span><span class="p">,</span> <span class="n">out_folder</span><span class="p">,</span> <span class="n">reg_config</span><span class="p">,</span> <span class="n">reset_ref_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">multiscale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Temporal affine registration of an entire video using Matlab call.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	dataset_files : list of files</span>
+<span class="sd">		list of img files arranged in increasing temporal order</span>
+<span class="sd">	ref_file : str</span>
+<span class="sd">		filepath of the initial reference file for registration. </span>
+<span class="sd">	in_folder : str</span>
+<span class="sd">		specifies the parent folder of the dataset_files. This string is replaced with the out_folder string in order to generate the save paths for the registered timepoints.</span>
+<span class="sd">	reg_config : dict</span>
+<span class="sd">		Python dict specifying the parameters for running the registration. See :func:`unwrap3D.Parameters.params.affine_register_matlab` for the parameters required to be set. </span>
+<span class="sd">	reset_ref_steps : int</span>
+<span class="sd">		if reset_ref_steps &gt; 0, uses every nth registered file as the reference. default of 0 = fixed reference specified by ref_file, whilst 1 = sequential    </span>
+<span class="sd">	multiscale : bool</span>
+<span class="sd">		if True, do multiscale registration given by the ``register3D_intensity_multiscale`` script, otherwise run the ``register3D_rigid_faster`` script.</span>
+<span class="sd">	debug : bool</span>
+<span class="sd">		if True, will plot for every timepoint the 3 mid-slices in x-y, y-z, x-z to qualitatively check registration. Highly recommended for checking parameters.  </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	tforms : array</span>
+<span class="sd">		the compiled 4x4 transformation matrices between all successive timepoints</span>
+<span class="sd">	tformfile : str</span>
+<span class="sd">		the filepath to the saved transforms </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">matlab.engine</span>
+	<span class="kn">import</span> <span class="nn">scipy.io</span> <span class="k">as</span> <span class="nn">spio</span> 
+	<span class="kn">import</span> <span class="nn">os</span>
+	<span class="kn">import</span> <span class="nn">shutil</span>
+	<span class="kn">import</span> <span class="nn">pylab</span> <span class="k">as</span> <span class="nn">plt</span> 
+	<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+	<span class="kn">import</span> <span class="nn">skimage.io</span> <span class="k">as</span> <span class="nn">skio</span> 
+	<span class="kn">from</span> <span class="nn">..Visualisation</span> <span class="kn">import</span> <span class="n">imshowpair</span> <span class="k">as</span> <span class="n">imshowpair</span>
+	<span class="kn">from</span> <span class="nn">..Geometry</span> <span class="kn">import</span> <span class="n">geometry</span> <span class="k">as</span> <span class="n">geom</span>
+	<span class="kn">from</span> <span class="nn">..Utility_Functions</span> <span class="kn">import</span> <span class="n">file_io</span> <span class="k">as</span> <span class="n">fio</span>
+
+	<span class="c1"># start matlab engine. </span>
+	<span class="n">eng</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">start_matlab</span><span class="p">()</span> 
+	<span class="n">fio</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">out_folder</span><span class="p">)</span> <span class="c1"># check output folder exists. </span>
+	
+	<span class="n">tforms</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">ref_files</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="c1"># difference is now fixed_file is always the same one. </span>
+	<span class="n">fixed_file</span> <span class="o">=</span> <span class="n">ref_file</span>
+	<span class="n">all_save_files</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">in_folder</span><span class="p">,</span> <span class="n">out_folder</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dataset_files</span><span class="p">])</span>
+	
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset_files</span><span class="p">))):</span>
+	
+		<span class="n">moving_file</span> <span class="o">=</span> <span class="n">dataset_files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+		<span class="n">save_file</span> <span class="o">=</span> <span class="n">all_save_files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+		
+		<span class="k">if</span> <span class="n">multiscale</span><span class="p">:</span>
+			<span class="c1"># print(&#39;multiscale&#39;)</span>
+			<span class="n">levels</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;downsample&#39;</span><span class="p">])</span>
+			<span class="n">warps</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">])</span>
+			<span class="n">transform</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">register3D_intensity_multiscale</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">moving_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">save_file</span><span class="p">),</span> 
+													<span class="s1">&#39;tform.mat&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;modality&#39;</span><span class="p">],</span> <span class="n">warps</span><span class="p">,</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+													<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">],</span> 
+													<span class="n">nargout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">transform</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">register3D_rigid_faster</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">moving_file</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">save_file</span><span class="p">),</span> 
+											<span class="s1">&#39;tform.mat&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;downsample&#39;</span><span class="p">],</span> 
+											<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;modality&#39;</span><span class="p">],</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">],</span> 
+											<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+											<span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;return_img&#39;</span><span class="p">],</span> 
+											<span class="n">nargout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>        
+		
+		<span class="n">transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span> <span class="c1"># (z,y,x) </span>
+		<span class="n">tforms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span>
+		<span class="n">ref_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">)</span> <span class="c1"># which is the reference used. </span>
+
+<span class="c1">#        if reg_config[&#39;return_img&#39;] != 1: # this is too slow and disabled. </span>
+		<span class="n">im1</span> <span class="o">=</span> <span class="n">skio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fixed_file</span><span class="p">)</span>
+		<span class="n">im2</span> <span class="o">=</span> <span class="n">skio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">moving_file</span><span class="p">)</span>
+		
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">apply_affine_tform</span><span class="p">(</span><span class="n">im2</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">transform</span><span class="p">),</span> <span class="n">sampling_grid_shape</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">)[[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]))</span>
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">im2_</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># flip back</span>
+
+		<span class="c1"># fio.save_multipage_tiff(im2_, save_file)</span>
+		<span class="n">skio</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">save_file</span><span class="p">,</span> <span class="n">im2_</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+
+			<span class="c1"># visualize all three possible cross sections for reference and checking.</span>
+			<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+			<span class="n">imshowpair</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">im1</span><span class="p">[</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">im2</span><span class="p">[</span><span class="n">im2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span> 
+			<span class="n">imshowpair</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">im1</span><span class="p">[</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">im2_</span><span class="p">[</span><span class="n">im2_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span>
+			
+			<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+			<span class="n">imshowpair</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">im1</span><span class="p">[:,</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">im2</span><span class="p">[:,</span><span class="n">im2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span>
+			<span class="n">imshowpair</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">im1</span><span class="p">[:,</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">im2_</span><span class="p">[:,</span><span class="n">im2_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span>
+
+			<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+			<span class="n">imshowpair</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">im1</span><span class="p">[:,:,</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">im2</span><span class="p">[:,:,</span><span class="n">im2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span>
+			<span class="n">imshowpair</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">im1</span><span class="p">[:,:,</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">im2_</span><span class="p">[:,:,</span><span class="n">im2_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span>
+
+			<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+		
+		<span class="k">if</span> <span class="n">reset_ref_steps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="c1"># change the ref file.</span>
+			<span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">reset_ref_steps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+				<span class="n">fixed_file</span> <span class="o">=</span> <span class="n">save_file</span> <span class="c1"># change to the file you just saved. </span>
+		
+	<span class="c1"># save out tforms into a .mat file.</span>
+	<span class="n">tformfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_folder</span><span class="p">,</span> <span class="s1">&#39;tforms-matlab.mat&#39;</span><span class="p">)</span>
+	<span class="n">tforms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tforms</span><span class="p">)</span>
+	<span class="n">ref_files</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">ref_files</span><span class="p">)</span>
+	
+	<span class="n">spio</span><span class="o">.</span><span class="n">savemat</span><span class="p">(</span><span class="n">tformfile</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;tforms&#39;</span><span class="p">:</span><span class="n">tforms</span><span class="p">,</span>
+							 <span class="s1">&#39;ref_files&#39;</span><span class="p">:</span><span class="n">ref_files</span><span class="p">,</span>
+							 <span class="s1">&#39;in_files&#39;</span><span class="p">:</span><span class="n">dataset_files</span><span class="p">,</span>
+							 <span class="s1">&#39;out_files&#39;</span><span class="p">:</span><span class="n">all_save_files</span><span class="p">,</span>
+							 <span class="s1">&#39;reg_config&#39;</span><span class="p">:</span><span class="n">reg_config</span><span class="p">})</span>
+			
+	<span class="k">return</span> <span class="n">tforms</span><span class="p">,</span> <span class="n">tformfile</span></div>
+	
+		
+<div class="viewcode-block" id="COM_2d"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.COM_2d">[docs]</a><span class="k">def</span> <span class="nf">COM_2d</span><span class="p">(</span><span class="n">im1</span><span class="p">,</span> <span class="n">im2</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the center of mass between two images, im1 and im2 based solely on binary Otsu Thresholding. This can be used to compute the rough translational displacement.</span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	im1 : array</span>
+<span class="sd">		n-dimension image 1</span>
+<span class="sd">	im2 : array</span>
+<span class="sd">		n-dimension image 2</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	com1 : array</span>
+<span class="sd">		n-dimension center of mass coordinates of image 1</span>
+<span class="sd">	com2 : </span>
+<span class="sd">		n-dimension center of mass coordinates of image 2</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">scipy.ndimage.measurements</span> <span class="kn">import</span> <span class="n">center_of_mass</span>
+	<span class="kn">from</span> <span class="nn">scipy.ndimage.morphology</span> <span class="kn">import</span> <span class="n">binary_fill_holes</span>
+	<span class="kn">from</span> <span class="nn">skimage.filters</span> <span class="kn">import</span> <span class="n">threshold_otsu</span>
+	
+	<span class="n">mask1</span> <span class="o">=</span> <span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">im1</span><span class="o">&gt;=</span><span class="n">threshold_otsu</span><span class="p">(</span><span class="n">im1</span><span class="p">))</span>
+	<span class="n">mask2</span> <span class="o">=</span> <span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">im2</span><span class="o">&gt;=</span><span class="n">threshold_otsu</span><span class="p">(</span><span class="n">im2</span><span class="p">))</span>
+
+	<span class="n">com1</span> <span class="o">=</span> <span class="n">center_of_mass</span><span class="p">(</span><span class="n">mask1</span><span class="p">)</span>
+	<span class="n">com2</span> <span class="o">=</span> <span class="n">center_of_mass</span><span class="p">(</span><span class="n">mask2</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">com1</span><span class="p">,</span> <span class="n">com2</span> </div>
+	
+	
+<span class="c1"># function to join two volume stacks </span>
+<div class="viewcode-block" id="simple_join"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.simple_join">[docs]</a><span class="k">def</span> <span class="nf">simple_join</span><span class="p">(</span><span class="n">stack1</span><span class="p">,</span> <span class="n">stack2</span><span class="p">,</span> <span class="n">cut_off</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.3</span><span class="p">]):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Joins two volumetric images, stack1 and stack2 in the first dimension by direct joining or linear weighting constrained to +/- offset to the desired ``cut_off`` slice number.</span>
+<span class="sd">	</span>
+<span class="sd">	The constrained linear blending within the interval :math:`[x_c-\Delta x, x_c + \Delta x]` is given by </span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		I = </span>
+<span class="sd">		\Biggl \lbrace </span>
+<span class="sd">		{ </span>
+<span class="sd">		w_2\cdot I_1 + w_1\cdot I_2 ,\text{ if } </span>
+<span class="sd">		  {x\in [x_c, x_c + \Delta x]}</span>
+<span class="sd">		\atop </span>
+<span class="sd">		w_1\cdot I_1 + w_2\cdot I_2, \text{ if } </span>
+<span class="sd">		  {x\in [x_c-\Delta x, x_c]}</span>
+<span class="sd">		}</span>
+<span class="sd">		</span>
+<span class="sd">	where :math:`x_c` denotes the ``cut_off`` point. The weight reversal enables asymmetric weights to be define once but used twice. </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	stack1 : (MxNxL) array</span>
+<span class="sd">		volume image whose intensities will dominant in the first dimension when &lt; ``cut_off``</span>
+<span class="sd">	stack2 : (MxNxL) array</span>
+<span class="sd">		volume image whose intensities will dominant in the first dimension when &gt; ``cut_off``</span>
+<span class="sd">	cut_off : int</span>
+<span class="sd">		the slice number of the first dimension where the transition from stack2 to stack1 will occur</span>
+<span class="sd">	blend : bool</span>
+<span class="sd">		if blend==True, the join occurs directly at the cut_off point with simple array copying and there is no blending. If True then the linear blending as described occurs around the cut_off point. </span>
+<span class="sd">	offset : int</span>
+<span class="sd">		the +/- slice numbers around the cut_off to linearly blend the intensities of stack1 and stack2 for a smoother effect.</span>
+<span class="sd">	weights : 2 vector array</span>
+<span class="sd">		:math:`w_1=` ``weights[0]`` and :math:`w_2=` ``weights[1]``. The sum of weights should be 1. </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	the blended image of the same image dimension  </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">cut_off</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">cut_off</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stack1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+
+	<span class="k">if</span> <span class="n">blend</span><span class="p">:</span>
+		<span class="n">combined_stack</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">stack1</span><span class="p">)</span>
+		<span class="n">combined_stack</span><span class="p">[:</span><span class="n">cut_off</span><span class="o">-</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack1</span><span class="p">[:</span><span class="n">cut_off</span><span class="o">-</span><span class="n">offset</span><span class="p">]</span>
+		<span class="n">combined_stack</span><span class="p">[</span><span class="n">cut_off</span><span class="o">-</span><span class="n">offset</span><span class="p">:</span><span class="n">cut_off</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">stack1</span><span class="p">[</span><span class="n">cut_off</span><span class="o">-</span><span class="n">offset</span><span class="p">:</span><span class="n">cut_off</span><span class="p">]</span><span class="o">+</span><span class="n">weights</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">stack2</span><span class="p">[</span><span class="n">cut_off</span><span class="o">-</span><span class="n">offset</span><span class="p">:</span><span class="n">cut_off</span><span class="p">]</span>
+		<span class="n">combined_stack</span><span class="p">[</span><span class="n">cut_off</span><span class="p">:</span><span class="n">cut_off</span><span class="o">+</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">stack1</span><span class="p">[</span><span class="n">cut_off</span><span class="p">:</span><span class="n">cut_off</span><span class="o">+</span><span class="n">offset</span><span class="p">]</span><span class="o">+</span><span class="n">weights</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">stack2</span><span class="p">[</span><span class="n">cut_off</span><span class="p">:</span><span class="n">cut_off</span><span class="o">+</span><span class="n">offset</span><span class="p">]</span>
+		<span class="n">combined_stack</span><span class="p">[</span><span class="n">cut_off</span><span class="o">+</span><span class="n">offset</span><span class="p">:]</span> <span class="o">=</span> <span class="n">stack2</span><span class="p">[</span><span class="n">cut_off</span><span class="o">+</span><span class="n">offset</span><span class="p">:]</span>         
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">combined_stack</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">stack1</span><span class="p">)</span>
+		<span class="n">combined_stack</span><span class="p">[:</span><span class="n">cut_off</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack1</span><span class="p">[:</span><span class="n">cut_off</span><span class="p">]</span> 
+		<span class="n">combined_stack</span><span class="p">[</span><span class="n">cut_off</span><span class="p">:]</span> <span class="o">=</span> <span class="n">stack2</span><span class="p">[</span><span class="n">cut_off</span><span class="p">:]</span> 
+	
+	<span class="k">return</span> <span class="n">combined_stack</span></div>
+
+
+<div class="viewcode-block" id="sigmoid_join"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.sigmoid_join">[docs]</a><span class="k">def</span> <span class="nf">sigmoid_join</span><span class="p">(</span><span class="n">stack1</span><span class="p">,</span> <span class="n">stack2</span><span class="p">,</span> <span class="n">cut_off</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Joins two volumetric images, stack1 and stack2 in the first dimension using a sigmoid type blending function. Both stacks are assumed to be the same size. </span>
+<span class="sd">	</span>
+<span class="sd">	The sigmoid has the following mathematical expression </span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		w_2 &amp;= \frac{1}{\left( 1+e^{-\text{grad} (x - x_c)} \right)^{1/\text{shape}}} \\</span>
+<span class="sd">		w_1 &amp;= 1 - w_2</span>
+<span class="sd">		</span>
+<span class="sd">	where :math:`x_c` denoting the ``cut_off``.</span>
+<span class="sd">	</span>
+<span class="sd">	The blended image is then the weighted sum </span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		I_{blend} = w_1\cdot I_1 + w_2\cdot I_2</span>
+
+<span class="sd">	see https://en.wikipedia.org/wiki/Generalised_logistic_function</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	stack1 : (MxNxL) array</span>
+<span class="sd">		volume image whose intensities will dominant in the first dimension when &lt; ``cut_off``</span>
+<span class="sd">	stack2 : (MxNxL) array</span>
+<span class="sd">		volume image whose intensities will dominant in the first dimension when &gt; ``cut_off``</span>
+<span class="sd">	cut_off : int</span>
+<span class="sd">		the slice number of the first dimension where the transition from stack2 to stack1 will occur</span>
+<span class="sd">	gradient : scalar</span>
+<span class="sd">		controls the sharpness of the transition between the two stacks </span>
+<span class="sd">	shape : scalar</span>
+<span class="sd">		controls the shape of the sigmoid, in particular introduces asymmetry in the shape</span>
+<span class="sd">	debug : bool</span>
+<span class="sd">		if True, will use Matplotlib to plot the computed sigmoid weights for checking.   </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	the blended image of the same image dimension  </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">cut_off</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">cut_off</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">stack1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+
+	<span class="k">def</span> <span class="nf">generalised_sigmoid</span><span class="p">(</span> <span class="n">stack1</span><span class="p">,</span> <span class="n">cut_off</span><span class="o">=</span><span class="n">cut_off</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">grad</span><span class="o">=</span><span class="n">gradient</span><span class="p">):</span>
+		
+		<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">stack1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">weights2</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">((</span><span class="mi">1</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">grad</span><span class="o">*</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">cut_off</span><span class="p">)))</span><span class="o">**</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">shape</span><span class="p">))</span>
+		<span class="n">weights1</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">weights2</span>
+		
+		<span class="k">return</span> <span class="n">weights1</span><span class="p">,</span> <span class="n">weights2</span>
+	
+	<span class="n">weights1</span><span class="p">,</span> <span class="n">weights2</span> <span class="o">=</span> <span class="n">generalised_sigmoid</span><span class="p">(</span> <span class="n">stack1</span><span class="p">,</span> <span class="n">cut_off</span><span class="o">=</span><span class="n">cut_off</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">grad</span><span class="o">=</span><span class="n">gradient</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">pylab</span> <span class="k">as</span> <span class="nn">plt</span> 
+		<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">weights1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">weights2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;2&#39;</span><span class="p">)</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+		
+	<span class="k">return</span> <span class="n">stack1</span><span class="o">*</span><span class="n">weights1</span><span class="p">[:,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">stack2</span><span class="o">*</span><span class="n">weights2</span><span class="p">[:,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="nonregister_3D_demons_matlab"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.nonregister_3D_demons_matlab">[docs]</a><span class="k">def</span> <span class="nf">nonregister_3D_demons_matlab</span><span class="p">(</span><span class="n">infile1</span><span class="p">,</span> <span class="n">infile2</span><span class="p">,</span> <span class="n">savefile</span><span class="p">,</span> <span class="n">savetransformfile</span><span class="p">,</span> <span class="n">reg_config</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; This function uses Matlab&#39;s imregdemons function to run Demon&#39;s registration. The result is directly saved to disk.</span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	infile1 : str</span>
+<span class="sd">		filepath of the reference static image</span>
+<span class="sd">	infile2 : str</span>
+<span class="sd">		filepath of the moving image to register to the fixed image</span>
+<span class="sd">	savefile : str</span>
+<span class="sd">		filepath to save the transformed moving image to </span>
+<span class="sd">	savetransformfile : str</span>
+<span class="sd">		filepath to save the displacement field to </span>
+<span class="sd">	reg_config : dict</span>
+<span class="sd">		parameters to pass to imregdemons. see :func:`unwrap3D.Parameters.params.demons_register_matlab` </span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	return_val : int</span>
+<span class="sd">		return value of 1 if Matlab execution was successful and completed</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">matlab.engine</span>
+	<span class="n">eng</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">start_matlab</span><span class="p">()</span>
+	
+	<span class="nb">print</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">],</span> <span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;warps&#39;</span><span class="p">])</span>
+	
+<span class="c1">#    alpha = matlab.single(reg_config[&#39;alpha&#39;])</span>
+<span class="c1">#    level = matlab.double(reg_config[&#39;level&#39;])</span>
+	<span class="n">level</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">])</span>
+	<span class="n">warps</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;warps&#39;</span><span class="p">])</span>
+	<span class="n">smoothing</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reg_config</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">])</span>
+	
+	<span class="c1"># add in additional options for modifying. </span>
+	<span class="n">return_val</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">nonrigid_register3D_demons</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">infile1</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">infile2</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">savefile</span><span class="p">),</span> 
+										<span class="nb">str</span><span class="p">(</span><span class="n">savetransformfile</span><span class="p">),</span>
+										<span class="n">level</span><span class="p">,</span> <span class="n">warps</span><span class="p">,</span> <span class="n">smoothing</span><span class="p">)</span>
+		
+	<span class="k">return</span> <span class="n">return_val</span>  </div>
+
+
+<div class="viewcode-block" id="warp_3D_demons_tfm"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_demons_tfm">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_demons_tfm</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">savefile</span><span class="p">,</span> <span class="n">transformfile</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; This function warps the input image file according to the deformation field specified in transformfile and saves the result in savefile. </span>
+<span class="sd">	If direction == 1 warp in the same direction else if direction == -1 in the reverse direction.</span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	infile : str </span>
+<span class="sd">		filepath of the image to transform </span>
+<span class="sd">	savefile : str</span>
+<span class="sd">		filepath of transformed result</span>
+<span class="sd">	transformfile : str</span>
+<span class="sd">		filepath to the displacement field transform </span>
+<span class="sd">	downsample : int</span>
+<span class="sd">		this parameter specifies the highest level of downsampling the displacement field came from i.e. if the displacement field is the same size as the image then downsample=1. If the displacement field was generated at a scale 4x smaller than the input image then specify downsample=4 here.</span>
+<span class="sd">		The displacment field will be rescaled by this factor before applying to the input image.</span>
+<span class="sd">	direction : 1 or -1 </span>
+<span class="sd">		if 1, warps the image in the same direction of the diplacement field. If -1 warps the image in the reverse direction of the displacement field</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	return_val : int</span>
+<span class="sd">		if 1, the process completed successfully in Matlab </span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">matlab.engine</span>
+	<span class="n">eng</span> <span class="o">=</span> <span class="n">matlab</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">start_matlab</span><span class="p">()</span>
+
+	<span class="n">return_val</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">warp_3D_demons</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">infile</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">savefile</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">transformfile</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">downsample</span><span class="p">),</span> <span class="n">direction</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">return_val</span></div>
+
+
+<div class="viewcode-block" id="warp_3D_demons_matlab_tform_scipy"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_demons_matlab_tform_scipy">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_demons_matlab_tform_scipy</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">tformfile</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Python-based warping of Matlab imregdemons displacement fields adjusting for the difference in coordinate convention.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	im : (MxNxL) array</span>
+<span class="sd">		input 3D volumetric image to warp</span>
+<span class="sd">	tformfile : str </span>
+<span class="sd">		filepath to the displacement field transform </span>
+<span class="sd">	direction : &#39;F&#39; or &#39;B&#39;</span>
+<span class="sd">		if &#39;F&#39; warps im in the forwards direction specified by the displacement field or if &#39;B&#39; warps im in the backwards direction.</span>
+<span class="sd">	pad : int</span>
+<span class="sd">		optional isotropic padding applied to every image dimension before warping</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	im_interp : (MxNxL) array</span>
+<span class="sd">		the warped 3D volumetric image</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">map_coordinates</span>
+	<span class="kn">from</span> <span class="nn">..Utility_Functions</span> <span class="kn">import</span> <span class="n">file_io</span> <span class="k">as</span> <span class="n">fio</span>
+	
+	<span class="n">dx</span><span class="p">,</span><span class="n">dy</span><span class="p">,</span><span class="n">dz</span> <span class="o">=</span> <span class="n">fio</span><span class="o">.</span><span class="n">read_demons_matlab_tform</span><span class="p">(</span><span class="n">tformfile</span><span class="p">,</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+	<span class="c1"># print(dx.max(), dx.min())</span>
+	<span class="n">im_</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">pad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">im_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">im_</span><span class="p">,</span> <span class="p">[[</span><span class="n">pad</span><span class="p">,</span><span class="n">pad</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">im_</span><span class="o">.</span><span class="n">shape</span><span class="p">))],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span> <span class="c1"># universally pad the volume by the edge values. </span>
+		<span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="p">[[</span><span class="n">pad</span><span class="p">,</span><span class="n">pad</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dx</span><span class="o">.</span><span class="n">shape</span><span class="p">))],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span> <span class="c1"># universally pad the volume by the edge values. </span>
+		<span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="p">[[</span><span class="n">pad</span><span class="p">,</span><span class="n">pad</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dy</span><span class="o">.</span><span class="n">shape</span><span class="p">))],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span> <span class="c1"># universally pad the volume by the edge values. </span>
+		<span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">dz</span><span class="p">,</span> <span class="p">[[</span><span class="n">pad</span><span class="p">,</span><span class="n">pad</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dz</span><span class="o">.</span><span class="n">shape</span><span class="p">))],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span> <span class="c1"># universally pad the volume by the edge values. </span>
+
+	<span class="n">im_interp</span> <span class="o">=</span> <span class="n">warp_3D_displacements_xyz</span><span class="p">(</span><span class="n">im_</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">im_interp</span></div>
+
+
+<div class="viewcode-block" id="warp_3D_displacements_xyz"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_displacements_xyz">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_displacements_xyz</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">ret_xyz</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Warps an image with a 3D displacement field specified by arrays, optionally returning the corresponding coordinates where the image intensities were interpolated from in the image</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	im : (MxNxL) array</span>
+<span class="sd">		the input 3D volume image</span>
+<span class="sd">	dx : (MxNxL) array</span>
+<span class="sd">		the displacements in x-direction (first image axis)</span>
+<span class="sd">	dy : (MxNxL) array</span>
+<span class="sd">		the displacements in y-direction (second image axis)</span>
+<span class="sd">	dz : (MxNxL) array</span>
+<span class="sd">		the displacements in z-direction (third image axis)</span>
+<span class="sd">	direction : &#39;F&#39; or &#39;B&#39;</span>
+<span class="sd">		if &#39;F&#39; warp image in the same direction as specified by (dx,dy,dz) or if &#39;B&#39; warp image in the opposite direction of (-dx,-dy,-dz)</span>
+<span class="sd">	ret_xyz : bool</span>
+<span class="sd">		if True, return as a second output the x-, y- and z- coordinates in ``im`` where ``im_interp`` intensities were interpolated at</span>
+<span class="sd">	mode : str</span>
+<span class="sd">		 one of the boundary modes specified as ``mode`` argument in `scipy.map_coordinates &lt;https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html&gt;`_</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	im_interp : (MxNxL) array</span>
+<span class="sd">		the transformed image </span>
+<span class="sd">	[XX, YY, ZZ] : list of arrays</span>
+<span class="sd">		the x-, y- and z- coordinates of same array shape as im where ``im_interp`` intensities were taken from ``im`` </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>    
+	<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">map_coordinates</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	
+	<span class="n">XX</span><span class="p">,</span> <span class="n">YY</span><span class="p">,</span> <span class="n">ZZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># set up the interpolation grid.</span>
+	
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span>
+		<span class="n">XX</span> <span class="o">=</span> <span class="n">XX</span> <span class="o">+</span> <span class="n">dx</span>
+		<span class="n">YY</span> <span class="o">=</span> <span class="n">XX</span> <span class="o">+</span> <span class="n">dy</span> 
+		<span class="n">ZZ</span> <span class="o">=</span> <span class="n">ZZ</span> <span class="o">+</span> <span class="n">dz</span>
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span>
+		<span class="n">XX</span> <span class="o">=</span> <span class="n">XX</span> <span class="o">-</span> <span class="n">dx</span>
+		<span class="n">YY</span> <span class="o">=</span> <span class="n">YY</span> <span class="o">-</span> <span class="n">dy</span>
+		<span class="n">ZZ</span> <span class="o">=</span> <span class="n">ZZ</span> <span class="o">-</span> <span class="n">dz</span>
+	
+	<span class="n">im_interp</span> <span class="o">=</span> <span class="n">map_coordinates</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> 
+								<span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([(</span><span class="n">XX</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+										   <span class="p">(</span><span class="n">YY</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+										   <span class="p">(</span><span class="n">ZZ</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)]),</span> <span class="n">prefilter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span> <span class="c1"># note the mode here refers to the boundary handling.</span>
+	<span class="n">im_interp</span> <span class="o">=</span> <span class="n">im_interp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">ret_xyz</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">im_interp</span><span class="p">,</span> <span class="p">[</span><span class="n">XX</span><span class="p">,</span><span class="n">YY</span><span class="p">,</span><span class="n">ZZ</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">im_interp</span></div>
+
+
+<div class="viewcode-block" id="warp_3D_displacements_xyz_pts"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_displacements_xyz_pts">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_displacements_xyz_pts</span><span class="p">(</span><span class="n">pts3D</span><span class="p">,</span> <span class="n">dxyz</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convenience function for warping forward or backward a 3D point cloud given the displacement field </span>
+
+<span class="sd">	If direction == &#39;F&#39;, the new points, :math:`(x&#39;,y&#39;,z&#39;)` are</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		(x&#39;,y&#39;,z&#39;) = (x+dx, y+dy, z+dz)</span>
+
+<span class="sd">	If direction == &#39;B&#39;, the new points, :math:`(x&#39;,y&#39;,z&#39;)` are</span>
+
+<span class="sd">	.. math::</span>
+<span class="sd">		(x&#39;,y&#39;,z&#39;) = (x-dx, y-dy, z-dz)</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	pts3D : array</span>
+<span class="sd">		n-dimensional array with last dimension of size 3 for (x,y,z)</span>
+<span class="sd">	dxyz : array </span>
+<span class="sd">		n-dimensional array with last dimension of size 3 for (dx,dy,dz)</span>
+<span class="sd">	direction : &#39;F&#39; or &#39;B&#39;</span>
+<span class="sd">		if &#39;F&#39; warp points in the same direction as specified by (dx,dy,dz) or if &#39;B&#39; warp image in the opposite direction of (-dx,-dy,-dz)</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	pts3D_warp : array</span>
+<span class="sd">		n-dimensional array with last dimension of size 3 for the new (x,y,z) coordinates after warping</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>    
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span>
+		<span class="n">pts3D_warp</span> <span class="o">=</span> <span class="n">pts3D</span> <span class="o">+</span> <span class="n">dxyz</span>
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span>
+		<span class="n">pts3D_warp</span> <span class="o">=</span> <span class="n">pts3D</span> <span class="o">-</span> <span class="n">dxyz</span>
+	
+	<span class="k">return</span> <span class="n">pts3D_warp</span></div>
+
+<div class="viewcode-block" id="warp_3D_transforms_xyz"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_transforms_xyz">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_transforms_xyz</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">tmatrix</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">ret_xyz</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Warps a volume image with the given affine transformation matrix forward or reverse with trilinear interpolation, returning if specified the corresponding (x,y,z) grid points</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	im : (MxNxL) array</span>
+<span class="sd">		the input 3D volume image</span>
+<span class="sd">	tmatrix : (4x4) array </span>
+<span class="sd">		the homogeneous affine 3D transformation matrix </span>
+<span class="sd">	direction : &#39;F&#39; or &#39;B&#39;</span>
+<span class="sd">		if &#39;F&#39; warp image with tmatrix or if &#39;B&#39; warp image with the matrix inverse of tmatrix</span>
+<span class="sd">	ret_xyz : bool</span>
+<span class="sd">		if True, return as a second output the xyz- coordinates in ``im`` where ``im_interp`` intensities were interpolated at</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	im_interp : (MxNxL) array</span>
+<span class="sd">		the transformed image </span>
+<span class="sd">	xyz_ : list of arrays</span>
+<span class="sd">		the xyz- coordinates of same array shape as im where ``im_interp`` intensities were taken from ``im`` </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>    
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">map_coordinates</span>
+
+	<span class="n">XX</span><span class="p">,</span> <span class="n">YY</span><span class="p">,</span> <span class="n">ZZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># set up the interpolation grid.</span>
+	
+	<span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([(</span><span class="n">XX</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">YY</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">ZZ</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+					 <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ZZ</span><span class="o">.</span><span class="n">ravel</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)])</span>
+	
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">tmatrix</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	
+	<span class="n">im_interp</span> <span class="o">=</span> <span class="n">map_coordinates</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> 
+								<span class="n">xyz_</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">prefilter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+	<span class="n">im_interp</span> <span class="o">=</span> <span class="n">im_interp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+	<span class="c1"># return also the coordinates that it maps to </span>
+	<span class="k">if</span> <span class="n">ret_xyz</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">im_interp</span><span class="p">,</span> <span class="n">xyz_</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">im_interp</span></div>
+
+<div class="viewcode-block" id="warp_3D_transforms_xyz_pts"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_transforms_xyz_pts">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_transforms_xyz_pts</span><span class="p">(</span><span class="n">pts3D</span><span class="p">,</span> <span class="n">tmatrix</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convenience function for warping forward or backward a 3D point cloud given an affine transform matrix </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	pts3D : array</span>
+<span class="sd">		n-dimensional array with last dimension of size 3 for (x,y,z)</span>
+<span class="sd">	tmatrix : (4x4) array </span>
+<span class="sd">		the homogeneous affine 3D transformation matrix </span>
+<span class="sd">	direction : &#39;F&#39; or &#39;B&#39;</span>
+<span class="sd">		if &#39;F&#39; warp points with ``tmatrix`` or if &#39;B&#39; warp points with the reverse transformation given by``np.linalg.inv(tmatrix)``, the matrix inverse</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	pts3D_warp : array</span>
+<span class="sd">		n-dimensional array with last dimension of size 3 for the new (x,y,z) coordinates after warping</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>    
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+	<span class="c1"># first make homogeneous coordinates.</span>
+	<span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+					 <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)])</span>
+	
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">tmatrix</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	
+	<span class="n">pts3D_warp</span> <span class="o">=</span> <span class="p">(</span><span class="n">xyz_</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">pts3D</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">pts3D_warp</span></div>
+
+
+<div class="viewcode-block" id="warp_3D_transforms_xyz_similarity"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_transforms_xyz_similarity">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_transforms_xyz_similarity</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">translation</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">rotation</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">zoom</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">shear</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">center_tform</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">ret_xyz</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Warps a volume image forward or reverse  where the transformation matrix is explicitly given by the desired translation, rotation, zoom and shear matrices, returning if specified the corresponding (x,y,z) grid points and optional padding</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	im : (MxNxL) array</span>
+<span class="sd">		the input 3D volume image</span>
+<span class="sd">	translation : (3,) array </span>
+<span class="sd">		the global (dx,dy,dz) translation vector</span>
+<span class="sd">	rotation : (3x3) array </span>
+<span class="sd">		the desired rotations given as a rotation matrix</span>
+<span class="sd">	zoom : (3,) array</span>
+<span class="sd">		the independent scaling factor in x-, y-, z- directions </span>
+<span class="sd">	shear : (3,) array</span>
+<span class="sd">		the shearing factor in x-, y-, z- directions</span>
+<span class="sd">	center_tform : bool</span>
+<span class="sd">		if true, the transformation will be applied preserving ``im_center`` </span>
+<span class="sd">	direction : &#39;F&#39; or &#39;B&#39;</span>
+<span class="sd">		if &#39;F&#39; warp points with the specified transformation or if &#39;B&#39; warp points by the reverse transformation</span>
+<span class="sd">	ret_xyz : bool</span>
+<span class="sd">		if True, return as a second output the xyz- coordinates in ``im`` where ``im_interp`` intensities were interpolated at</span>
+<span class="sd">	pad : int </span>
+<span class="sd">		if not None, the input image is prepadded with the same number of pixels given by ``pad`` in all directions before transforming </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	im_interp : (MxNxL) array</span>
+<span class="sd">		the transformed image </span>
+<span class="sd">	xyz_ : list of arrays</span>
+<span class="sd">		the xyz- coordinates of same array shape as im where ``im_interp`` intensities were taken from ``im`` </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>    
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is mainly to test how to combine the coordinates with transforms. </span>
+
+<span class="sd">	pad enables an optional padding of the image. </span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">map_coordinates</span>
+	<span class="kn">from</span> <span class="nn">transforms3d.affines</span> <span class="kn">import</span> <span class="n">compose</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="c1"># compose the 4 x 4 homogeneous matrix. </span>
+	<span class="n">tmatrix</span> <span class="o">=</span> <span class="n">compose</span><span class="p">(</span><span class="n">translation</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">shear</span><span class="p">)</span>
+
+	<span class="n">im_</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="n">pad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">im_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">im_</span><span class="p">,</span> <span class="p">[[</span><span class="n">pad</span><span class="p">,</span><span class="n">pad</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">))],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span> <span class="c1"># universally pad the volume by the edge values. </span>
+
+	<span class="k">if</span> <span class="n">center_tform</span><span class="p">:</span>
+		<span class="n">im_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span>
+		<span class="n">tmatrix</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im_center</span><span class="p">)</span>
+		<span class="n">decenter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span> <span class="n">decenter</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im_center</span><span class="p">)</span>
+		<span class="n">tmatrix</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">decenter</span><span class="p">)</span>
+
+	<span class="n">XX</span><span class="p">,</span> <span class="n">YY</span><span class="p">,</span> <span class="n">ZZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">im_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># set up the interpolation grid.</span>
+	
+	<span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([(</span><span class="n">XX</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">YY</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">ZZ</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+					 <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ZZ</span><span class="o">.</span><span class="n">ravel</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)])</span>
+	
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">tmatrix</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	
+	<span class="c1"># needs more memory % does this actually work? </span>
+	<span class="n">im_interp</span> <span class="o">=</span> <span class="n">map_coordinates</span><span class="p">(</span><span class="n">im_</span><span class="p">,</span> 
+								<span class="n">xyz_</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">prefilter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+	<span class="n">im_interp</span> <span class="o">=</span> <span class="n">im_interp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">im_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">ret_xyz</span><span class="p">:</span>
+		<span class="c1"># additional return of the target coordinates. </span>
+		<span class="k">return</span> <span class="n">im_interp</span><span class="p">,</span> <span class="n">xyz_</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">im_interp</span></div>
+
+
+<div class="viewcode-block" id="warp_3D_transforms_xyz_similarity_pts"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.warp_3D_transforms_xyz_similarity_pts">[docs]</a><span class="k">def</span> <span class="nf">warp_3D_transforms_xyz_similarity_pts</span><span class="p">(</span><span class="n">pts3D</span><span class="p">,</span> <span class="n">translation</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">rotation</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">zoom</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">shear</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">center_tform</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">im_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convenience function for warping forward or backward a 3D point cloud where  the transformation matrix is explicitly given by the desired translation, rotation, zoom and shear matrices  </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	pts3D : array</span>
+<span class="sd">		n-dimensional array with last dimension of size 3 for (x,y,z)</span>
+<span class="sd">	translation : (3,) array </span>
+<span class="sd">		the global (dx,dy,dz) translation vector</span>
+<span class="sd">	rotation : (3x3) array </span>
+<span class="sd">		the desired rotations given as a rotation matrix</span>
+<span class="sd">	zoom : (3,) array</span>
+<span class="sd">		the independent scaling factor in x-, y-, z- directions </span>
+<span class="sd">	shear : (3,) array</span>
+<span class="sd">		the shearing factor in x-, y-, z- directions</span>
+<span class="sd">	center_tform : bool</span>
+<span class="sd">		if true, the transformation will be applied preserving ``im_center`` </span>
+<span class="sd">	im_center : (3,) array</span>
+<span class="sd">		if None, the mean of ``pt3D`` in x-, y-, z- is taken as ``im_center`` and takes effect only if ``center_tform=True``</span>
+<span class="sd">	direction : &#39;F&#39; or &#39;B&#39;</span>
+<span class="sd">		if &#39;F&#39; warp points with the specified transformation or if &#39;B&#39; warp points by the reverse transformation</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	pts3D_warp : array</span>
+<span class="sd">		n-dimensional array with last dimension of size 3 for the new (x,y,z) coordinates after warping</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>    
+	<span class="kn">from</span> <span class="nn">transforms3d.affines</span> <span class="kn">import</span> <span class="n">compose</span> 
+	
+	<span class="c1"># compose the 4 x 4 homogeneous matrix. </span>
+	<span class="n">tmatrix</span> <span class="o">=</span> <span class="n">compose</span><span class="p">(</span><span class="n">translation</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">shear</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">center_tform</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">im_center</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">im_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="n">ch</span><span class="p">])</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">pts3D</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+		<span class="c1"># im_center = np.array(im.shape)//2</span>
+		<span class="n">tmatrix</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im_center</span><span class="p">)</span>
+		<span class="n">decenter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span> <span class="n">decenter</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im_center</span><span class="p">)</span>
+		<span class="n">tmatrix</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">decenter</span><span class="p">)</span>
+
+	<span class="c1"># first make homogeneous coordinates.</span>
+	<span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> 
+					 <span class="p">(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+					 <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pts3D</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)])</span>
+	
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="n">tmatrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span>
+		<span class="n">xyz_</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">tmatrix</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+	
+	<span class="n">pts3D_warp</span> <span class="o">=</span> <span class="p">(</span><span class="n">xyz_</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">pts3D</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">pts3D_warp</span></div>
+
+	
+<div class="viewcode-block" id="smooth_and_resample"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.smooth_and_resample">[docs]</a><span class="k">def</span> <span class="nf">smooth_and_resample</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">shrink_factors</span><span class="p">,</span> <span class="n">smoothing_sigmas</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; Utility function used in :func:`unwrap3D.Registration.registration.multiscale_demons` for generating multiscale image pyramids for registration based on the SimpleITK library</span>
+
+<span class="sd">	see SimpleITK notebooks, https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	image : SimpleITK image</span>
+<span class="sd">		The image we want to resample.</span>
+<span class="sd">	shrink_factors : scalar or array</span>
+<span class="sd">		Number(s) greater than one, such that the new image&#39;s size is original_size/shrink_factor.</span>
+<span class="sd">	smoothing_sigma(s): scalar or array</span>
+<span class="sd">		Sigma(s) for Gaussian smoothing, this is in physical units, not pixels.</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	image_resample : SimpleITK image</span>
+<span class="sd">		Image which is a result of smoothing the input and then resampling it using the given sigma(s) and shrink factor(s).</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">shrink_factors</span><span class="p">):</span>
+		<span class="n">shrink_factors</span> <span class="o">=</span> <span class="p">[</span><span class="n">shrink_factors</span><span class="p">]</span><span class="o">*</span><span class="n">image</span><span class="o">.</span><span class="n">GetDimension</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">smoothing_sigmas</span><span class="p">):</span>
+		<span class="n">smoothing_sigmas</span> <span class="o">=</span> <span class="p">[</span><span class="n">smoothing_sigmas</span><span class="p">]</span><span class="o">*</span><span class="n">image</span><span class="o">.</span><span class="n">GetDimension</span><span class="p">()</span>
+
+	<span class="n">smoothed_image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">SmoothingRecursiveGaussian</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">smoothing_sigmas</span><span class="p">)</span>
+	
+	<span class="n">original_spacing</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">()</span>
+	<span class="n">original_size</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
+	<span class="n">new_size</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">sz</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">sf</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="k">for</span> <span class="n">sf</span><span class="p">,</span><span class="n">sz</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">shrink_factors</span><span class="p">,</span><span class="n">original_size</span><span class="p">)]</span>
+	<span class="n">new_spacing</span> <span class="o">=</span> <span class="p">[((</span><span class="n">original_sz</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">original_spc</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">new_sz</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
+				   <span class="k">for</span> <span class="n">original_sz</span><span class="p">,</span> <span class="n">original_spc</span><span class="p">,</span> <span class="n">new_sz</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">original_size</span><span class="p">,</span> <span class="n">original_spacing</span><span class="p">,</span> <span class="n">new_size</span><span class="p">)]</span>
+
+	<span class="n">image_resample</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Resample</span><span class="p">(</span><span class="n">smoothed_image</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Transform</span><span class="p">(),</span> 
+						 <span class="n">sitk</span><span class="o">.</span><span class="n">sitkLinear</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">(),</span>
+						 <span class="n">new_spacing</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">GetDirection</span><span class="p">(),</span> <span class="mf">0.0</span><span class="p">,</span> 
+						 <span class="n">image</span><span class="o">.</span><span class="n">GetPixelID</span><span class="p">())</span>
+	
+	<span class="k">return</span> <span class="n">image_resample</span></div>
+	
+
+<div class="viewcode-block" id="multiscale_demons"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.multiscale_demons">[docs]</a><span class="k">def</span> <span class="nf">multiscale_demons</span><span class="p">(</span><span class="n">registration_algorithm</span><span class="p">,</span>
+					  <span class="n">fixed_image</span><span class="p">,</span> <span class="n">moving_image</span><span class="p">,</span> <span class="n">initial_transform</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+					  <span class="n">shrink_factors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">smoothing_sigmas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Run the given registration algorithm in a multiscale fashion. The original scale should not be given as input as the</span>
+<span class="sd">	original images are implicitly incorporated as the base of the pyramid.</span>
+<span class="sd">	</span>
+<span class="sd">	We use the algorithm here to run demons registration in multiscale hence the name.</span>
+
+<span class="sd">	see SimpleITK notebooks, https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	registration_algorithm : SimpleITK algorithm instance</span>
+<span class="sd">		Any registration algorithm in `SimpleITK &lt;https://simpleitk.readthedocs.io/en/master/filters.html&gt;`_ that has an Execute(fixed_image, moving_image, displacement_field_image) method.</span>
+<span class="sd">	fixed_image: SimpleITK image</span>
+<span class="sd">		This is the reference image. Resulting transformation maps points from this image&#39;s spatial domain to the moving image spatial domain. </span>
+<span class="sd">	moving_image : SimpleITK image</span>
+<span class="sd">		This is the image to register to the fixed image. Resulting transformation maps points from the fixed_image&#39;s spatial domain to this image&#39;s spatial domain.</span>
+<span class="sd">	initial_transform : SimpleITK transform</span>
+<span class="sd">		Any SimpleITK transform, used to initialize the displacement field.</span>
+<span class="sd">	shrink_factors : list of lists or scalars </span>
+<span class="sd">		Shrink factors relative to the original image&#39;s size. When the list entry, shrink_factors[i], is a scalar the same factor is applied to all axes.</span>
+<span class="sd">		When the list entry is a list, shrink_factors[i][j] is applied to axis j. This allows us to specify different shrink factors per axis. This is useful</span>
+<span class="sd">		in the context of microscopy images where it is not uncommon to have unbalanced sampling such as a 512x512x8 image. In this case we would only want to </span>
+<span class="sd">		sample in the x,y axes and leave the z axis as is: [[[8,8,1],[4,4,1],[2,2,1]].</span>
+<span class="sd">	smoothing_sigmas : list of lists or scalars  </span>
+<span class="sd">		Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These are in physical (image spacing) units.</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	SimpleITK.DisplacementFieldTransform</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="c1"># Create image pyramid in a memory efficient manner using a generator function.</span>
+	<span class="c1"># The whole pyramid never exists in memory, each level is created when iterating over</span>
+	<span class="c1"># the generator.</span>
+	<span class="k">def</span> <span class="nf">image_pair_generator</span><span class="p">(</span><span class="n">fixed_image</span><span class="p">,</span> <span class="n">moving_image</span><span class="p">,</span> <span class="n">shrink_factors</span><span class="p">,</span> <span class="n">smoothing_sigmas</span><span class="p">):</span>
+		<span class="n">end_level</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">start_level</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">if</span> <span class="n">shrink_factors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">end_level</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shrink_factors</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_level</span><span class="p">,</span> <span class="n">end_level</span><span class="p">):</span>
+			<span class="n">f_image</span> <span class="o">=</span> <span class="n">smooth_and_resample</span><span class="p">(</span><span class="n">fixed_image</span><span class="p">,</span> <span class="n">shrink_factors</span><span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="n">smoothing_sigmas</span><span class="p">[</span><span class="n">level</span><span class="p">])</span>
+			<span class="n">m_image</span> <span class="o">=</span> <span class="n">smooth_and_resample</span><span class="p">(</span><span class="n">moving_image</span><span class="p">,</span> <span class="n">shrink_factors</span><span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="n">smoothing_sigmas</span><span class="p">[</span><span class="n">level</span><span class="p">])</span>
+			<span class="k">yield</span><span class="p">(</span><span class="n">f_image</span><span class="p">,</span> <span class="n">m_image</span><span class="p">)</span>
+		<span class="k">yield</span><span class="p">(</span><span class="n">fixed_image</span><span class="p">,</span> <span class="n">moving_image</span><span class="p">)</span>
+	
+	<span class="c1"># Create initial displacement field at lowest resolution. </span>
+	<span class="c1"># Currently, the pixel type is required to be sitkVectorFloat64 because </span>
+	<span class="c1"># of a constraint imposed by the Demons filters.</span>
+	<span class="k">if</span> <span class="n">shrink_factors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">original_size</span> <span class="o">=</span> <span class="n">fixed_image</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
+		<span class="n">original_spacing</span> <span class="o">=</span> <span class="n">fixed_image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">()</span>
+		<span class="n">s_factors</span> <span class="o">=</span>  <span class="p">[</span><span class="n">shrink_factors</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">original_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">shrink_factors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="n">shrink_factors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="n">df_size</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">sz</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">sf</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="k">for</span> <span class="n">sf</span><span class="p">,</span><span class="n">sz</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">s_factors</span><span class="p">,</span><span class="n">original_size</span><span class="p">)]</span>
+		<span class="n">df_spacing</span> <span class="o">=</span> <span class="p">[((</span><span class="n">original_sz</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">original_spc</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">new_sz</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
+					  <span class="k">for</span> <span class="n">original_sz</span><span class="p">,</span> <span class="n">original_spc</span><span class="p">,</span> <span class="n">new_sz</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">original_size</span><span class="p">,</span> <span class="n">original_spacing</span><span class="p">,</span> <span class="n">df_size</span><span class="p">)]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">df_size</span> <span class="o">=</span> <span class="n">fixed_image</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
+		<span class="n">df_spacing</span> <span class="o">=</span> <span class="n">fixed_image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">()</span>
+ 
+	<span class="k">if</span> <span class="n">initial_transform</span><span class="p">:</span>
+		<span class="n">initial_displacement_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">TransformToDisplacementField</span><span class="p">(</span><span class="n">initial_transform</span><span class="p">,</span> 
+																	   <span class="n">sitk</span><span class="o">.</span><span class="n">sitkVectorFloat64</span><span class="p">,</span>
+																	   <span class="n">df_size</span><span class="p">,</span>
+																	   <span class="n">fixed_image</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">(),</span>
+																	   <span class="n">df_spacing</span><span class="p">,</span>
+																	   <span class="n">fixed_image</span><span class="o">.</span><span class="n">GetDirection</span><span class="p">())</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">initial_displacement_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">df_size</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkVectorFloat64</span><span class="p">,</span> <span class="n">fixed_image</span><span class="o">.</span><span class="n">GetDimension</span><span class="p">())</span>
+		<span class="n">initial_displacement_field</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="n">df_spacing</span><span class="p">)</span>
+		<span class="n">initial_displacement_field</span><span class="o">.</span><span class="n">SetOrigin</span><span class="p">(</span><span class="n">fixed_image</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">())</span>
+ 
+	<span class="c1"># Run the registration.            </span>
+	<span class="c1"># Start at the top of the pyramid and work our way down.    </span>
+	<span class="k">for</span> <span class="n">f_image</span><span class="p">,</span> <span class="n">m_image</span> <span class="ow">in</span> <span class="n">image_pair_generator</span><span class="p">(</span><span class="n">fixed_image</span><span class="p">,</span> <span class="n">moving_image</span><span class="p">,</span> <span class="n">shrink_factors</span><span class="p">,</span> <span class="n">smoothing_sigmas</span><span class="p">):</span>
+		<span class="n">initial_displacement_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Resample</span> <span class="p">(</span><span class="n">initial_displacement_field</span><span class="p">,</span> <span class="n">f_image</span><span class="p">)</span>
+		<span class="n">initial_displacement_field</span> <span class="o">=</span> <span class="n">registration_algorithm</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">f_image</span><span class="p">,</span> <span class="n">m_image</span><span class="p">,</span> <span class="n">initial_displacement_field</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">sitk</span><span class="o">.</span><span class="n">DisplacementFieldTransform</span><span class="p">(</span><span class="n">initial_displacement_field</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SITK_multiscale_affine_registration"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.SITK_multiscale_affine_registration">[docs]</a><span class="k">def</span> <span class="nf">SITK_multiscale_affine_registration</span><span class="p">(</span><span class="n">vol1</span><span class="p">,</span> <span class="n">vol2</span><span class="p">,</span> 
+										<span class="n">imtype</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+										<span class="n">p12</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+										<span class="n">rescale_intensity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  
+										<span class="n">centre_tfm_model</span><span class="o">=</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span> 
+										<span class="n">tfm_type</span> <span class="o">=</span> <span class="s1">&#39;rigid&#39;</span><span class="p">,</span> 
+										<span class="n">metric</span><span class="o">=</span><span class="s1">&#39;Matte&#39;</span><span class="p">,</span>  
+										<span class="n">metric_numberOfHistogramBins</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+										<span class="n">sampling_intensity_method</span><span class="o">=</span><span class="s1">&#39;random&#39;</span><span class="p">,</span>
+										<span class="n">MetricSamplingPercentage</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+										<span class="n">shrink_factors</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> 
+										<span class="n">smoothing_sigmas</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+										<span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;gradient&#39;</span><span class="p">,</span> 
+										<span class="n">optimizer_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+										<span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Main function to affine register two input volumes using SimpleITK library in a multiscale manner. </span>
+<span class="sd">	</span>
+<span class="sd">	Affine registration includes the following transformations</span>
+
+<span class="sd">	- rigid (rotation + translation)</span>
+<span class="sd">	- iso_similarity (isotropic scale + rigid)</span>
+<span class="sd">	- aniso_similarity (anisotropic scale + rigid)</span>
+<span class="sd">	- affine (skew + aniso_similarity)</span>
+
+<span class="sd">	see SimpleITK notebooks, https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/61_Registration_Introduction_Continued.html</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	vol1 : (MxNxL) array</span>
+<span class="sd">		reference volume given as a Numpy array</span>
+<span class="sd">	vol2 : (MxNxL) array</span>
+<span class="sd">		volume to register to vol2, given as a Numpy array</span>
+<span class="sd">	imtype : int</span>
+<span class="sd">		specifies the -bit of the image e.g. 8-bit, 16-bit etc. Used to normalize the intensity if ``rescale_intensity=False``</span>
+<span class="sd">	p12 : (p1,p2) tuple</span>
+<span class="sd">		if provided, vol1 and vol2 are constract enhanced using percentage intensity normalization </span>
+<span class="sd">	rescale_intensity : bool</span>
+<span class="sd">		if True, does min-max scaling of image intensities in the two volumes independently before registering. This follows percentage intensity normalization if specified. </span>
+<span class="sd">	centre_tfm_model : str</span>
+<span class="sd">		specifies the initial centering model. This is one of two options. For microscopy, we find &#39;geometry&#39; has less jitter and is best. </span>
+<span class="sd">	tfm_type : str</span>
+<span class="sd">		Type of affine transform from 4. The more complex, the longer the registration. </span>
+
+<span class="sd">		&#39;rigid&#39; :</span>
+<span class="sd">			rotation + translation</span>
+<span class="sd">		&#39;iso_similarity&#39; : </span>
+<span class="sd">			isotropic scale + rotation + translation </span>
+<span class="sd">		&#39;aniso_similarity&#39; :</span>
+<span class="sd">		 	anisotropic scale + rotation + translation </span>
+<span class="sd">		&#39;affine&#39; : </span>
+<span class="sd">			skew + scale + rotation + translation </span>
+<span class="sd">	</span>
+<span class="sd">	metric : str </span>
+<span class="sd">		This parameter is currently not used. Matte&#39;s mutual information (&#39;Matte&#39;) is used by default as it offers the best metric for fluorescence imaging and multimodal registration.  </span>
+<span class="sd">	metric_numberOfHistogramBins : int,</span>
+<span class="sd">		The number of histogram bins to compute mutual information. Higher bins may allow finer registration but also adds more intensity noise. Smaller bins is more robust to intensity variations but may not be as discriminative.</span>
+<span class="sd">	sampling_intensity_method : str</span>
+<span class="sd">		This parameter is currently not used. &#39;random&#39; is on by default. Evaluating the metric of registration is too expensive for the full image, thus we need to sample. Random is good since it avoids consistently evaluating the same grid points. </span>
+<span class="sd">	MetricSamplingPercentage : scalar,</span>
+<span class="sd">		Number betwen 0-1 specifying the fraction of image voxels to evaluate the cost per registration iteration. Usually want to keep this fairly low for speed.  </span>
+<span class="sd">	shrink_factors : list of lists or scalars </span>
+<span class="sd">		Shrink factors relative to the original image&#39;s size. When the list entry, shrink_factors[i], is a scalar the same factor is applied to all axes.</span>
+<span class="sd">		When the list entry is a list, shrink_factors[i][j] is applied to axis j. This allows us to specify different shrink factors per axis. This is useful</span>
+<span class="sd">		in the context of microscopy images where it is not uncommon to have unbalanced sampling such as a 512x512x8 image. In this case we would only want to </span>
+<span class="sd">		sample in the x,y axes and leave the z axis as is: [[[8,8,1],[4,4,1],[2,2,1]].</span>
+<span class="sd">	smoothing_sigmas : list of lists or scalars  </span>
+<span class="sd">		Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These are in pixel units.</span>
+<span class="sd">	optimizer : str </span>
+<span class="sd">		The optimization algorithm used to find the parameters. </span>
+
+<span class="sd">		&#39;gradient&#39; : </span>
+<span class="sd">			uses regular gradient descent. registration_method.SetOptimizerAsGradientDescent</span>
+<span class="sd">		&#39;1+1_evolutionary&#39; : </span>
+<span class="sd">			uses 1+1 evolutionary which is default in Matlab. registration_method.SetOptimizerAsOnePlusOneEvolutionary</span>
+
+<span class="sd">	optimizer_params : dict</span>
+<span class="sd">		Python dictionary-like specification of the optimization parameters. See :func:`unwrap3D.Parameters.params.gradient_descent_affine_reg` for setting up gradient descent (Default) and </span>
+<span class="sd">		:func:`unwrap3D.Parameters.params.evolutionary_affine_reg` for setting up the evolutionary optimizer</span>
+<span class="sd">	eps : scalar</span>
+<span class="sd">		small number for numerical precision</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	SimpleITK.Transform</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+
+	<span class="k">def</span> <span class="nf">imadjust</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span> 
+		<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+		<span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="kn">import</span> <span class="n">rescale_intensity</span>
+		<span class="c1"># this is based on contrast stretching and is used by many of the biological image processing algorithms.</span>
+		<span class="n">p1_</span><span class="p">,</span> <span class="n">p2_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">))</span>
+		<span class="n">vol_rescale</span> <span class="o">=</span> <span class="n">rescale_intensity</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">in_range</span><span class="o">=</span><span class="p">(</span><span class="n">p1_</span><span class="p">,</span><span class="n">p2_</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">vol_rescale</span>
+
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="k">if</span> <span class="n">p12</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">im1_</span> <span class="o">=</span> <span class="n">vol1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">vol2</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="c1"># no contrast stretching </span>
+		<span class="k">if</span> <span class="n">rescale_intensity</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="n">im1_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="n">im2_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im1_</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im1_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im2_</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im2_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="c1"># contrast stretching </span>
+		<span class="n">im1_</span> <span class="o">=</span> <span class="n">imadjust</span><span class="p">(</span><span class="n">vol1</span><span class="p">,</span> <span class="n">p12</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p12</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">imadjust</span><span class="p">(</span><span class="n">vol2</span><span class="p">,</span> <span class="n">p12</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p12</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+		<span class="k">if</span> <span class="n">rescale_intensity</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="n">im1_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="n">im2_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im1_</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im1_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im2_</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im2_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+
+	<span class="c1">### main analysis scripts. </span>
+	<span class="n">v1</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">im1_</span><span class="p">,</span> <span class="n">isVector</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">v2</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">im2_</span><span class="p">,</span> <span class="n">isVector</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+		
+	<span class="c1"># a) initial transform </span>
+	<span class="c1"># translation.</span>
+	<span class="k">if</span> <span class="n">centre_tfm_model</span><span class="o">==</span><span class="s1">&#39;geometry&#39;</span><span class="p">:</span>
+		<span class="n">translation_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">CenteredTransformInitializerFilter</span><span class="o">.</span><span class="n">GEOMETRY</span>
+	<span class="k">if</span> <span class="n">centre_tfm_model</span><span class="o">==</span><span class="s1">&#39;moments&#39;</span><span class="p">:</span>
+		<span class="n">translation_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">CenteredTransformInitializerFilter</span><span class="o">.</span><span class="n">MOMENTS</span>
+
+	<span class="c1"># if tfm_type == &#39;translation&#39;:</span>
+	<span class="c1">#     transform_mode = sitk.TranslationTransform(3)    </span>
+	<span class="c1"># these are the built in transforms without additional modification. </span>
+	<span class="k">if</span> <span class="n">tfm_type</span> <span class="o">==</span> <span class="s1">&#39;rigid&#39;</span><span class="p">:</span>
+		<span class="n">transform_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Euler3DTransform</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">tfm_type</span> <span class="o">==</span> <span class="s1">&#39;iso_similarity&#39;</span><span class="p">:</span>
+		<span class="n">transform_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Similarity3DTransform</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">tfm_type</span> <span class="o">==</span> <span class="s1">&#39;aniso_similarity&#39;</span><span class="p">:</span>
+		<span class="n">transform_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ScaleVersor3DTransform</span><span class="p">()</span> <span class="c1"># this version allows anisotropic scaling </span>
+	<span class="k">if</span> <span class="n">tfm_type</span> <span class="o">==</span> <span class="s1">&#39;affine&#39;</span><span class="p">:</span> 
+		<span class="c1"># transform_mode = sitk.AffineTransform(3) # this is a generic that requires setting. </span>
+		<span class="n">transform_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ScaleSkewVersor3DTransform</span><span class="p">()</span> <span class="c1"># this is anisotropic + skew</span>
+
+	<span class="n">initial_transform</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">CenteredTransformInitializer</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> 
+														  <span class="n">v2</span><span class="p">,</span> 
+														  <span class="n">transform_mode</span><span class="p">,</span> <span class="c1"># this is where we change the transform</span>
+														  <span class="n">translation_mode</span><span class="p">)</span>
+
+	<span class="c1"># a) Affine registration transform  </span>
+	<span class="c1"># Select a different type of affine registration</span>
+	<span class="c1"># multiscale rigid.</span>
+	<span class="n">registration_method</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ImageRegistrationMethod</span><span class="p">()</span>
+
+	<span class="c1"># Similarity metric settings.</span>
+	<span class="n">registration_method</span><span class="o">.</span><span class="n">SetMetricAsMattesMutualInformation</span><span class="p">(</span><span class="n">numberOfHistogramBins</span><span class="o">=</span><span class="n">metric_numberOfHistogramBins</span><span class="p">)</span> 
+	<span class="c1"># key for making it fast. (subsampling, don&#39;t use all the pixels)</span>
+	<span class="k">if</span> <span class="n">sampling_intensity_method</span> <span class="o">==</span> <span class="s1">&#39;random&#39;</span><span class="p">:</span>
+		<span class="n">registration_method</span><span class="o">.</span><span class="n">SetMetricSamplingStrategy</span><span class="p">(</span><span class="n">registration_method</span><span class="o">.</span><span class="n">RANDOM</span><span class="p">)</span>
+	<span class="n">registration_method</span><span class="o">.</span><span class="n">SetMetricSamplingPercentage</span><span class="p">(</span><span class="n">MetricSamplingPercentage</span><span class="p">)</span>
+	<span class="n">registration_method</span><span class="o">.</span><span class="n">SetInterpolator</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">sitkLinear</span><span class="p">)</span> <span class="c1"># use this to help resampling the intensity at each iteration. </span>
+
+	<span class="c1"># Optimizer settings. # put these settings in a dedicated params file? </span>
+	<span class="k">if</span> <span class="n">optimizer</span> <span class="o">==</span> <span class="s1">&#39;gradient&#39;</span><span class="p">:</span>
+		<span class="n">registration_method</span><span class="o">.</span><span class="n">SetOptimizerAsGradientDescent</span><span class="p">(</span><span class="n">learningRate</span><span class="o">=</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;learningRate&#39;</span><span class="p">],</span> 
+														  <span class="n">numberOfIterations</span><span class="o">=</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;numberOfIterations&#39;</span><span class="p">],</span> <span class="c1"># increase this.  </span>
+														  <span class="n">convergenceMinimumValue</span><span class="o">=</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;convergenceMinimumValue&#39;</span><span class="p">],</span> 
+														  <span class="n">convergenceWindowSize</span><span class="o">=</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;convergenceWindowSize&#39;</span><span class="p">],</span>
+														  <span class="n">estimateLearningRate</span><span class="o">=</span><span class="n">registration_method</span><span class="o">.</span><span class="n">EachIteration</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">optimizer</span> <span class="o">==</span> <span class="s1">&#39;1+1_evolutionary&#39;</span><span class="p">:</span>
+		<span class="n">registration_method</span><span class="o">.</span><span class="n">SetOptimizerAsOnePlusOneEvolutionary</span><span class="p">(</span><span class="n">numberOfIterations</span><span class="o">=</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;numberOfIterations&#39;</span><span class="p">],</span> 
+																 <span class="n">epsilon</span><span class="o">=</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">],</span> 
+																 <span class="n">initialRadius</span><span class="o">=</span> <span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;initialRadius&#39;</span><span class="p">],</span>
+																 <span class="n">growthFactor</span><span class="o">=</span> <span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;growthFactor&#39;</span><span class="p">],</span>
+																 <span class="n">shrinkFactor</span><span class="o">=</span> <span class="n">optimizer_params</span><span class="p">[</span><span class="s1">&#39;shrinkFactor&#39;</span><span class="p">]</span>
+																 <span class="p">)</span>
+	<span class="n">registration_method</span><span class="o">.</span><span class="n">SetOptimizerScalesFromIndexShift</span><span class="p">()</span>
+
+	<span class="c1"># set the multiscale registration parameters here. </span>
+	<span class="n">registration_method</span><span class="o">.</span><span class="n">SetShrinkFactorsPerLevel</span><span class="p">(</span><span class="n">shrinkFactors</span> <span class="o">=</span> <span class="n">shrink_factors</span><span class="p">)</span> <span class="c1"># use just the one scale. </span>
+	<span class="n">registration_method</span><span class="o">.</span><span class="n">SetSmoothingSigmasPerLevel</span><span class="p">(</span><span class="n">smoothingSigmas</span><span class="o">=</span><span class="n">smoothing_sigmas</span><span class="p">)</span> <span class="c1"># don&#39;t filter. </span>
+	<span class="n">registration_method</span><span class="o">.</span><span class="n">SetInitialTransform</span><span class="p">(</span><span class="n">initial_transform</span><span class="p">,</span> <span class="n">inPlace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+	
+	<span class="n">tfm</span> <span class="o">=</span> <span class="n">registration_method</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkFloat32</span><span class="p">),</span> 
+									  <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">v2</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkFloat32</span><span class="p">))</span>
+
+	<span class="c1"># if tfm_type == &#39;affine&#39;: </span>
+	<span class="c1">#     # refit with the above params. </span>
+	<span class="c1">#     tfm_affine = sitk.AffineTransform(3)</span>
+	<span class="c1">#     tfm_affine.SetMatrix(tfm.GetMatrix())</span>
+	<span class="c1">#     tfm_affine.SetTranslation(tfm.GetTranslation())</span>
+	<span class="c1">#     tfm_affine.SetCenter(tfm.GetCenter())</span>
+	<span class="c1">#     registration_method.SetInitialTransform(tfm_affine, inPlace=False)</span>
+	<span class="c1">#     tfm = registration_method.Execute(sitk.Cast(v1, sitk.sitkFloat32), </span>
+	<span class="c1">#                                       sitk.Cast(v2, sitk.sitkFloat32))</span>
+
+	<span class="k">return</span> <span class="n">tfm</span> </div>
+	
+
+<span class="c1"># to do: define helper script to wrap the main preprocessing steps for demons registration of two volumetric images.</span>
+<div class="viewcode-block" id="SITK_multiscale_demons_registration"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.SITK_multiscale_demons_registration">[docs]</a><span class="k">def</span> <span class="nf">SITK_multiscale_demons_registration</span><span class="p">(</span><span class="n">vol1</span><span class="p">,</span> <span class="n">vol2</span><span class="p">,</span> 
+										<span class="n">imtype</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+										<span class="n">p12</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mf">99.8</span><span class="p">),</span>
+										<span class="n">rescale_intensity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  
+										<span class="n">centre_tfm_model</span><span class="o">=</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span> 
+										<span class="n">demons_type</span><span class="o">=</span><span class="s1">&#39;diffeomorphic&#39;</span><span class="p">,</span> 
+										<span class="n">n_iters</span> <span class="o">=</span> <span class="mi">25</span><span class="p">,</span> 
+										<span class="n">smooth_displacement_field</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+										<span class="n">smooth_alpha</span><span class="o">=</span><span class="mf">.8</span><span class="p">,</span>
+										<span class="n">shrink_factors</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span> 
+										<span class="n">smoothing_sigmas</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span>
+										<span class="n">eps</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span> 
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; Main function to register two input volumes using Demon&#39;s registration algorithm in the SimpleITK library in a multiscale manner. </span>
+<span class="sd">	</span>
+<span class="sd">	see SimpleITK notebooks, https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	vol1 : (MxNxL) array</span>
+<span class="sd">		reference volume given as a Numpy array</span>
+<span class="sd">	vol2 : (MxNxL) array</span>
+<span class="sd">		volume to register to vol2, given as a Numpy array</span>
+<span class="sd">	imtype : int</span>
+<span class="sd">		specifies the -bit of the image e.g. 8-bit, 16-bit etc. Used to normalize the intensity if ``rescale_intensity=False``</span>
+<span class="sd">	p12 : (p1,p2) tuple</span>
+<span class="sd">		if provided, vol1 and vol2 are constract enhanced using percentage intensity normalization </span>
+<span class="sd">	rescale_intensity : bool</span>
+<span class="sd">		if True, does min-max scaling of image intensities in the two volumes independently before registering. This follows percentage intensity normalization if specified. </span>
+<span class="sd">	centre_tfm_model : str</span>
+<span class="sd">		specifies the initial centering model. This is one of two options. For microscopy, we find &#39;geometry&#39; has less jitter and is best. </span>
+<span class="sd">		</span>
+<span class="sd">		&#39;geometry&#39;: str</span>
+<span class="sd">			uses sitk.CenteredTransformInitializerFilter.GEOMETRY. This computes the geometrical center independent of intensity.</span>
+<span class="sd">		&#39;moments&#39;: str</span>
+<span class="sd">			uses sitk.CenteredTransformInitializerFilter.MOMENTS. This computes the geometrical center of mass of the volume based on using image intensity as a weighting. </span>
+
+<span class="sd">	demons_type : str</span>
+<span class="sd">		One of two demon&#39;s filters in SimpleITK. </span>
+
+<span class="sd">		&#39;diffeomorphic&#39; : str</span>
+<span class="sd">			sitk.DiffeomorphicDemonsRegistrationFilter(). This implements the diffeomorphic demons approach of [1]_ to penalise foldovers in the warp field and is more biologically plausible</span>
+<span class="sd">		&#39;symmetric&#39; : str</span>
+<span class="sd">			sitk.FastSymmetricForcesDemonsRegistrationFilter(). This implements the symmetric forces of [2]_. The idea is that in general the warp field of registering vol2 to vol1 and vice versa is not quite the same. in Symmetric forces demon the learning takes the average of these two warp fields to ensure symmetry preservation.</span>
+
+<span class="sd">	shrink_factors : list of lists or scalars </span>
+<span class="sd">		Shrink factors relative to the original image&#39;s size. When the list entry, shrink_factors[i], is a scalar the same factor is applied to all axes.</span>
+<span class="sd">		When the list entry is a list, shrink_factors[i][j] is applied to axis j. This allows us to specify different shrink factors per axis. This is useful</span>
+<span class="sd">		in the context of microscopy images where it is not uncommon to have unbalanced sampling such as a 512x512x8 image. In this case we would only want to </span>
+<span class="sd">		sample in the x,y axes and leave the z axis as is: [[[8,8,1],[4,4,1],[2,2,1]].</span>
+<span class="sd">	smoothing_sigmas : list of lists or scalars  </span>
+<span class="sd">		Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These are in pixel units.</span>
+<span class="sd">	eps : scalar</span>
+<span class="sd">		small number for numerical precision</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	SimpleITK.DisplacementFieldTransform</span>
+
+<span class="sd">	References</span>
+<span class="sd">	----------</span>
+<span class="sd">	.. [1] Vercauteren et al. &quot;Diffeomorphic demons: Efficient non-parametric image registration.&quot; NeuroImage 45.1 (2009): S61-S72.</span>
+<span class="sd">	.. [2] Avants et al. &quot;Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain.&quot; Medical image analysis 12.1 (2008): 26-41.</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+
+	<span class="k">def</span> <span class="nf">imadjust</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span> 
+		<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+		<span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="kn">import</span> <span class="n">rescale_intensity</span>
+		<span class="c1"># this is based on contrast stretching and is used by many of the biological image processing algorithms.</span>
+		<span class="n">p1_</span><span class="p">,</span> <span class="n">p2_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">))</span>
+		<span class="n">vol_rescale</span> <span class="o">=</span> <span class="n">rescale_intensity</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">in_range</span><span class="o">=</span><span class="p">(</span><span class="n">p1_</span><span class="p">,</span><span class="n">p2_</span><span class="p">))</span>
+		<span class="k">return</span> <span class="n">vol_rescale</span>
+
+	<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+
+	<span class="k">if</span> <span class="n">p12</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">im1_</span> <span class="o">=</span> <span class="n">vol1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">vol2</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+		<span class="c1"># no contrast stretching </span>
+		<span class="k">if</span> <span class="n">rescale_intensity</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="n">im1_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="n">im2_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im1_</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im1_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im2_</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im2_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="c1"># contrast stretching </span>
+		<span class="n">im1_</span> <span class="o">=</span> <span class="n">imadjust</span><span class="p">(</span><span class="n">vol1</span><span class="p">,</span> <span class="n">p12</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p12</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="n">im2_</span> <span class="o">=</span> <span class="n">imadjust</span><span class="p">(</span><span class="n">vol2</span><span class="p">,</span> <span class="n">p12</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p12</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+		<span class="k">if</span> <span class="n">rescale_intensity</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="n">im1_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="n">im2_</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">imtype</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">im1_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im1_</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im1_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im1_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+			<span class="n">im2_</span> <span class="o">=</span> <span class="p">(</span><span class="n">im2_</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im2_</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im2_</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+
+	<span class="c1">### main analysis scripts. </span>
+	<span class="n">v1</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">im1_</span><span class="p">,</span> <span class="n">isVector</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">v2</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">im2_</span><span class="p">,</span> <span class="n">isVector</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+		
+	<span class="c1"># a) initial transform </span>
+	<span class="c1"># translation.</span>
+	<span class="k">if</span> <span class="n">centre_tfm_model</span><span class="o">==</span><span class="s1">&#39;geometry&#39;</span><span class="p">:</span>
+		<span class="n">translation_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">CenteredTransformInitializerFilter</span><span class="o">.</span><span class="n">GEOMETRY</span>
+	<span class="k">if</span> <span class="n">centre_tfm_model</span><span class="o">==</span><span class="s1">&#39;moments&#39;</span><span class="p">:</span>
+		<span class="n">translation_mode</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">CenteredTransformInitializerFilter</span><span class="o">.</span><span class="n">MOMENTS</span>
+	<span class="n">initial_transform</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">CenteredTransformInitializer</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> 
+														  <span class="n">v2</span><span class="p">,</span> 
+														  <span class="n">sitk</span><span class="o">.</span><span class="n">Euler3DTransform</span><span class="p">(),</span>
+														  <span class="n">translation_mode</span><span class="p">)</span>
+
+	<span class="c1"># a) demons transform (best to have corrected out any rigid transforms a priori) </span>
+	 <span class="c1"># Select a Demons filter and configure it.</span>
+	<span class="k">if</span> <span class="n">demons_type</span> <span class="o">==</span> <span class="s1">&#39;diffeomorphic&#39;</span><span class="p">:</span> 
+		<span class="n">demons_filter</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">DiffeomorphicDemonsRegistrationFilter</span><span class="p">()</span> <span class="c1"># we should use this version.</span>
+	<span class="k">if</span> <span class="n">demons_type</span> <span class="o">==</span> <span class="s1">&#39;symmetric&#39;</span><span class="p">:</span>
+		<span class="n">demons_filter</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">FastSymmetricForcesDemonsRegistrationFilter</span><span class="p">()</span>
+	<span class="c1"># set the number of iterations</span>
+	<span class="n">demons_filter</span><span class="o">.</span><span class="n">SetNumberOfIterations</span><span class="p">(</span><span class="n">n_iters</span><span class="p">)</span> <span class="c1"># 5 for less. # long time for 20? </span>
+	<span class="c1"># Regularization (update field - viscous, total field - elastic).</span>
+	<span class="n">demons_filter</span><span class="o">.</span><span class="n">SetSmoothDisplacementField</span><span class="p">(</span><span class="n">smooth_displacement_field</span><span class="p">)</span>
+	<span class="n">demons_filter</span><span class="o">.</span><span class="n">SetStandardDeviations</span><span class="p">(</span><span class="n">smooth_alpha</span><span class="p">)</span>
+	
+	<span class="c1"># run the registration and return the final transform parameters</span>
+	<span class="n">final_tfm</span> <span class="o">=</span> <span class="n">multiscale_demons</span><span class="p">(</span><span class="n">registration_algorithm</span><span class="o">=</span><span class="n">demons_filter</span><span class="p">,</span> 
+								  <span class="n">fixed_image</span> <span class="o">=</span> <span class="n">v1</span><span class="p">,</span>
+								  <span class="n">moving_image</span> <span class="o">=</span> <span class="n">v2</span><span class="p">,</span>
+								  <span class="n">initial_transform</span> <span class="o">=</span> <span class="n">initial_transform</span><span class="p">,</span>
+								  <span class="n">shrink_factors</span> <span class="o">=</span> <span class="n">shrink_factors</span><span class="p">,</span> <span class="c1"># did have 2 here. -&gt; test, can we separate the  # do at the same scale. </span>
+								  <span class="n">smoothing_sigmas</span> <span class="o">=</span> <span class="n">smoothing_sigmas</span><span class="p">)</span> <span class="c1"># set smoothing very low, since we want it to zone in on interesting features. </span>
+	<span class="c1"># check again how this is parsed .</span>
+	<span class="k">return</span> <span class="n">final_tfm</span></div>
+
+<span class="c1"># define helper scripts to transform new volumes given a deformation.</span>
+<div class="viewcode-block" id="transform_img_sitk"><a class="viewcode-back" href="../../../unwrap3D.Registration.html#unwrap3D.Registration.registration.transform_img_sitk">[docs]</a><span class="k">def</span> <span class="nf">transform_img_sitk</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">tfm</span><span class="p">):</span>
+	<span class="sa">r</span><span class="sd">&quot;&quot;&quot; One-stop function for applying any SimpleITK transform to an input image. Linear interpolation is used.  </span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	vol: array</span>
+<span class="sd">		input image as a numpy array 	</span>
+<span class="sd">	tfm: SimpleITK.Transform</span>
+<span class="sd">		A simpleITK transform instance such as that resulting from using the simpleITK registration functions in this module.</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	v_transformed : array</span>
+<span class="sd">		resulting image after applying the given transform to the input, returned as a numpy array </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+
+	<span class="n">v</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">isVector</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">v_transformed</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Resample</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> 
+								  <span class="n">v</span><span class="p">,</span> 
+								  <span class="n">tfm</span><span class="p">,</span> <span class="c1"># this should work with all types of transforms.</span>
+								  <span class="n">sitk</span><span class="o">.</span><span class="n">sitkLinear</span><span class="p">,</span> 
+								  <span class="mf">0.0</span><span class="p">,</span> 
+								  <span class="n">v</span><span class="o">.</span><span class="n">GetPixelID</span><span class="p">())</span>
+	<span class="n">v_transformed</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">v_transformed</span><span class="p">)</span> <span class="c1"># back to numpy format. </span>
+	
+	<span class="k">return</span> <span class="n">v_transformed</span></div>
+
+
+<span class="c1"># here we need to add functions for reading and writing SITK transforms, and converting a numpy array to diplacemeent field to take into advantage of SITK image resampling. </span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

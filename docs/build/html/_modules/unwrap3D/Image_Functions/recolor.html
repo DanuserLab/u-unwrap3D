@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Image_Functions.recolor &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Image_Functions.recolor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Image_Functions.recolor</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module collects together scripts to recolor images for applications such as histogram matching, color transfer etc. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="image_stats"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.recolor.image_stats">[docs]</a><span class="k">def</span> <span class="nf">image_stats</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Computes the mean and standard deivation of each channel in an RGB-like 2D image, (MxNx3)</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : (MxNx3) array</span>
+<span class="sd">        input three channel RGB image</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (lMean, lStd, aMean, aStd, bMean, bStd) : 6-tuple</span>
+<span class="sd">        the mean and standard deviation of the 1st, 2nd and 3rd channels respectively </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="c1"># compute the mean and standard deviation of each channel</span>
+    <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">lMean</span><span class="p">,</span> <span class="n">lStd</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">l</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+    <span class="p">(</span><span class="n">aMean</span><span class="p">,</span> <span class="n">aStd</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+    <span class="p">(</span><span class="n">bMean</span><span class="p">,</span> <span class="n">bStd</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+
+    <span class="c1"># return the color statistics</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">lMean</span><span class="p">,</span> <span class="n">lStd</span><span class="p">,</span> <span class="n">aMean</span><span class="p">,</span> <span class="n">aStd</span><span class="p">,</span> <span class="n">bMean</span><span class="p">,</span> <span class="n">bStd</span><span class="p">)</span></div>
+
+ 
+<div class="viewcode-block" id="color_transfer_stats"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.recolor.color_transfer_stats">[docs]</a><span class="k">def</span> <span class="nf">color_transfer_stats</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Fast linear colour transfer between 2D 8-bit images based on mean and standard deviation colour statistics.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    source : (MxNx3) array</span>
+<span class="sd">        RGB image to resample color from </span>
+<span class="sd">    target : (MxNx3) array</span>
+<span class="sd">        RGB image to recolor</span>
+<span class="sd">    eps : scalar</span>
+<span class="sd">        a small regularization number to ensure numerical stability </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    transfer : (MxNx3) array</span>
+<span class="sd">        the 2nd image recolored based on the statistics of the 1st image</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># convert the images from the RGB to L*ab* color space, being</span>
+    <span class="c1"># sure to utilizing the floating point data type (note: OpenCV</span>
+    <span class="c1"># expects floats to be 32-bit, so use that instead of 64-bit)</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    
+    <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">1.0000000001</span><span class="p">:</span>
+        <span class="c1"># ensure range in [0,1.], converts to float.  </span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2LAB</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2LAB</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="mi">255</span><span class="o">*</span><span class="n">source</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2LAB</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="mi">255</span><span class="o">*</span><span class="n">target</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2LAB</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># compute color statistics for the source and target images</span>
+    <span class="p">(</span><span class="n">lMeanSrc</span><span class="p">,</span> <span class="n">lStdSrc</span><span class="p">,</span> <span class="n">aMeanSrc</span><span class="p">,</span> <span class="n">aStdSrc</span><span class="p">,</span> <span class="n">bMeanSrc</span><span class="p">,</span> <span class="n">bStdSrc</span><span class="p">)</span> <span class="o">=</span> <span class="n">image_stats</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">lMeanTar</span><span class="p">,</span> <span class="n">lStdTar</span><span class="p">,</span> <span class="n">aMeanTar</span><span class="p">,</span> <span class="n">aStdTar</span><span class="p">,</span> <span class="n">bMeanTar</span><span class="p">,</span> <span class="n">bStdTar</span><span class="p">)</span> <span class="o">=</span> <span class="n">image_stats</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+    <span class="c1"># subtract the means from the target image</span>
+    <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="n">l</span> <span class="o">-=</span> <span class="n">lMeanTar</span>
+    <span class="n">a</span> <span class="o">-=</span> <span class="n">aMeanTar</span>
+    <span class="n">b</span> <span class="o">-=</span> <span class="n">bMeanTar</span>
+
+    <span class="c1"># scale by the standard deviations</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">(</span><span class="n">lStdTar</span> <span class="p">)</span><span class="o">/</span> <span class="p">(</span><span class="n">lStdSrc</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">*</span> <span class="n">l</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">aStdTar</span> <span class="p">)</span><span class="o">/</span> <span class="p">(</span><span class="n">aStdSrc</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">*</span> <span class="n">a</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">bStdTar</span> <span class="p">)</span><span class="o">/</span> <span class="p">(</span><span class="n">bStdSrc</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">*</span> <span class="n">b</span>
+
+
+    <span class="c1"># add in the source mean</span>
+    <span class="n">l</span> <span class="o">+=</span> <span class="n">lMeanSrc</span>
+    <span class="n">a</span> <span class="o">+=</span> <span class="n">aMeanSrc</span>
+    <span class="n">b</span> <span class="o">+=</span> <span class="n">bMeanSrc</span>
+    
+    <span class="c1"># clip the pixel intensities to [0, 255] if they fall outside</span>
+    <span class="c1"># this range</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+
+    <span class="c1"># merge the channels together and convert back to the RGB color</span>
+    <span class="c1"># space, being sure to utilize the 8-bit unsigned integer data</span>
+    <span class="c1"># type</span>
+    <span class="n">transfer</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">l</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+    <span class="n">transfer</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">transfer</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_LAB2RGB</span><span class="p">)</span>
+    
+    <span class="c1"># return the color transferred image</span>
+    <span class="k">return</span> <span class="n">transfer</span></div>
+    
+    
+<div class="viewcode-block" id="match_color"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.recolor.match_color">[docs]</a><span class="k">def</span> <span class="nf">match_color</span><span class="p">(</span><span class="n">source_img</span><span class="p">,</span> <span class="n">target_img</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;pca&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">source_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ret_matrix</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Matches the colour distribution of a target image to that of a source image using a linear transform based on matrix decomposition. This effectively matches the mean and convariance of the distributions. </span>
+<span class="sd">    </span>
+<span class="sd">    Images are expected to be of form (w,h,c) and can be either float in [0,1] or uint8 [0,255]. Decomposition modes are chol (Cholesky), pca (principal components) or sym for different choices of basis. The effect is slightly different in each case.</span>
+<span class="sd">    </span>
+<span class="sd">    Optionally image masks can be used to selectively bias the color transformation. </span>
+
+<span class="sd">    This method was popularised by the Neural style transfer paper by Gatsys et al. [1]_</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    source_img : (MxNx3) array</span>
+<span class="sd">        RGB image to resample color from </span>
+<span class="sd">    target_img : (MxNx3) array</span>
+<span class="sd">        RGB image to recolor</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        selection of matrix decomposition </span>
+
+<span class="sd">        &#39;pca&#39; : str</span>
+<span class="sd">            this is principal components or Single value decomposition of the matrix </span>
+<span class="sd">        &#39;chol&#39; : str</span>
+<span class="sd">            this is a Cholesky matrix decomposition</span>
+<span class="sd">        &#39;sym&#39; : str</span>
+<span class="sd">            this is a symmetrizable decomposition</span>
+<span class="sd">    eps : scalar</span>
+<span class="sd">        a small regularization number to ensure numerical stability </span>
+<span class="sd">    source_mask : (MxN) array</span>
+<span class="sd">        binary mask, specifying the select region to obtain source color statistics from </span>
+<span class="sd">    target_mask : (MxN) array</span>
+<span class="sd">        binary mask, specifying the select region to recolor with color from the ``source_img`` </span>
+<span class="sd">    ret_matrix : bool </span>
+<span class="sd">        if True, returns the 3x3 matrix capturing the correlation between the colorspace of ``source_img`` and ``target_img``</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    matched_img : (MxNx3) array</span>
+<span class="sd">        the 2nd image recolored based on the statistics of the 1st image</span>
+
+<span class="sd">    mix_matrix : (3x3) array</span>
+<span class="sd">        if ret_matrix==True, the 3x3 matrix capturing the correlation between the colorspace of ``source_img`` and ``target_img`` is returned as a second output</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    unwrap3D.Image_Functions.recolor.recolor_w_matrix : </span>
+<span class="sd">        A function to reuse the learnt mixing matrix to recolor further images without relearning. </span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    .. [1] Gatys, Leon A., et al. &quot;Controlling perceptual factors in neural style transfer.&quot; Proceedings of the IEEE conference on computer vision and pattern recognition. 2017.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">target_img</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">1.0000000001</span><span class="p">:</span>
+        <span class="c1"># ensure range in [0,1.], converts to float.  </span>
+        <span class="n">source_img</span> <span class="o">=</span> <span class="n">source_img</span><span class="o">/</span><span class="mf">255.</span>
+        <span class="n">target_img</span> <span class="o">=</span> <span class="n">target_img</span><span class="o">/</span><span class="mi">255</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># ensure range in [0,255.]</span>
+        <span class="n">source_img</span> <span class="o">=</span> <span class="n">source_img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">);</span> 
+        <span class="n">target_img</span> <span class="o">=</span> <span class="n">target_img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">);</span> 
+    
+  
+    <span class="c1"># 1. Compute the eigenvectors of the source color distribution (possibly masked)</span>
+    <span class="k">if</span> <span class="n">source_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mu_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">][</span><span class="n">source_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">][</span><span class="n">source_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">][</span><span class="n">source_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">])])</span>
+    <span class="k">else</span><span class="p">:</span>   
+        <span class="n">mu_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">])])</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">source_img</span> <span class="o">-</span> <span class="n">mu_s</span> <span class="c1"># demean</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># convert to (r,g,b), 3 x n_pixels</span>
+    
+    <span class="k">if</span> <span class="n">source_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:,</span> <span class="n">source_mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span> 
+    <span class="n">Cs</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># 3x3 covariance matrix. </span>
+    
+    <span class="c1"># 2. Computes the eigenvectors of the target color distribution (possibly masked)    </span>
+    <span class="k">if</span> <span class="n">target_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mu_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">][</span><span class="n">target_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">][</span><span class="n">target_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">][</span><span class="n">target_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">])])</span>
+    <span class="k">else</span><span class="p">:</span>   
+        <span class="n">mu_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">])])</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">target_img</span> <span class="o">-</span> <span class="n">mu_t</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>   
+    
+    <span class="k">if</span> <span class="n">target_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="p">[:,</span> <span class="n">target_mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span> 
+    <span class="n">Ct</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># 3x3 covariance matrix.  </span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Color match the mean and covariance of the source image. </span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;chol&#39;</span><span class="p">:</span>
+        <span class="n">chol_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">Ct</span><span class="p">)</span>
+        <span class="n">chol_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">Cs</span><span class="p">)</span>
+        <span class="n">mix_matrix</span> <span class="o">=</span> <span class="n">chol_s</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">chol_t</span><span class="p">))</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">mix_matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;pca&#39;</span><span class="p">:</span>
+        <span class="n">eva_t</span><span class="p">,</span> <span class="n">eve_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">Ct</span><span class="p">)</span>
+        <span class="n">Qt</span> <span class="o">=</span> <span class="n">eve_t</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eva_t</span><span class="p">)))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">eve_t</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">eva_s</span><span class="p">,</span> <span class="n">eve_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">Cs</span><span class="p">)</span>
+        <span class="n">Qs</span> <span class="o">=</span> <span class="n">eve_s</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eva_s</span><span class="p">)))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">eve_s</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">mix_matrix</span> <span class="o">=</span> <span class="n">Qs</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">Qt</span><span class="p">))</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">mix_matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;sym&#39;</span><span class="p">:</span>
+        <span class="n">eva_t</span><span class="p">,</span> <span class="n">eve_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">Ct</span><span class="p">)</span>
+        <span class="n">Qt</span> <span class="o">=</span> <span class="n">eve_t</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eva_t</span><span class="p">)))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">eve_t</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">Qt_Cs_Qt</span> <span class="o">=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Cs</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Qt</span><span class="p">)</span>
+        <span class="n">eva_QtCsQt</span><span class="p">,</span> <span class="n">eve_QtCsQt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">Qt_Cs_Qt</span><span class="p">)</span>
+        <span class="n">QtCsQt</span> <span class="o">=</span> <span class="n">eve_QtCsQt</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">eva_QtCsQt</span><span class="p">)))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">eve_QtCsQt</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">mix_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">Qt</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">QtCsQt</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">Qt</span><span class="p">))</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">mix_matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        
+    <span class="c1"># recover the image shape. </span>
+    <span class="k">if</span> <span class="n">target_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">matched_img_flatten</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="n">matched_img_flatten</span><span class="p">[:,</span><span class="n">target_mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">matched_img_flatten</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+    <span class="n">matched_img</span> <span class="o">=</span> <span class="n">matched_img_flatten</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">target_img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">matched_img</span> <span class="o">+=</span> <span class="n">mu_s</span>
+    
+    <span class="k">if</span> <span class="n">target_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rgb_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dstack</span><span class="p">([</span><span class="n">target_mask</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">])</span>
+        <span class="n">matched_img</span><span class="p">[</span><span class="n">rgb_mask</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_img</span><span class="p">[</span><span class="n">rgb_mask</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c1"># clip limits. </span>
+    <span class="n">matched_img</span><span class="p">[</span><span class="n">matched_img</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">matched_img</span><span class="p">[</span><span class="n">matched_img</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">if</span> <span class="n">ret_matrix</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">matched_img</span><span class="p">,</span> <span class="n">mix_matrix</span>    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">matched_img</span></div>
+    
+    
+<div class="viewcode-block" id="recolor_w_matrix"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.recolor.recolor_w_matrix">[docs]</a><span class="k">def</span> <span class="nf">recolor_w_matrix</span><span class="p">(</span><span class="n">source_img</span><span class="p">,</span> <span class="n">target_img</span><span class="p">,</span> <span class="n">mix_matrix</span><span class="p">,</span> <span class="n">source_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Matches the colour distribution of a target image to that of a source image using a linear transform based on matrix decomposition. This effectively matches the mean and convariance of the distributions and can be used instead of histogram normalization</span>
+<span class="sd">    </span>
+<span class="sd">    Images are expected to be of form (w,h,c) and can be either float in [0,1] or uint8 [0,255]</span>
+<span class="sd">    Modes are chol, pca or sym for different choices of basis. The effect is slightly different in each case.</span>
+<span class="sd">    </span>
+<span class="sd">    Optionally image masks can be used to selectively bias the color transformation. </span>
+<span class="sd">    </span>
+<span class="sd">    This method was popularised by the Neural style transfer paper by Gatsys et al. [1]_</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    source_img : (MxNx3) array</span>
+<span class="sd">        RGB image to resample color from </span>
+<span class="sd">    target_img : (MxNx3) array</span>
+<span class="sd">        RGB image to recolor</span>
+<span class="sd">    mix_matrix : (3x3) array</span>
+<span class="sd">        the mixing matrix capturing the covariance between the source and target img colorspaces</span>
+<span class="sd">    source_mask : (MxN) array</span>
+<span class="sd">        binary mask, specifying the select region to obtain source color statistics from </span>
+<span class="sd">    target_mask : (MxN) array</span>
+<span class="sd">        binary mask, specifying the select region to recolor with color from the ``source_img`` </span>
+<span class="sd">   </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    matched_img : (MxNx3) array</span>
+<span class="sd">        the 2nd image recolored based on the statistics of the 1st image</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    unwrap3D.Image_Functions.recolor.match_color : </span>
+<span class="sd">        A function to learn the mixing matrix given the source and target images  </span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    .. [1] Gatys, Leon A., et al. &quot;Controlling perceptual factors in neural style transfer.&quot; Proceedings of the IEEE conference on computer vision and pattern recognition. 2017.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">target_img</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">1.0000000001</span><span class="p">:</span>
+        <span class="c1"># ensure range in [0,1.], converts to float.  </span>
+        <span class="n">source_img</span> <span class="o">=</span> <span class="n">source_img</span><span class="o">/</span><span class="mf">255.</span>
+        <span class="n">target_img</span> <span class="o">=</span> <span class="n">target_img</span><span class="o">/</span><span class="mi">255</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># ensure range in [0,255.]</span>
+        <span class="n">source_img</span> <span class="o">=</span> <span class="n">source_img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">);</span> 
+        <span class="n">target_img</span> <span class="o">=</span> <span class="n">target_img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">);</span> 
+    
+  
+    <span class="c1"># 1. Compute the eigenvectors of the source color distribution (possibly masked)</span>
+    <span class="k">if</span> <span class="n">source_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mu_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">][</span><span class="n">source_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">][</span><span class="n">source_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">][</span><span class="n">source_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">])])</span>
+    <span class="k">else</span><span class="p">:</span>   
+        <span class="n">mu_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">source_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">])])</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">source_img</span> <span class="o">-</span> <span class="n">mu_s</span> <span class="c1"># demean</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># convert to (r,g,b), 3 x n_pixels</span>
+    
+<span class="c1">#    if source_mask is not None:</span>
+<span class="c1">#        s = s[:, source_mask.ravel()==1] </span>
+<span class="c1">#    Cs = s.dot(s.T) / s.shape[1] + eps * np.eye(s.shape[0]) # 3x3 covariance matrix. </span>
+    
+    <span class="c1"># 2. Computes the eigenvectors of the target color distribution (possibly masked)    </span>
+    <span class="k">if</span> <span class="n">target_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mu_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">][</span><span class="n">target_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">][</span><span class="n">target_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">][</span><span class="n">target_mask</span><span class="o">==</span><span class="mi">1</span><span class="p">])])</span>
+    <span class="k">else</span><span class="p">:</span>   
+        <span class="n">mu_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">target_img</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">])])</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">target_img</span> <span class="o">-</span> <span class="n">mu_t</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>   
+    
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    
+    <span class="c1"># recolor the zero-meaned vector. </span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">mix_matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        
+    
+    <span class="c1"># handles masking operations</span>
+    <span class="c1"># recover the image shape. </span>
+    <span class="k">if</span> <span class="n">target_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">matched_img_flatten</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="n">matched_img_flatten</span><span class="p">[:,</span><span class="n">target_mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">matched_img_flatten</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+    <span class="n">matched_img</span> <span class="o">=</span> <span class="n">matched_img_flatten</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">target_img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">matched_img</span> <span class="o">+=</span> <span class="n">mu_s</span>
+    
+    <span class="k">if</span> <span class="n">target_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rgb_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dstack</span><span class="p">([</span><span class="n">target_mask</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">])</span>
+        <span class="n">matched_img</span><span class="p">[</span><span class="n">rgb_mask</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_img</span><span class="p">[</span><span class="n">rgb_mask</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c1"># clip limits. </span>
+    <span class="n">matched_img</span><span class="p">[</span><span class="n">matched_img</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">matched_img</span><span class="p">[</span><span class="n">matched_img</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">return</span> <span class="n">matched_img</span></div>
+
+
+
+<div class="viewcode-block" id="calc_rgb_histogram"><a class="viewcode-back" href="../../../unwrap3D.Image_Functions.html#unwrap3D.Image_Functions.recolor.calc_rgb_histogram">[docs]</a><span class="k">def</span> <span class="nf">calc_rgb_histogram</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">I_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">)):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; compute the RGB histogram of a 2D image, returning the bins and individual R, G, B histograms as a 3-tuple. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rgb : (MxNx3) array</span>
+<span class="sd">        2D RGB image </span>
+<span class="sd">    bins : int</span>
+<span class="sd">        the number of intensity bins</span>
+<span class="sd">    I_range : 2-tuple</span>
+<span class="sd">        the (min, max) intensity range, :math:`\min\le I \le\max` to compute histograms. Intensities outside this range are not counted </span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bins_ : (MxNx3) array</span>
+<span class="sd">        the edge intensities of all bins of length ``bins`` + 1</span>
+
+<span class="sd">    (r_hist,g_hist, b_hist) : 3-tuple</span>
+<span class="sd">        individual 1-D histograms of length ``bins`` </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">r_hist</span><span class="p">,</span> <span class="n">bins_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">rgb</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="nb">range</span><span class="o">=</span><span class="n">I_range</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+    <span class="n">g_hist</span><span class="p">,</span> <span class="n">bins_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">rgb</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="nb">range</span><span class="o">=</span><span class="n">I_range</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+    <span class="n">b_hist</span><span class="p">,</span> <span class="n">bins_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">rgb</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="nb">range</span><span class="o">=</span><span class="n">I_range</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+     
+    <span class="k">return</span> <span class="n">bins_</span><span class="p">,</span> <span class="p">(</span><span class="n">r_hist</span><span class="p">,</span><span class="n">g_hist</span><span class="p">,</span> <span class="n">b_hist</span><span class="p">)</span></div>
+    
+    
+
+    
+    
+    
+    
+
+ 
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

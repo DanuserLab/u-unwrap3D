@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Segmentation package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Segmentation package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Segmentation.segmentation">unwrap3D.Segmentation.segmentation module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Segmentation">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Segmentation package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Segmentation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-segmentation-package">
+<h1>unwrap3D.Segmentation package<a class="headerlink" href="#unwrap3d-segmentation-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Segmentation.segmentation">
+<span id="unwrap3d-segmentation-segmentation-module"></span><h2>unwrap3D.Segmentation.segmentation module<a class="headerlink" href="#module-unwrap3D.Segmentation.segmentation" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.crop_box_3D">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">crop_box_3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#crop_box_3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.crop_box_3D" title="Permalink to this definition"></a></dt>
+<dd><p>Derive the 3D bounding box given a volume intensity image or a volume binary image with optional additional padding. The input image is only specified if a constant scalar threshold, <code class="docutils literal notranslate"><span class="pre">thresh</span></code> is provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im</strong><span class="classifier">array</span></dt><dd><p>input image</p>
+</dd>
+<dt><strong>thresh</strong><span class="classifier">scalar</span></dt><dd><p>if None, the input image will be assumed binary and the bounding box will be determined by the largest connected component. If not None, the image is first binarised with <code class="docutils literal notranslate"><span class="pre">im&gt;=thresh</span></code>.</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">int</span></dt><dd><p>the isotropic padding to expand the found bounding box in all xyz-directions</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>bbox</strong><span class="classifier">(6,) array</span></dt><dd><p>the bounding box described by its top-left (x1,y1,z1) and bottom right (x2,y2,z2) coordinates concatenated as a vector [x1,y1,z1,x2,y2,z2]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.curvature_splines">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">curvature_splines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#curvature_splines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.curvature_splines" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the signed curvature of a 2D curve at each point using interpolating splines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x,y</strong><span class="classifier">numpy.array(dtype=float) shape (n_points,)</span></dt><dd><p>or
+y=None and
+x is a numpy.array(dtype=complex) shape (n_points, )
+In the second case the curve is represented as a np.array
+of complex numbers.</p>
+</dd>
+<dt><strong>k</strong><span class="classifier">int</span></dt><dd><p>The order of the interpolating spline</p>
+</dd>
+<dt><strong>error</strong><span class="classifier">float</span></dt><dd><p>The admisible error when interpolating the splines</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>[x_, y_]</strong><span class="classifier">list of [(n_points,), (n_points,)] numpy.array(dtype=float)</span></dt><dd><p>the x, y coordinates of the interpolating spline where curvature was evaluated.</p>
+</dd>
+<dt><strong>[x_prime, y_prime]</strong><span class="classifier">list of [(n_points,), (n_points,)] numpy.array(dtype=float)</span></dt><dd><p>the x, y first derivatives of the interpolating spline</p>
+</dd>
+<dt><strong>[x_prime_prime,y_prime_prime]</strong><span class="classifier">list of [(n_points,), (n_points,)] numpy.array(dtype=float)</span></dt><dd><p>the x, y second derivatives of the interpolating spline</p>
+</dd>
+<dt>curvature: numpy.array shape (n_points,)</dt><dd><p>The line curvature at each (x,y) point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.edge_attract_gradient_vector">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">edge_attract_gradient_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sdf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_vectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rev_sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#edge_attract_gradient_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.edge_attract_gradient_vector" title="Permalink to this definition"></a></dt>
+<dd><p>Given an input binary compute an edge aware signed distance function which pulls all points in the volume towards the boundary edge of the binary. The construction is based on computing the signed distance function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binary</strong><span class="classifier">array</span></dt><dd><p>input n-dimensional binary image</p>
+</dd>
+<dt><strong>return_sdf</strong><span class="classifier">bool</span></dt><dd><p>if True, return the signed distance function</p>
+</dd>
+<dt><strong>smooth_gradient</strong><span class="classifier">scalar</span></dt><dd><p>if not None, Gaussian smoothes the gradient vector field with <code class="docutils literal notranslate"><span class="pre">sigma=smooth_gradient</span></code></p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small value for numerical stabilty</p>
+</dd>
+<dt><strong>norm_vectors</strong><span class="classifier">bool</span></dt><dd><p>if True, normalise the gradient vector field such that all vectors have unit magnitude</p>
+</dd>
+<dt><strong>rev_sign</strong><span class="classifier">bool</span></dt><dd><p>if True, create the opposite edge repelling field</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sdf_vol_vector</strong><span class="classifier">array</span></dt><dd><p>the edge attracting or edge repelling gradient vector field of the signed distance function of the binary</p>
+</dd>
+<dt><strong>sdf_vol</strong><span class="classifier">array</span></dt><dd><p>the signed distance function of the binary, with positive distances denoting the interior and negative distances the exterior</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.surf_normal_sdf" title="unwrap3D.Segmentation.segmentation.surf_normal_sdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.surf_normal_sdf()</span></code></a></dt><dd><p>Similar gradient vector field, but pulls every point in the volume towards a central point within the binary</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.extract_2D_contours_img_and_curvature">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">extract_2D_contours_img_and_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">presmooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#extract_2D_contours_img_and_curvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.extract_2D_contours_img_and_curvature" title="Permalink to this definition"></a></dt>
+<dd><p>Given an input binary image, extract the largest closed 2D contour and compute the curvature at every point of the curve using splines.</p>
+<p>It is assumed there is only 1 region, 1 contour.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binary</strong><span class="classifier">(MxN) image</span></dt><dd><p>input 2D binary image</p>
+</dd>
+<dt><strong>presmooth</strong><span class="classifier">scalar</span></dt><dd><p>if not None, smoothes the binary before running <code class="docutils literal notranslate"><span class="pre">skimage.measure.find_contours</span></code> with an isolevel of 0.5 to extract the 2D contour otherwise no smoothing is applied and we extract at isolevel of 0.</p>
+</dd>
+<dt><strong>k</strong><span class="classifier">int</span></dt><dd><p>the polynomial order of the interpolating spline used for computing line curvature</p>
+</dd>
+<dt><strong>error</strong><span class="classifier">scalar</span></dt><dd><p>The allowed error in the spline fitting. Controls the smoothness of the fitted spline. The larger the error, the more smooth the fitting and curvature value variation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>contour</strong><span class="classifier">(N,2) array</span></dt><dd><p>array of xy coordinates of the contour line</p>
+</dd>
+<dt><strong>contour_prime</strong><span class="classifier">(N,2) array</span></dt><dd><p>array of the 1st derivative of the contour line</p>
+</dd>
+<dt><strong>contour_prime_prime</strong><span class="classifier">(N,2) array</span></dt><dd><p>array of the 2nd derivative of the contour line</p>
+</dd>
+<dt><strong>kappa</strong><span class="classifier">(N,) array</span></dt><dd><p>array of the line curvature values at each point on the contour</p>
+</dd>
+<dt><strong>orientation</strong><span class="classifier">angle in radians</span></dt><dd><p>the orientation of the region</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.curvature_splines" title="unwrap3D.Segmentation.segmentation.curvature_splines"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.curvature_splines()</span></code></a></dt><dd><p>Function used to compute line curvature</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.get_bbox_binary_2D">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_bbox_binary_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_img</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#get_bbox_binary_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.get_bbox_binary_2D" title="Permalink to this definition"></a></dt>
+<dd><p>Given a 2D binary image, return the largest bounding box described in terms of its top left and bottom right coordinate positions. If given the corresponding feature_img, compute the average feature vector describing the contents inside the bounding box and concatenate this with the bounding box coordinates for downstream applications.
+This function is primarily useful for describing a region of interest with a bounding box for downstream tracking, classification and clustering applications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>mask</strong><span class="classifier">array</span></dt><dd><p>input binary image</p>
+</dd>
+<dt><strong>feature_img</strong><span class="classifier">array</span></dt><dd><p>if not None, should be a <code class="docutils literal notranslate"><span class="pre">mask.shape</span> <span class="pre">+</span> <span class="pre">(F,)</span></code> array, where F is the number of features for which we would like the average (using mean) over any detected bounding box to append to the bounding box coordinates to be returned</p>
+</dd>
+<dt><strong>prop_nan</strong><span class="classifier">bool</span></dt><dd><p>if True, when no valid bounding box can be detected e.g. for a 1 pixel only binary area, the bounding box coordinates and associated features (if specified) are subsituted for by <code class="docutils literal notranslate"><span class="pre">np.nan</span></code>. Otherwise, the empty list [] is returned. This flag is useful for downstream applications where a regular sized array may be required.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>bbox</strong><span class="classifier">(N,) array</span></dt><dd><p>the bounding box described by its top-left (x1,y1) and bottom right (x2,y2) coordinates given as a 1d array of x1,y1,x2,y2 concatenated if specified by the mean feature vector</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.get_bbox_labels_2D" title="unwrap3D.Segmentation.segmentation.get_bbox_labels_2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.get_bbox_labels_2D()</span></code></a></dt><dd><p>this function does the same for multi-label segmentation images</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.get_bbox_labels_2D">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_bbox_labels_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_img</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bg_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_multi_regions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#get_bbox_labels_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.get_bbox_labels_2D" title="Permalink to this definition"></a></dt>
+<dd><p>Given a 2D multi-label image, iterate over each unique foreground labelled regions and return the bounding boxes described in terms of its top left and bottom right coordinate positions and label. If given the corresponding feature_img, compute the average feature vector describing the contents inside the bounding box and concatenate this with the bounding box coordinates for downstream applications.
+This function is useful for describing regions of interest with a bounding box for downstream tracking, classification and clustering applications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>label_img</strong><span class="classifier">array</span></dt><dd><p>input multi-labeled image</p>
+</dd>
+<dt><strong>feature_img</strong><span class="classifier">array</span></dt><dd><p>if not None, should be a <code class="docutils literal notranslate"><span class="pre">label_img.shape</span> <span class="pre">+</span> <span class="pre">(F,)</span></code> array, where F is the number of features for which we would like the average (using mean) over any detected bounding box to append to the bounding box coordinates to be returned</p>
+</dd>
+<dt><strong>prop_nan</strong><span class="classifier">bool</span></dt><dd><p>if True, when no valid bounding box can be detected e.g. for a 1 pixel only area, the bounding box coordinates and associated features (if specified) are subsituted for by <code class="docutils literal notranslate"><span class="pre">np.nan</span></code>. Otherwise, the empty list [] is returned. This flag is useful for downstream applications where a regular sized array may be required.</p>
+</dd>
+<dt><strong>bg_label</strong><span class="classifier">int</span></dt><dd><p>the integer label marking background regions</p>
+</dd>
+<dt><strong>split_multi_regions</strong><span class="classifier">bool</span></dt><dd><p>if True, this function will derive generate a bounding box for each disconnected region with the same label</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>bboxes</strong><span class="classifier">list(array) of (N,) arrays</span></dt><dd><p>all the detected bounding boxes for all labelled regions where each bounding box is described by the region label and its top-left (x1,y1) and bottom right (x2,y2) coordinates given as a 1d array of label, x1,y1,x2,y2 concatenated if specified by the mean feature vector. The return will be a regular 2-d numpy array if prop_nan is True, otherwise if one region did not detect a valid bounding box the result would be a list of arrays</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.get_bbox_binary_2D" title="unwrap3D.Segmentation.segmentation.get_bbox_binary_2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.get_bbox_binary_2D()</span></code></a></dt><dd><p>this function does the same for binary segmentation images</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.get_label_distance_transform">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_label_distance_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labelled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bg_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rev_sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edt'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#get_label_distance_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.get_label_distance_transform" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the distance function for each label of the input multi-labelled image. The distance function captures the shape as a continuous function which is used to express for example multiple cell instances in a single image for deep learning instance-level segmenters.</p>
+<p>see <a class="reference external" href="https://en.wikipedia.org/wiki/Distance_transform">https://en.wikipedia.org/wiki/Distance_transform</a> for more details on the distance transform
+see <a class="reference external" href="https://en.wikipedia.org/wiki/Signed_distance_function">https://en.wikipedia.org/wiki/Signed_distance_function</a> for more details on the signed distance function</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>labelled</strong><span class="classifier">array</span></dt><dd><p>input n-dimensional multi-labelled image</p>
+</dd>
+<dt><strong>bg_label</strong><span class="classifier">int</span></dt><dd><p>the integer label of the background areas</p>
+</dd>
+<dt><strong>normalise</strong><span class="classifier">bool</span></dt><dd><p>if True, normalizes the distance transform of each label by dividing by the maximum distance</p>
+</dd>
+<dt><strong>rev_sign</strong><span class="classifier">bool</span></dt><dd><p>if True, reverses the sign of the computed signed distance function. When this is True, the inside of the shape is +ve distances and -ve distances is the outside of the shape</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>specifies the method used to compute the distance transform</p>
+<dl class="simple">
+<dt>‘edt’<span class="classifier">str</span></dt><dd><p>This is the Euclidean distance transform computed with scipy.ndimage.distance_transform_edt</p>
+</dd>
+<dt>‘fmm’<span class="classifier">str</span></dt><dd><p>This is the geodesic distance transform computed with <a class="reference external" href="https://github.com/scikit-fmm/scikit-fmm">scikit-fmm</a> library</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>dist_tform</strong><span class="classifier">array</span></dt><dd><p>the distance transform of each labelled region with the same size as the input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.sdf_distance_transform" title="unwrap3D.Segmentation.segmentation.sdf_distance_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.sdf_distance_transform()</span></code></a></dt><dd><p>The binary equivalent computing the double-sided interior and exterior signed distance transform.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.gradient_watershed2D_binary">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">gradient_watershed2D_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_img</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_area</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_tracks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#gradient_watershed2D_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.gradient_watershed2D_binary" title="Permalink to this definition"></a></dt>
+<dd><p>Parses the instance level segmentation implicitly given as an input binary or a vector field. 
+The algorithm works as an inverse watershed.</p>
+<p>Step 1: a grid of points is seeds on the image</p>
+<p>Step 2: points are propagated for n_iter according to the gradient_img, condensing towards cell centers implicitly implied by the gradient image.</p>
+<p>Step 3: individual cluster centers are found by binarisation and connected component, removing objects &lt; min_area</p>
+<p>result is an integer image the same size as binary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binary</strong><span class="classifier">(MxN) numpy array</span></dt><dd><p>input binary image defining the voxels that need labeling</p>
+</dd>
+<dt><strong>gradient_img</strong><span class="classifier">(MxNx2) numpy array</span></dt><dd><p>This is a gradient field such as that from applying np.array(np.gradient(img)).transpose(1,2,0) where img is a potential such as a distance transform or probability map.</p>
+</dd>
+<dt><strong>smooth_sigma</strong><span class="classifier">scalar</span></dt><dd><p>controls the catchment area for identifying distinct cells at the final propagation position. Smaller smooth_sigma leads to more oversegmentation.</p>
+</dd>
+<dt><strong>smooth_gradient</strong><span class="classifier">scalar</span></dt><dd><p>the isotropic sigma value controlling the Gaussian smoothing of the gradient field. More smoothing results in more cells grouped together</p>
+</dd>
+<dt><strong>delta: scalar</strong></dt><dd><p>the voxel size to propagate grid points per iteration. Related to the stability. If too small takes too long. If too large, might not converge. if delta=1, takes a 1 voxel step.</p>
+</dd>
+<dt><strong>n_iter: int</strong></dt><dd><p>the number of iterations to run. (To do: monitor convergence and break early to improve speed)</p>
+</dd>
+<dt><strong>min_area: scalar</strong></dt><dd><p>volume of cells &lt; min_area are removed.</p>
+</dd>
+<dt><strong>eps: float</strong></dt><dd><p>a small number for numerical stability</p>
+</dd>
+<dt><strong>thresh_factor: scalar</strong></dt><dd><p>The final cells are identified by thresholding on a threshold mean+thresh_factor*std. Thresh_factor controls what is an object prior to connected components analysis</p>
+</dd>
+<dt><strong>mask: (MxN) numpy array</strong></dt><dd><p>optional binary mask to gate the region to parse labels for.</p>
+</dd>
+<dt><strong>return_tracks</strong><span class="classifier">bool</span></dt><dd><p>if True, return the grid point trajectories</p>
+</dd>
+<dt><strong>interp_bool</strong><span class="classifier">bool</span></dt><dd><p>if True, interpolate the gradient field when advecting at the cost of speed. If False, point positions are clipped and this is much faster.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>cell_seg_connected_original</strong><span class="classifier">(MxN)</span></dt><dd><p>an integer image where each unique int &gt; 0 relates to a unique object such that object 1 is retrieved by cell_seg_connected_original==1.</p>
+</dd>
+<dt><strong>tracks</strong><span class="classifier">Nx2</span></dt><dd><p>if return_tracks=True, returns as a second argument, the tracks of the initial seeded grid points to its final position</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.gradient_watershed3D_binary" title="unwrap3D.Segmentation.segmentation.gradient_watershed3D_binary"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.gradient_watershed3D_binary()</span></code></a></dt><dd><p>Equivalent for 3D images</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.gradient_watershed3D_binary">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">gradient_watershed3D_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_img</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_area</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_tracks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#gradient_watershed3D_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.gradient_watershed3D_binary" title="Permalink to this definition"></a></dt>
+<dd><p>Parses the instance level segmentation implicitly given as an input binary or a vector field. 
+The algorithm works as an inverse watershed.</p>
+<p>Step 1: a grid of points is seeds on the image</p>
+<p>Step 2: points are propagated for n_iter according to the gradient_img, condensing towards cell centers implicitly implied by the gradient image.</p>
+<p>Step 3: individual cluster centers are found by binarisation and connected component, removing objects &lt; min_area</p>
+<p>result is an integer image the same size as binary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binary</strong><span class="classifier">(MxNxL) numpy array</span></dt><dd><p>input binary image defining the voxels that need labeling</p>
+</dd>
+<dt><strong>gradient_img</strong><span class="classifier">(MxNxLx3) numpy array</span></dt><dd><p>This is a gradient field such as that from applying np.array(np.gradient(img)).transpose(1,2,3,0) where img is a potential such as a distance transform or probability map.</p>
+</dd>
+<dt><strong>smooth_sigma</strong><span class="classifier">scalar</span></dt><dd><p>controls the catchment area for identifying distinct cells at the final propagation position. Smaller smooth_sigma leads to more oversegmentation.</p>
+</dd>
+<dt><strong>smooth_gradient</strong><span class="classifier">scalar</span></dt><dd><p>the isotropic sigma value controlling the Gaussian smoothing of the gradient field. More smoothing results in more cells grouped together</p>
+</dd>
+<dt><strong>delta: scalar</strong></dt><dd><p>the voxel size to propagate grid points per iteration. Related to the stability. If too small takes too long. If too large, might not converge. if delta=1, takes a 1 voxel step.</p>
+</dd>
+<dt><strong>n_iter: int</strong></dt><dd><p>the number of iterations to run. (To do: monitor convergence and break early to improve speed)</p>
+</dd>
+<dt><strong>min_area: scalar</strong></dt><dd><p>volume of cells &lt; min_area are removed.</p>
+</dd>
+<dt><strong>eps: float</strong></dt><dd><p>a small number for numerical stability</p>
+</dd>
+<dt><strong>thresh_factor: scalar</strong></dt><dd><p>The final cells are identified by thresholding on a threshold mean+thresh_factor*std. Thresh_factor controls what is an object prior to connected components analysis</p>
+</dd>
+<dt><strong>mask: (MxNxL) numpy array</strong></dt><dd><p>optional binary mask to gate the region to parse labels for.</p>
+</dd>
+<dt><strong>return_tracks</strong><span class="classifier">bool</span></dt><dd><p>if True, return the grid point trajectories</p>
+</dd>
+<dt><strong>interp_bool</strong><span class="classifier">bool</span></dt><dd><p>if True, interpolate the gradient field when advecting at the cost of speed. If False, point positions are clipped and this is much faster.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>cell_seg_connected_original</strong><span class="classifier">(MxNxL)</span></dt><dd><p>an integer image where each unique int &gt; 0 relates to a unique object such that object 1 is retrieved by cell_seg_connected_original==1.</p>
+</dd>
+<dt><strong>tracks</strong><span class="classifier">Nx3</span></dt><dd><p>if return_tracks=True, returns as a second argument, the tracks of the initial seeded grid points to its final position</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.gradient_watershed2D_binary" title="unwrap3D.Segmentation.segmentation.gradient_watershed2D_binary"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.gradient_watershed2D_binary()</span></code></a></dt><dd><p>Equivalent for 2D images</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.largest_component_vol">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">largest_component_vol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#largest_component_vol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.largest_component_vol" title="Permalink to this definition"></a></dt>
+<dd><p>Given a binary segmentation, return only the largest connected component of the given connectivity</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol</strong><span class="classifier">array</span></dt><dd><p>input binary image</p>
+</dd>
+<dt><strong>connectivity</strong><span class="classifier">1 or 2</span></dt><dd><p>if 1, the local 4-neighbors for 2D or 6-neighbors for 3D. 
+if 2, the local 8-neighbors for 2D or 26-neighbors for 3D.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vol_binary</strong><span class="classifier">array</span></dt><dd><p>output binary image same size as input retaining only the largest connected component</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.largest_component_vol_labels">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">largest_component_vol_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bg_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#largest_component_vol_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.largest_component_vol_labels" title="Permalink to this definition"></a></dt>
+<dd><p>Given a multi-label integer image, return for each unique label, the largest connected component such that 1 label, 1 connected area. Useful to enforce the spatial uniqueness of a label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol_labels</strong><span class="classifier">array</span></dt><dd><p>input multi-label integer image</p>
+</dd>
+<dt><strong>connectivity</strong><span class="classifier">1 or 2</span></dt><dd><p>if 1, the local 4-neighbors for 2D or 6-neighbors for 3D. 
+if 2, the local 8-neighbors for 2D or 26-neighbors for 3D.</p>
+</dd>
+<dt><strong>bg_label</strong><span class="classifier">0</span></dt><dd><p>the integer label of background non-object areas</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vol_labels_new</strong><span class="classifier">array</span></dt><dd><p>output multi-label integer image where every unique label is associated with only one connected region.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.mean_curvature_binary">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">mean_curvature_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#mean_curvature_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.mean_curvature_binary" title="Permalink to this definition"></a></dt>
+<dd><p>All in one function to compute the signed distance function, <span class="math notranslate nohighlight">\(\Phi\)</span>, its normalised gradient field, <span class="math notranslate nohighlight">\(\nabla\Phi /|\nabla\Phi|\)</span> and the mean curvature defined as</p>
+<div class="math notranslate nohighlight">
+\[H = -\frac{1}{2}\nabla\cdot\left( \frac{\nabla \Phi}{|\nabla \Phi|}\right)\]</div>
+<p>The output is a scalar field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binary</strong><span class="classifier">array</span></dt><dd><p>input n-dimensional binary image</p>
+</dd>
+<dt><strong>smooth</strong><span class="classifier">scalar</span></dt><dd><p>the sigma of the Gaussian smoother for smoothing the computed mean curvature field and the width of the derived surface mask if <code class="docutils literal notranslate"><span class="pre">mask=True</span></code></p>
+</dd>
+<dt><strong>mask</strong><span class="classifier">bool</span></dt><dd><p>if True, the mean curvature is restricted to the surface captured by binary derived internally as a thin shell of width <code class="docutils literal notranslate"><span class="pre">smooth</span></code>. Non surface values will then be returned as np.nan</p>
+</dd>
+<dt><strong>smooth_gradient</strong><span class="classifier">scalar</span></dt><dd><p>if not None, Gaussian smoothes the gradient vector field with the provided sigma value before computing mean curvature</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerics</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>H_normal</strong><span class="classifier">array</span></dt><dd><p>output n-dimensional mean curvature</p>
+</dd>
+<dt><strong>sdf_vol_normal</strong><span class="classifier">array</span></dt><dd><p>(n,) + n-dimensional gradient of the signed distance function. The first axis is the vectors.</p>
+</dd>
+<dt><strong>sdf_vol</strong><span class="classifier">array</span></dt><dd><p>n-dimensional signed distance function</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.mean_curvature_field" title="unwrap3D.Segmentation.segmentation.mean_curvature_field"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.mean_curvature_field()</span></code></a></dt><dd><p>for the computation of mean curvature where the input vector field is the normalised gradient vector the binary signed distance function.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.mean_curvature_field">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">mean_curvature_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sdf_normal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#mean_curvature_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.mean_curvature_field" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the mean curvature given a vector field, <span class="math notranslate nohighlight">\(V\)</span>. This is defined as</p>
+<div class="math notranslate nohighlight">
+\[H = -\frac{1}{2}\nabla\cdot\left( V\right)\]</div>
+<p>The output is a scalar field. The vector dimension is the first axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sdf_normal</strong><span class="classifier">array</span></dt><dd><p>input (d,) + n-dimensional gradient field</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>H</strong><span class="classifier">array</span></dt><dd><p>output n-dimensional divergence</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.mean_curvature_binary" title="unwrap3D.Segmentation.segmentation.mean_curvature_binary"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.mean_curvature_binary()</span></code></a></dt><dd><p>Function wraps this function to compute the mean curvature given a binary</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.multi_level_gaussian_thresh">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">multi_level_gaussian_thresh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#multi_level_gaussian_thresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.multi_level_gaussian_thresh" title="Permalink to this definition"></a></dt>
+<dd><p>Segments an input volume image into n_classes using bootstrapped Gaussian mixture model (GMM) clustering. This allows multi-dimensional features and not just intensity to be used for segmentation. The final clustering will result in larger/smoother clusters than K-means.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol</strong><span class="classifier">array</span></dt><dd><p>the 3D input image or 4D feature image to segment</p>
+</dd>
+<dt><strong>n_classes</strong><span class="classifier">int</span></dt><dd><p>the number of desired clusters</p>
+</dd>
+<dt><strong>n_samples</strong><span class="classifier">int</span></dt><dd><p>the number of randomly sampled pixels to fit the GMM</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int</span></dt><dd><p>if not None, uses this number as the fixed random seed</p>
+</dd>
+<dt><strong>scale</strong><span class="classifier">bool</span></dt><dd><p>if True, standard scales input features before GMM fitting, see <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html">scipy.preprocessing.StandardScaler</a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>labels_</strong><span class="classifier">array</span></dt><dd><p>the final clustered image as a multi-label volume image, clusters are sorted in increasing order of the 1st feature by default</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.multi_level_kmeans_thresh" title="unwrap3D.Segmentation.segmentation.multi_level_kmeans_thresh"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.multi_level_kmeans_thresh()</span></code></a></dt><dd><p>The K-Means clustering equivalent</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.multi_level_kmeans_thresh">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">multi_level_kmeans_thresh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#multi_level_kmeans_thresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.multi_level_kmeans_thresh" title="Permalink to this definition"></a></dt>
+<dd><p>Segments an input volume image into n_classes using bootstrapped K-Means clustering. This allows multi-dimensional features and not just intensity to be used for segmentation. The final clustering will result in smaller/higher-frequency clusters than Gaussian mixture models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol</strong><span class="classifier">array</span></dt><dd><p>the 3D input image or 4D feature image to segment</p>
+</dd>
+<dt><strong>n_classes</strong><span class="classifier">int</span></dt><dd><p>the number of desired clusters</p>
+</dd>
+<dt><strong>n_samples</strong><span class="classifier">int</span></dt><dd><p>the number of randomly sampled pixels to fit the K-Means</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int</span></dt><dd><p>if not None, uses this number as the fixed random seed</p>
+</dd>
+<dt><strong>scale</strong><span class="classifier">bool</span></dt><dd><p>if True, standard scales input features before GMM fitting, see <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html">scipy.preprocessing.StandardScaler</a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>labels_</strong><span class="classifier">array</span></dt><dd><p>the final clustered image as a multi-label volume image, clusters are sorted in increasing order of the 1st feature by default</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.multi_level_gaussian_thresh" title="unwrap3D.Segmentation.segmentation.multi_level_gaussian_thresh"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.multi_level_gaussian_thresh()</span></code></a></dt><dd><p>The Gaussian Mixture Model clustering equivalent</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.reorient_line">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">reorient_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#reorient_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.reorient_line" title="Permalink to this definition"></a></dt>
+<dd><p>Convenience function to reorient a given xy line to be anticlockwise orientation using the sign of the vector area</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>xy</strong><span class="classifier">(n_points,2) array</span></dt><dd><p>The input contour in xy coordinates</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>xy_reorient</strong><span class="classifier">(n_points,2) array</span></dt><dd><p>The reoriented input contour in xy coordinates</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.sdf_distance_transform">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">sdf_distance_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rev_sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edt'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#sdf_distance_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.sdf_distance_transform" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the signed distance function (SDF) of the shape specified by the input n-dimensional binary image. Signed distance function enables shape to be captured as a continuous function which is highly advantageous for shape arithmetic and machine learning applications.</p>
+<p>see <a class="reference external" href="https://en.wikipedia.org/wiki/Signed_distance_function">https://en.wikipedia.org/wiki/Signed_distance_function</a> for more details on the SDF.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>binary</strong><span class="classifier">array</span></dt><dd><p>input n-dimensional binary image</p>
+</dd>
+<dt><strong>rev_sign</strong><span class="classifier">bool</span></dt><dd><p>if True, reverses the sign of the computed signed distance function. When this is True, the inside of the shape is +ve distances and -ve distances is the outside of the shape</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>specifies the method used to compute the distance transform</p>
+<dl class="simple">
+<dt>‘edt’<span class="classifier">str</span></dt><dd><p>This is the Euclidean distance transform computed with scipy.ndimage.distance_transform_edt</p>
+</dd>
+<dt>‘fmm’<span class="classifier">str</span></dt><dd><p>This is the geodesic distance transform computed with <a class="reference external" href="https://github.com/scikit-fmm/scikit-fmm">scikit-fmm</a> library</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>res</strong><span class="classifier">array</span></dt><dd><p>the signed distance function, the same size as the input where the contours of the input binary has a distance of 0.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.get_label_distance_transform" title="unwrap3D.Segmentation.segmentation.get_label_distance_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.get_label_distance_transform()</span></code></a></dt><dd><p>The multi-label equivalent but here we compute just the one-sided interior distance transform.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.segment_vol_thresh">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">segment_vol_thresh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#segment_vol_thresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.segment_vol_thresh" title="Permalink to this definition"></a></dt>
+<dd><p>Basic image segmentation based on automatic binary Otsu thresholding or a specified constant threshold with simple morphological postprocessing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol</strong><span class="classifier">array</span></dt><dd><p>the input image to segment on intensity</p>
+</dd>
+<dt><strong>thresh</strong><span class="classifier">scalar</span></dt><dd><p>if None, determine the constant threshold using Otsu binary thresholding else the binary is given by <code class="docutils literal notranslate"><span class="pre">vol</span> <span class="pre">&gt;=</span> <span class="pre">thresh</span></code></p>
+</dd>
+<dt><strong>postprocess</strong><span class="classifier">bool</span></dt><dd><p>if True, the largest connected component is retained, small holes are closed with a disk (2D) or ball kernel (3D) of radius given by <code class="docutils literal notranslate"><span class="pre">post_ksize</span></code> and finally the resulting binary is binary filled.</p>
+</dd>
+<dt><strong>post_ksize</strong><span class="classifier">int</span></dt><dd><p>the size of the kernel to morphologically close small holes of <code class="docutils literal notranslate"><span class="pre">postprocess=True</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>im_binary</strong><span class="classifier">array</span></dt><dd><p>the final binary segmentation image</p>
+</dd>
+<dt><strong>im_thresh</strong><span class="classifier">scalar</span></dt><dd><p>the intensity threshold used</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.smooth_vol">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">smooth_vol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gaussian'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#smooth_vol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.smooth_vol" title="Permalink to this definition"></a></dt>
+<dd><p>Smoothing particularly a 3D volume image with large Gaussian kernels or Median filters is extremely slow. This function combines downsampling of the original volume image with smaller kernel smoothing on the downsampled image before upsampling to do significantly faster smoothing for large arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol</strong><span class="classifier">array</span></dt><dd><p>input image</p>
+</dd>
+<dt><strong>ds</strong><span class="classifier">int</span></dt><dd><p>the downsampling factor, the downsampled shape will have size <code class="docutils literal notranslate"><span class="pre">vol.shape//ds</span></code></p>
+</dd>
+<dt><strong>smooth</strong><span class="classifier">scalar</span></dt><dd><p>the size of smoothing; <code class="docutils literal notranslate"><span class="pre">sigma</span></code> for scipy.ndimage.gaussian_filter or <code class="docutils literal notranslate"><span class="pre">size</span></code> for scipy.ndimage.median_filter</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>smoothed image, the same size as the input</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Segmentation.segmentation.surf_normal_sdf">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Segmentation.segmentation.</span></span><span class="sig-name descname"><span class="pre">surf_normal_sdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_vectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Segmentation/segmentation.html#surf_normal_sdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Segmentation.segmentation.surf_normal_sdf" title="Permalink to this definition"></a></dt>
+<dd><p>Given an input binary compute the signed distance function with positive distances for the shape interior and the gradient vector field of the signed distance function. The gradient vector field passes through the boundaries of the binary at normal angles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binary</strong><span class="classifier">array</span></dt><dd><p>input n-dimensional binary image</p>
+</dd>
+<dt><strong>smooth_gradient</strong><span class="classifier">scalar</span></dt><dd><p>if not None, Gaussian smoothes the gradient vector field with <code class="docutils literal notranslate"><span class="pre">sigma=smooth_gradient</span></code></p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small value for numerical stabilty</p>
+</dd>
+<dt><strong>norm_vectors</strong><span class="classifier">bool</span></dt><dd><p>if True, normalise the gradient vector field such that all vectors have unit magnitude</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sdf_vol_normal</strong><span class="classifier">array</span></dt><dd><p>the gradient vector field of the signed distance function of the binary</p>
+</dd>
+<dt><strong>sdf_vol</strong><span class="classifier">array</span></dt><dd><p>the signed distance function of the binary, with positive distances denoting the interior and negative distances the exterior</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Segmentation.segmentation.sdf_distance_transform" title="unwrap3D.Segmentation.segmentation.sdf_distance_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Segmentation.segmentation.sdf_distance_transform()</span></code></a></dt><dd><p>For computing just the signed distance function</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Segmentation">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Segmentation" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

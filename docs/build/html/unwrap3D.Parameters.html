@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Parameters package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Parameters package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Parameters.params">unwrap3D.Parameters.params module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Parameters">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Parameters package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Parameters.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-parameters-package">
+<h1>unwrap3D.Parameters package<a class="headerlink" href="#unwrap3d-parameters-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Parameters.params">
+<span id="unwrap3d-parameters-params-module"></span><h2>unwrap3D.Parameters.params module<a class="headerlink" href="#module-unwrap3D.Parameters.params" title="Permalink to this headline"></a></h2>
+<p>This module generates some general default parameter settings to help get started with certain functions with many parameters</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Parameters.params.affine_register_matlab">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Parameters.params.</span></span><span class="sig-name descname"><span class="pre">affine_register_matlab</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Parameters/params.html#affine_register_matlab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Parameters.params.affine_register_matlab" title="Permalink to this definition"></a></dt>
+<dd><p>specify parameters for running Matlab imregtform to do Affine registration</p>
+<p>see <a class="reference internal" href="unwrap3D.Registration.html#unwrap3D.Registration.registration.matlab_affine_register" title="unwrap3D.Registration.registration.matlab_affine_register"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Registration.registration.matlab_affine_register()</span></code></a> for registering two timepoints and</p>
+<p>see <a class="reference internal" href="unwrap3D.Registration.html#unwrap3D.Registration.registration.matlab_group_register_batch" title="unwrap3D.Registration.registration.matlab_group_register_batch"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Registration.registration.matlab_group_register_batch()</span></code></a> for registering a video with switching of reference images.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Parameters.params.demons_register_matlab">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Parameters.params.</span></span><span class="sig-name descname"><span class="pre">demons_register_matlab</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Parameters/params.html#demons_register_matlab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Parameters.params.demons_register_matlab" title="Permalink to this definition"></a></dt>
+<dd><p>specify parameters for running Matlab imregdemons to do Demon’s registration</p>
+<p>see <a class="reference internal" href="unwrap3D.Registration.html#unwrap3D.Registration.registration.nonregister_3D_demons_matlab" title="unwrap3D.Registration.registration.nonregister_3D_demons_matlab"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Registration.registration.nonregister_3D_demons_matlab()</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Parameters.params.evolutionary_affine_reg">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Parameters.params.</span></span><span class="sig-name descname"><span class="pre">evolutionary_affine_reg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Parameters/params.html#evolutionary_affine_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Parameters.params.evolutionary_affine_reg" title="Permalink to this definition"></a></dt>
+<dd><p>parameters for affine registration using simpleITK using Evolutionary optimizer</p>
+<p>see <a class="reference internal" href="unwrap3D.Registration.html#unwrap3D.Registration.registration.SITK_multiscale_affine_registration" title="unwrap3D.Registration.registration.SITK_multiscale_affine_registration"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Registration.registration.SITK_multiscale_affine_registration()</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Parameters.params.farneback2D_optical_flow">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Parameters.params.</span></span><span class="sig-name descname"><span class="pre">farneback2D_optical_flow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Parameters/params.html#farneback2D_optical_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Parameters.params.farneback2D_optical_flow" title="Permalink to this definition"></a></dt>
+<dd><p>parameters for extracting optical flow using Farneback method</p>
+<p>see <a class="reference internal" href="unwrap3D.Tracking.html#unwrap3D.Tracking.tracking.Eval_dense_optic_flow" title="unwrap3D.Tracking.tracking.Eval_dense_optic_flow"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Tracking.tracking.Eval_dense_optic_flow()</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Parameters.params.gradient_descent_affine_reg">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Parameters.params.</span></span><span class="sig-name descname"><span class="pre">gradient_descent_affine_reg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Parameters/params.html#gradient_descent_affine_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Parameters.params.gradient_descent_affine_reg" title="Permalink to this definition"></a></dt>
+<dd><p>parameters for affine registration using simpleITK using Gradient Descent optimizer</p>
+<p>see <a class="reference internal" href="unwrap3D.Registration.html#unwrap3D.Registration.registration.SITK_multiscale_affine_registration" title="unwrap3D.Registration.registration.SITK_multiscale_affine_registration"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Registration.registration.SITK_multiscale_affine_registration()</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Parameters.params.optimesh_relaxation_config">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Parameters.params.</span></span><span class="sig-name descname"><span class="pre">optimesh_relaxation_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Parameters/params.html#optimesh_relaxation_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Parameters.params.optimesh_relaxation_config" title="Permalink to this definition"></a></dt>
+<dd><p>parameters for doing CVT relaxation of meshes using the optimesh library</p>
+<p>see <a class="reference external" href="https://pypi.org/project/optimesh/">https://pypi.org/project/optimesh/</a></p>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Parameters">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Parameters" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

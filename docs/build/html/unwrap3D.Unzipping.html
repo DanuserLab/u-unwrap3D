@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Unzipping package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Unzipping package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Unzipping.unzip">unwrap3D.Unzipping.unzip module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Unzipping">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Unzipping package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Unzipping.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-unzipping-package">
+<h1>unwrap3D.Unzipping package<a class="headerlink" href="#unwrap3d-unzipping-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Unzipping.unzip">
+<span id="unwrap3d-unzipping-unzip-module"></span><h2>unwrap3D.Unzipping.unzip module<a class="headerlink" href="#module-unwrap3D.Unzipping.unzip" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.area_distortion_uv">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">area_distortion_uv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#area_distortion_uv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.area_distortion_uv" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the area distortion given a (u,v) parameterized (x,y,z) surface, <span class="math notranslate nohighlight">\(S\)</span>. The area distortion factor, <span class="math notranslate nohighlight">\(\lambda\)</span> is defined as the normalised surface area measured in (u,v) divided by the normalised surface area in (x,y,z)</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\lambda &amp;= \frac{dudv/\sum_{uv}dudv}{dS/\sum dS} \\\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>surface_uv_params</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image giving the uv unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical stability</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">bool</span></dt><dd><p>if True, spherically pads by 1 pixel top and right to compute 1st order finite differences, if False using np.gradient to compute central differences</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.beltrami_coeff_uv">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">beltrami_coeff_uv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#beltrami_coeff_uv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.beltrami_coeff_uv" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the Beltrami coefficient, a measure of uniform metric distortion given a (u,v) parametrized (x,y,z) surface</p>
+<p>See <a class="reference external" href="https://en.wikipedia.org/wiki/Beltrami_equation">https://en.wikipedia.org/wiki/Beltrami_equation</a> for mathematical definition</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>surface_uv_params</strong><span class="classifier">(U,V,3) array</span></dt><dd><p>the input image specifying the uv unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical stability</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mu</strong><span class="classifier">(U,V) array</span></dt><dd><p>Complex array giving the Beltrami coefficient at each (u,v) pixel position</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.beltrami_coeff_uv_opt">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">beltrami_coeff_uv_opt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">5]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#beltrami_coeff_uv_opt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.beltrami_coeff_uv_opt" title="Permalink to this definition"></a></dt>
+<dd><p>Find the optimal image aspect ratio to minimise the Beltrami coefficient which is a measure of metric distortion for a (u,v) parametrized (x,y,z) surface</p>
+<p>See <a class="reference external" href="https://en.wikipedia.org/wiki/Beltrami_equation">https://en.wikipedia.org/wiki/Beltrami_equation</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>surface_uv_params</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image specifying the uv unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>h_range</strong><span class="classifier">2-tuple</span></dt><dd><p>specifies the [min, max] scaling factor of image width relative to height to search for the minimal Beltrami Coefficient</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical stability</p>
+</dd>
+<dt><strong>apply_opt</strong><span class="classifier">bool</span></dt><dd><p>if True, additionally return the resized surface as a second output</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>h_opt</strong><span class="classifier">scalar</span></dt><dd><p>the optimal scaling factor within the specified h_range</p>
+</dd>
+<dt><strong>surface_uv_params_resize_opt</strong><span class="classifier">(U x W x 3)</span></dt><dd><p>if apply_opt=True, the found aspect ratio is applied to the input image where the new width W is int(h_opt)*V.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.compute_unwrap_params_normal_curvature">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">compute_unwrap_params_normal_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_depth_binary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_curvature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_curvature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#compute_unwrap_params_normal_curvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.compute_unwrap_params_normal_curvature" title="Permalink to this definition"></a></dt>
+<dd><p>Function to pad a topographic space coordinate set in a spherical manner topologically such that the left/right sides are periodic extensions. The top is extended with a 180 degree flip, and the bottom is also extended with a 180 degree flip
+Optionally one can extend the depth (first channel) with the specified edge pad mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_depth_vals</strong><span class="classifier">array</span></dt><dd><p>an input (DxMxNxd) image to pad</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">int</span></dt><dd><p>The uniform padding in the width and height i.e. M, N axis</p>
+</dd>
+<dt><strong>pad_depth</strong><span class="classifier">bool</span></dt><dd><p>If True, pad the depth dimension (D) also by <code class="docutils literal notranslate"><span class="pre">pad</span></code></p>
+</dd>
+<dt><strong>pad_depth_mode</strong><span class="classifier">str</span></dt><dd><p>if pad_depth is True, this specifies the handling of the padding. It should be one of the options in numpy.pad</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>unwrap_depth_vals_pad :</dt><dd><p>The padded image of dimensionality (D x M+2*pad x N+2*pad x d) for pad_depth=False or (D+2*pad x M+2*pad x N+2*pad x d) for pad_depth=True</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.conformality_error_uv">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">conformality_error_uv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#conformality_error_uv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.conformality_error_uv" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the Quasi-conformal error for the uv parametrized (x,y,z) surface which is defined by the ratio of the largest to the smallest singular values of the Jacobian (see <a class="reference internal" href="#unwrap3D.Unzipping.unzip.gradient_uv" title="unwrap3D.Unzipping.unzip.gradient_uv"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Unzipping.unzip.gradient_uv()</span></code></a>)</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{Q} = |\sigma_{max}| / |\sigma_{min}|\]</div>
+<p>where <span class="math notranslate nohighlight">\(\sigma_{min}\)</span> and <span class="math notranslate nohighlight">\(\sigma_{max}\)</span> denote the smaller and larger of the eigenvalues of <span class="math notranslate nohighlight">\(J^T J\)</span>, where <span class="math notranslate nohighlight">\(J\)</span> is the Jacobian matrix of the surface with respect to (u,v).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>surface_uv_params</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image giving the uv unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small numerical value for numerical stability</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">bool</span></dt><dd><p>if True, spherically pads by 1 pixel top and right to compute 1st order finite differences, if False using np.gradient to compute central differences</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>stretch_factor</strong><span class="classifier">(UxV) array</span></dt><dd><p>The quasi-conformal error at each pixel</p>
+</dd>
+<dt><strong>mean_stretch_factor</strong><span class="classifier">scalar</span></dt><dd><p>The area weighted mean quasi-conformal error summarising the overall conformal error for the surface</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.find_principal_axes_uv_surface">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">find_principal_axes_uv_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pts_weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_to_sphere</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ascending'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#find_principal_axes_uv_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.find_principal_axes_uv_surface" title="Permalink to this definition"></a></dt>
+<dd><p>Find the principal axes of a uv parametrized surface with given pixel weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>uv_coords</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image specifying the uv unwrapped (x,y,z) surface to find the principal axis of in original Cartesian (x,y,z) space</p>
+</dd>
+<dt><strong>pts_weights</strong><span class="classifier">(UxV) array</span></dt><dd><p>the positive weights at each pixel, specifying its relative importance in the computation of the principal axes</p>
+</dd>
+<dt><strong>map_to_sphere</strong><span class="classifier">bool</span></dt><dd><p>if True, the unit sphere coordinate i.e. spherical parametrization of the uv grid is used instead of the actual (x,y,z) coordinate positions to compute principal axes. This enables geometry-independent computation useful for e.g. getting directional alignment based only on surface intensity</p>
+</dd>
+<dt><strong>sort</strong><span class="classifier">‘ascending’ or ‘descending’</span></dt><dd><p>the sorting order of the eigenvectors in terms of the absolute value of the respective eigenvalues</p>
+</dd>
+<dt><strong>return_pts</strong><span class="classifier">bool</span></dt><dd><p>if True, return the demeaned points used to compute the principal axes</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>w</strong><span class="classifier">(3,) array</span></dt><dd><p>the sorted eigenvalues of the three principal eigenvectors</p>
+</dd>
+<dt><strong>v</strong><span class="classifier">(3,3) array</span></dt><dd><p>the sorted eigenvectors of the corresponding eigenvalues</p>
+</dd>
+<dt><strong>pts_demean</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the demeaned points used for doing the principal components analysis</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="unwrap3D.Mesh.html#unwrap3D.Mesh.meshtools.find_principal_axes_surface_heterogeneity" title="unwrap3D.Mesh.meshtools.find_principal_axes_surface_heterogeneity"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Mesh.meshtools.find_principal_axes_surface_heterogeneity()</span></code></a></dt><dd><p>Equivalent for finding the principal eigenvectors when give a surface mesh of unordered points.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.fix_unwrap_params_boundaries_spherical">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">fix_unwrap_params_boundaries_spherical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_xyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#fix_unwrap_params_boundaries_spherical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.fix_unwrap_params_boundaries_spherical" title="Permalink to this definition"></a></dt>
+<dd><p>Given a UV unwrapping of a closed spherical-like surface, this function enforces that the first and last rows map to single coordinate representing the North and South poles and conducts scattered interpolation to impute missing values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_xyz</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the unwrapped (u,v) image-indexed (x,y,z) surface to propagate</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">int</span></dt><dd><p>the internal padding of unwrap_xyz to allow interpolation of missed edge coordinates and to have better continuity in internal regions.</p>
+</dd>
+<dt><strong>rescale</strong><span class="classifier">bool</span></dt><dd><p>if True, rescales points to unit cube before performing interpolation. This is useful if some of the input dimensions have incommensurable units and differ by many orders of magnitude. see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.griddata.html">griddata</a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>unwrap_xyz_fix</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the fixed unwrapped (u,v) image-indexed (x,y,z) of the same size as the input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.gradient_uv">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">gradient_uv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#gradient_uv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.gradient_uv" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the uv parametrized (x,y,z) surface i.e. <span class="math notranslate nohighlight">\(\partial S/\partial u\)</span> and <cite>partial S/partial v</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>surface_uv_params</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image giving the uv unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small numerical value for numerical stability</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">bool</span></dt><dd><p>if True, spherically pads by 1 pixel top and right to compute 1st order finite differences, if False using np.gradient to compute central differences</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>dS_du</strong><span class="classifier">(UxVx3) array</span></dt><dd><p><span class="math notranslate nohighlight">\(\partial S/\partial u\)</span>, the change in the (x,y,z) surface coordinates in the direction of image u- axis (horizontal)</p>
+</dd>
+<dt><strong>dS_dv</strong><span class="classifier">(UxVx3) array</span></dt><dd><p><span class="math notranslate nohighlight">\(\partial S/\partial v\)</span>, the change in the (x,y,z) surface coordinates in the direction of image v- axis (vertical)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.gradient_uv_depth">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">gradient_uv_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#gradient_uv_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.gradient_uv_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the topography (d,u,v) parametrized (x,y,z) volume i.e. <span class="math notranslate nohighlight">\(\partial V/\partial d\)</span>, <span class="math notranslate nohighlight">\(\partial V/\partial u\)</span> and <span class="math notranslate nohighlight">\(\partial V/\partial v\)</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>depth_uv_params</strong><span class="classifier">(DxUxVx3) array</span></dt><dd><p>the input volume image giving the topography (d,u,v) unwrapped (x,y,z) volume</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small numerical value for numerical stability</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">bool</span></dt><dd><p>if True, spherically pads by 1 pixel depth, top and right to compute 1st order finite differences, if False use np.gradient to compute central differences</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>dV_dd</strong><span class="classifier">(DxUxVx3) array</span></dt><dd><p><span class="math notranslate nohighlight">\(\partial V/\partial d\)</span>, the change in the (x,y,z) volume coordinates in the direction of image d- axis (depth)</p>
+</dd>
+<dt><strong>dV_du</strong><span class="classifier">(DxUxVx3) array</span></dt><dd><p><span class="math notranslate nohighlight">\(\partial V/\partial u\)</span>, the change in the (x,y,z) volume coordinates in the direction of image u- axis (horizontal)</p>
+</dd>
+<dt><strong>dV_dv</strong><span class="classifier">(DxUxVx3) array</span></dt><dd><p><span class="math notranslate nohighlight">\(\partial V/\partial v\)</span>, the change in the (x,y,z) volume coordinates in the direction of image v- axis (vertical)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.impute_2D_spherical">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">impute_2D_spherical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blank_pixels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#impute_2D_spherical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.impute_2D_spherical" title="Permalink to this definition"></a></dt>
+<dd><p>Imputes an image with spherical boundary conditions using interpolation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">(UxV) array</span></dt><dd><p>the input image to impute with missing pixels indicated by np.isnan (by default)</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>interpolation method, one of the possible option specified in scipy.interpolate.griddata. Linear interpolation is used by default</p>
+</dd>
+<dt><strong>pad_size</strong><span class="classifier">int</span></dt><dd><p>if specified, pads the image by the given size else pads the image by replicating itself fully</p>
+</dd>
+<dt><strong>blank</strong><span class="classifier">scalar</span></dt><dd><p>if specified, the alternative pixel intensity used to label the pixels to be imputed. By default we use np.isnan</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fill_interp</strong><span class="classifier">(UxV) array</span></dt><dd><p>the imputed image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.pad_unwrap_params_3D_spherical">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">pad_unwrap_params_3D_spherical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_xyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#pad_unwrap_params_3D_spherical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.pad_unwrap_params_3D_spherical" title="Permalink to this definition"></a></dt>
+<dd><p>Function to pad a single or multichannel 2D image in a spherical manner topologically such that the left/right sides are periodic extensions. The top is extended with a 180 degree flip, and the bottom is also extended with a 180 degree flip</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_xyz :</strong></dt><dd><p>an input (MxN) or (MxNxd) image to pad</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">int</span></dt><dd><p>The uniform padding in the width and height</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>unwrap_xyz_pad :</dt><dd><p>The padded image of dimensionality (M+2*pad x N+2*pad) or (M+2*pad x N+2*pad x d)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.pad_unwrap_params_3D_spherical_depth">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">pad_unwrap_params_3D_spherical_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_depth_vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_depth_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edge'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#pad_unwrap_params_3D_spherical_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.pad_unwrap_params_3D_spherical_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Function to pad a topographic space coordinate set in a spherical manner topologically such that the left/right sides are periodic extensions. The top is extended with a 180 degree flip, and the bottom is also extended with a 180 degree flip
+Optionally one can extend the depth (first channel) with the specified edge pad mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_depth_vals</strong><span class="classifier">array</span></dt><dd><p>an input (DxMxNxd) image to pad</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">int</span></dt><dd><p>The uniform padding in the width and height i.e. M, N axis</p>
+</dd>
+<dt><strong>pad_depth</strong><span class="classifier">bool</span></dt><dd><p>If True, pad the depth dimension (D) also by <code class="docutils literal notranslate"><span class="pre">pad</span></code></p>
+</dd>
+<dt><strong>pad_depth_mode</strong><span class="classifier">str</span></dt><dd><p>if pad_depth is True, this specifies the handling of the padding. It should be one of the options in numpy.pad</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>unwrap_depth_vals_pad :</dt><dd><p>The padded image of dimensionality (D x M+2*pad x N+2*pad x d) for pad_depth=False or (D+2*pad x M+2*pad x N+2*pad x d) for pad_depth=True</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.prop_ref_surface">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">prop_ref_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_params_ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preupsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_binary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surf_pts_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothgradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothrobust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uniform'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_win</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invertorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">squarenorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#prop_ref_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.prop_ref_surface" title="Permalink to this definition"></a></dt>
+<dd><p>Propagate a (u,v) indexed (x,y,z) surface such as that from unwrapping normally into or outwards at a uniform stepsize of <code class="docutils literal notranslate"><span class="pre">d_step</span></code> for <code class="docutils literal notranslate"><span class="pre">n_dist</span></code> total number of steps. This function is used to create the topography space to map a whole volume given an unwrapping of a single surface.</p>
+<ol class="arabic simple">
+<li><p>if vol_binary is not provided, a voxelization is first computed</p></li>
+<li><p>based on the vol_binary, the signed distance function and the gradient field for propagation is computed</p></li>
+<li><p>initial points are then integrated along the gradient field iteratively using explicit Euler with new position x_next = x + d_step * gradient</p></li>
+<li><p>smoothing is used after each iteration to regularise the advected points. this is crucial for outward stepping when the interspacing between mesh points are increasing</p></li>
+</ol>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>unwrap_params_ref</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the unwrapped (u,v) image-indexed (x,y,z) surface to propagate</p>
+</dd>
+<dt><strong>vol_size</strong><span class="classifier">(m,n,l) 3-tuple</span></dt><dd><p>the size of the original volume image</p>
+</dd>
+<dt><strong>preupsample</strong><span class="classifier">scalar</span></dt><dd><p>if not none, unwrap_params is resized to preupsample times the current image size. This effectively increases the mesh sampling and is recommended to get a closed volume voxelization.</p>
+</dd>
+<dt><strong>smooth_sigma</strong><span class="classifier">scalar</span></dt><dd><p>if not None, a Gaussian smooth of the indicated sigma is applied to smooth the voxelized binary, then rebinariesd by thresholding &gt;= 0.5. This process helps to diffuse and close over larger holes than binary closing.</p>
+</dd>
+<dt><strong>d_step</strong><span class="classifier">scalar</span></dt><dd><p>the step size in voxels to move in the normal direction. A d_step of negative sign reverses the direction of advection</p>
+</dd>
+<dt><strong>n_dist</strong><span class="classifier">int</span></dt><dd><p>if not None, the total number of steps to take in the normal direction.</p>
+</dd>
+<dt><strong>surf_pts_ref</strong><span class="classifier">(N,3) array</span></dt><dd><p>if provided, this is a reference surface with which to automatically determine the n_dist when propagating the surface outwards to ensure the full reference shape is sampled in topography space.</p>
+</dd>
+<dt><strong>pad_dist</strong><span class="classifier">int</span></dt><dd><p>an additional fudge factor added to the automatically determined n_dist when surf_pts_ref is provided and n_dist is not user provided</p>
+</dd>
+<dt><strong>smoothgradient</strong><span class="classifier">scalar</span></dt><dd><p>if given, this is the parameter that controls the amount of smoothing in the <a class="reference external" href="https://www.biomecardio.com/matlab/smoothn_doc.html">smoothN</a> algorithm</p>
+</dd>
+<dt><strong>smoothrobust</strong><span class="classifier">bool</span></dt><dd><p>if True, use the robust smoothing mode of smoothN algorithm</p>
+</dd>
+<dt><strong>smooth_method</strong><span class="classifier">str</span></dt><dd><p>specifies the gradient smoothing mode per iteration to regularise the points.</p>
+<dl class="simple">
+<dt>‘smoothN’<span class="classifier">str</span></dt><dd><p>applies a spline-based smoothing of <a class="reference external" href="https://www.biomecardio.com/matlab/smoothn_doc.html">Garcia</a>. This algorithm can be pretty slow. See <a class="reference internal" href="#unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical_SmoothN" title="unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical_SmoothN"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical_SmoothN()</span></code></a></p>
+</dd>
+<dt>‘uniform’<span class="classifier">str</span></dt><dd><p>treats the spacing of mesh points as uniform and applies fast separable 1D Gaussian smoothing along each axis of the 2D parameterization. See <a class="reference internal" href="#unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical" title="unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical()</span></code></a></p>
+</dd>
+</dl>
+</dd>
+<dt><strong>smooth_win</strong><span class="classifier">int</span></dt><dd><p>the smoothing window to smooth the advected points used in the uniform method.</p>
+</dd>
+<dt><strong>invertorder</strong><span class="classifier">bool</span></dt><dd><p>if invertorder, the final concatenated stack of points of (D,U,V,3) where D is the total number of steps is inverted in the first dimension.</p>
+</dd>
+<dt><strong>squarenorm</strong><span class="classifier">bool</span></dt><dd><p>if True, propagate using the gradient field, V normalised by magnitude squared i.e. <span class="math notranslate nohighlight">\(V/(|V|^2)\)</span> instead of the unit magnitude normalization <span class="math notranslate nohighlight">\(V/|V|\)</span>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>unwrapped_coord_depth</strong><span class="classifier">(DxUxVx3) array</span></dt><dd><p>the final unwrapped topography space of (d,u,v) image-indexed (x,y,z) surface which map an entire volume space to topography space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">smooth_unwrap_params_3D_spherical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_xyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter1d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter2d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filterALS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ALS_lam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ALS_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ALS_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#smooth_unwrap_params_3D_spherical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical" title="Permalink to this definition"></a></dt>
+<dd><p>Applies image based smoothing techniques to smooth a (u,v) image parameterized (x,y,z) surface</p>
+<p>Options include
+- uniform 1d smoothing along x- and y- separately (filter1d=True)
+- Gaussian 2D smoothing (filter2d=True)
+- spline based smoothing (filterALS=True)</p>
+<p>Only one of filter1d, filter2d and filterALS should be True</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_xyz</strong><span class="classifier">array</span></dt><dd><p>an input (MxNxd) image to smooth</p>
+</dd>
+<dt><strong>sigma_window</strong><span class="classifier">int</span></dt><dd><p>smoothing window in pixels</p>
+</dd>
+<dt><strong>filter_func</strong><span class="classifier">array</span></dt><dd><p>specifies the <code class="docutils literal notranslate"><span class="pre">weight</span></code> in scipy.ndimage.filters.convolve1d for <code class="docutils literal notranslate"><span class="pre">filter1d=True</span></code>. If filter_func=None, defaults to the uniform filter equivalent to taking the mean over the window <code class="docutils literal notranslate"><span class="pre">2*sigma_window+1</span></code></p>
+</dd>
+<dt><strong>filter1d</strong><span class="classifier">bool</span></dt><dd><p>if True use scipy.ndimage.filters.convolve1d with the given weights, filter_func to filter the unwrapping coordinates.</p>
+</dd>
+<dt><strong>filter2d</strong><span class="classifier">bool</span></dt><dd><p>if True, apply skimage.filters.gaussian with sigma=sigma_window</p>
+</dd>
+<dt><strong>filterALS</strong><span class="classifier">bool</span></dt><dd><p>if True, asymmetric least squares is applied along independent x- and y- directions for smoothing with parameters given by <code class="docutils literal notranslate"><span class="pre">ALS_lam,</span> <span class="pre">ALS_p</span> <span class="pre">and</span> <span class="pre">ALS_iter</span></code>. See <a class="reference internal" href="unwrap3D.Analysis_Functions.html#unwrap3D.Analysis_Functions.timeseries.baseline_als" title="unwrap3D.Analysis_Functions.timeseries.baseline_als"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Analysis_Functions.timeseries.baseline_als()</span></code></a></p>
+</dd>
+<dt><strong>ALS_lam</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline. The higher the smoother.</p>
+</dd>
+<dt><strong>ALS_p</strong><span class="classifier">scalar</span></dt><dd><p>Controls the degree of smoothness in the baseline. The smaller the more asymmetric, the more the fitting biases towards the minimum value.</p>
+</dd>
+<dt><strong>ALS_iter</strong><span class="classifier">int</span></dt><dd><p>The number of iterations to run the algorithm. Only a few iterations is required generally. This can generally be fixed.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>unwrap_xyz_filt :</dt><dd><p>the smoothed output (MxNxd) image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical_SmoothN">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">smooth_unwrap_params_3D_spherical_SmoothN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_xyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">S</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isrobust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#smooth_unwrap_params_3D_spherical_SmoothN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical_SmoothN" title="Permalink to this definition"></a></dt>
+<dd><p>Applies the Whittaker smoother, smoothN of David Garcia to smooth a (u,v) image parameterized (x,y,z) surface. This is effectively a spline based smoothing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_xyz</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image to smooth</p>
+</dd>
+<dt><strong>S</strong><span class="classifier">scalar</span></dt><dd><p>controls the extent of smoothing, the higher the more smoothing.</p>
+</dd>
+<dt><strong>isrobust</strong><span class="classifier">bool</span></dt><dd><p>if True, runs the filtering in robust mode</p>
+</dd>
+<dt><strong>pad_size</strong><span class="classifier">int</span></dt><dd><p>if specified, pads the image by the given size else pads the image by replicating itself.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mesh_smooth</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the smoothed output image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.surface_area_uv">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">surface_area_uv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#surface_area_uv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.surface_area_uv" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the total surface area of the unwrapped (u,v) parametrized surface using differential calculus.</p>
+<p>Assuming the parametrization is continuous, the differential element area for a pixel is the area of a differential rectangular element which can be written as a cross-product of the gradient vectors,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A_{pixel} &amp;= \left\|\frac{\partial S}{\partial u}\right\|\left\|\frac{\partial S}{\partial v}\right\| \\
+          &amp;= \left\|\frac{\partial S}{\partial u} \times \frac{\partial S}{\partial v}\right\|\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\times\)</span> is the vector cross product</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>surface_uv_params</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image giving the uv unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small numerical value for numerical stability</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">bool</span></dt><dd><p>if True, spherically pads by 1 pixel top and right to compute 1st order finite differences, if False using np.gradient to compute central differences</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>dS_dudv</strong><span class="classifier">(UxV) array</span></dt><dd><p>The surface area of each pixel</p>
+</dd>
+<dt><strong>total_dS_dudv</strong><span class="classifier">scalar</span></dt><dd><p>the total summed surface area of all pixels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.unwrap_params_rotate_coords">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">unwrap_params_rotate_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invert_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'spline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_uint8</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">5]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#unwrap_params_rotate_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.unwrap_params_rotate_coords" title="Permalink to this definition"></a></dt>
+<dd><p>Given a (u,v) parametrization of an (x,y,z) surface. This function derives the corresponding (u,v) parametrization for an arbitrary rotation of the (x,y,z) surface by rotating the spherical parametrization and interpolating without needing to completely do a new spherical parametrization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_params</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the input image specifying the uv unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>rot_matrix</strong><span class="classifier">(4x4) array</span></dt><dd><p>the specified rotation given as a 4x4 homogeneous rotation matrix</p>
+</dd>
+<dt><strong>invert_transform</strong><span class="classifier">bool</span></dt><dd><p>if True, the rotation matrix is applied inverted to get the corresponding coordinates forming the new (u,v) parametrization. This should be set to true if the rotation_matrix is the forward transformation that rotates the current surface to the new surface.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>the interpolation method. Either of ‘spline’ to use scipy.interpolate.RectBivariateSpline or one of those available for scipy.interpolate.RegularGridInterpolator</p>
+</dd>
+<dt><strong>optimize</strong><span class="classifier">bool</span></dt><dd><p>if True, the aspect ratio of the image will be optimized to minimize metric distortion based on the Beltrami coefficient, see <a class="reference internal" href="#unwrap3D.Unzipping.unzip.beltrami_coeff_uv_opt" title="unwrap3D.Unzipping.unzip.beltrami_coeff_uv_opt"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Unzipping.unzip.beltrami_coeff_uv_opt()</span></code></a></p>
+</dd>
+<dt><strong>h_range</strong><span class="classifier">2-tuple</span></dt><dd><p>a list of aspect ratios to search for the optimal aspect ratio when optimize=True</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>a small number for numerical stability</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>xy_rot</strong><span class="classifier">(M,N,2)</span></dt><dd><p>the (u,v) coordinates of the input unwrap_params that form the new (u,v) of the rotated surface. The size (M,N) will be the same as input if optimize=False.</p>
+</dd>
+<dt><strong>unwrap_params_new</strong><span class="classifier">(M,N,3)</span></dt><dd><p>the new uv unwrapped (x,y,z) surface coordinates denoting the rotated surface.</p>
+</dd>
+<dt><strong>h_opt</strong><span class="classifier">scalar</span></dt><dd><p>the optimal aspect ratio found within the given <code class="docutils literal notranslate"><span class="pre">h_range</span></code> which minimizes the Beltrami coefficient, if <code class="docutils literal notranslate"><span class="pre">optimize=True</span></code>. The new size is (U, int(h_opt*U), 3)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.volume_distortion_duv">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">volume_distortion_duv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#volume_distortion_duv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.volume_distortion_duv" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the volume distortion given a (d,u,v) parameterized (x,y,z) surface, <span class="math notranslate nohighlight">\(V\)</span>. The volume distortion factor, <span class="math notranslate nohighlight">\(\lambda_{V}\)</span> is defined as the normalised volume measured in (d,u,v) divided by the normalised volume in (x,y,z)</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\lambda_{V} &amp;= \frac{dd du dv/\sum_{duv}dd du dv}{dV/\sum dV} \\\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>depth_uv_params</strong><span class="classifier">(DxUxVx3) array</span></dt><dd><p>the input image giving the (d,u,v) unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical stability</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">bool</span></dt><dd><p>if True, spherically pads by 1 pixel top and right to compute 1st order finite differences, if False using np.gradient to compute central differences</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.volume_uv">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">volume_uv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth_uv_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#volume_uv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.volume_uv" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the total volume of the unwrapped (d,u,v) parametrized volume using differential calculus.</p>
+<p>Assuming the parametrization is continuous, the differential element element for a pixel is the volume of a differential parallelpiped element which can be written as a triple-product of the gradient vectors,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}V_{pixel} &amp;= \left\|\frac{\partial V}{\partial d}\right\|\left\|\frac{\partial V}{\partial u}\right\|\left\|\frac{\partial V}{\partial v}\right\| \\
+          &amp;= \left\|\frac{\partial V}{\partial d} \cdot \frac{\partial V}{\partial u} \times \frac{\partial V}{\partial v} \right\|\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\cdot\)</span> is the vector dot product and <span class="math notranslate nohighlight">\(\times\)</span> is the vector cross product</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>depth_uv_params</strong><span class="classifier">(DxUxVx3) array</span></dt><dd><p>the input image giving the topography (d,u,v) unwrapped (x,y,z) surface</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small numerical value for numerical stability</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">bool</span></dt><dd><p>if True, spherically pads by 1 pixel top and right to compute 1st order finite differences, if False using np.gradient to compute central differences</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>dV</strong><span class="classifier">(DxUxV) array</span></dt><dd><p>The volume of each pixel</p>
+</dd>
+<dt><strong>Volume</strong><span class="classifier">scalar</span></dt><dd><p>the total summed volume of all pixels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Unzipping.unzip.voxelize_unwrap_params">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Unzipping.unzip.</span></span><span class="sig-name descname"><span class="pre">voxelize_unwrap_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unwrap_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preupsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erode_ksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Unzipping/unzip.html#voxelize_unwrap_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Unzipping.unzip.voxelize_unwrap_params" title="Permalink to this definition"></a></dt>
+<dd><p>Voxelizes an unwrapped surface mesh described in (u,v) in (x,y,z) original space for propagation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>unwrap_params</strong><span class="classifier">(UxVx3) array</span></dt><dd><p>the unwrapped 2D lookup table implicitly associating 2D (u,v) to corresponding (x,y,z) coordinates</p>
+</dd>
+<dt><strong>vol_shape</strong><span class="classifier">(3,) array</span></dt><dd><p>the shape of the original volume image.</p>
+</dd>
+<dt><strong>preupsample</strong><span class="classifier">scalar</span></dt><dd><p>if not none, unwrap_params is resized to preupsample times the current image size. This effectively increases the mesh sampling and is recommended to get a closed volume voxelization.</p>
+</dd>
+<dt><strong>ksize</strong><span class="classifier">int</span></dt><dd><p>morphological closing radius of the Ball kernel to close small holes after voxelization</p>
+</dd>
+<dt><strong>smooth_sigma</strong><span class="classifier">scalar</span></dt><dd><p>if not None, a Gaussian smooth of the indicated sigma is applied to smooth the voxelized binary, then rebinariesd by thresholding &gt;= 0.5. This process helps to diffuse and close over larger holes than binary closing.</p>
+</dd>
+<dt><strong>erode_ksize</strong><span class="classifier">int</span></dt><dd><p>if not None, the voxelized binary is eroded by erode_ksize. This is done when the voxelized binary is larger than the original shape.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>surf_unwrap_vol</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>voxelized mesh in original Cartesian (x,y,z) space.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Unzipping">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Unzipping" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

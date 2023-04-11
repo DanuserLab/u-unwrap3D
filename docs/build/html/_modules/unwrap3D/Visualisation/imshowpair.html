@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Visualisation.imshowpair &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>unwrap3D.Visualisation.imshowpair</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for unwrap3D.Visualisation.imshowpair</h1><div class="highlight"><pre>
+<span></span>
+<div class="viewcode-block" id="imshowpair"><a class="viewcode-back" href="../../../unwrap3D.Visualisation.html#unwrap3D.Visualisation.imshowpair.imshowpair">[docs]</a><span class="k">def</span> <span class="nf">imshowpair</span><span class="p">(</span><span class="n">im1</span><span class="p">,</span><span class="n">im2</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Combines two potentially different sized grayscale images into one image. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    im1 : (M1,N1) grayscale numpy array</span>
+<span class="sd">        input image 1 </span>
+<span class="sd">    im2 :  (M2,N2) grayscale numpy array </span>
+<span class="sd">        input image 2 </span>
+<span class="sd">    ax : Matplotlib axes object</span>
+<span class="sd">        optional axis to display the image</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    img : (M_max,N_max,3) numpy array</span>
+<span class="sd">        the combined image of im1 and im2, where M_max=max(M_1, M_2), and N_max=(N_1,N_2) are the largest row and column dimensions of im1, im2. The images are automatically centered in the output. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="kn">import</span> <span class="n">rescale_intensity</span>
+    <span class="kn">import</span> <span class="nn">pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+    
+    <span class="n">dtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># check the data type</span>
+    <span class="n">shape1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">shape2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+    <span class="n">img_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">shape1</span><span class="p">,</span><span class="n">shape2</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    
+    <span class="n">offset1x</span> <span class="o">=</span> <span class="p">(</span><span class="n">img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">shape1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span><span class="p">;</span> <span class="n">offset1y</span> <span class="o">=</span> <span class="p">(</span><span class="n">img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">shape1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">offset2x</span> <span class="o">=</span> <span class="p">(</span><span class="n">img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">shape2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span><span class="p">;</span> <span class="n">offset2y</span> <span class="o">=</span> <span class="p">(</span><span class="n">img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">shape2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span><span class="p">;</span>
+    
+    <span class="c1"># display centered images. </span>
+    <span class="n">img</span><span class="p">[</span><span class="n">offset1x</span><span class="p">:</span><span class="n">offset1x</span><span class="o">+</span><span class="n">shape1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">offset1y</span><span class="p">:</span><span class="n">offset1y</span><span class="o">+</span><span class="n">shape1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">im1</span>
+    <span class="n">img</span><span class="p">[</span><span class="n">offset2x</span><span class="p">:</span><span class="n">offset2x</span><span class="o">+</span><span class="n">shape2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">offset2y</span><span class="p">:</span><span class="n">offset2y</span><span class="o">+</span><span class="n">shape2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">im2</span> 
+    
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rescale_intensity</span><span class="p">(</span><span class="n">img</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">img</span></div>
+    
+<div class="viewcode-block" id="checkerboard_imgs"><a class="viewcode-back" href="../../../unwrap3D.Visualisation.html#unwrap3D.Visualisation.imshowpair.checkerboard_imgs">[docs]</a><span class="k">def</span> <span class="nf">checkerboard_imgs</span><span class="p">(</span><span class="n">im1</span><span class="p">,</span> <span class="n">im2</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)):</span>
+    
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; generate a checkerboard montage of two 2D images, useful for checking misalignment when registering two images. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    im1 : (M,N) grayscale or (M,N,3) color image as numpy array</span>
+<span class="sd">        input image 1</span>
+<span class="sd">    im2 : (M,N) grayscale or (M,N,3) color image as numpy array</span>
+<span class="sd">        input image 2</span>
+<span class="sd">    grid : (int,int) tuple</span>
+<span class="sd">        specifies the number of rows and number of columns in the gridding of the checkerboard. </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    im : (M,N,3) numpy array</span>
+<span class="sd">        the checkerboard combined image of im1 and im2. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="c1"># im1, im2 are grayscale or rgb images only. </span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># grayscale image.</span>
+        <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">im1</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="c1"># rgb image.</span>
+        <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">im1</span><span class="o">.</span><span class="n">shape</span>
+        
+    <span class="c1"># set up return image</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    
+    <span class="c1"># create the checkerboard mask.</span>
+    <span class="n">check_rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">check_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">checkerboard</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rows</span><span class="p">,</span><span class="n">cols</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">even</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">even</span> <span class="o">=</span> <span class="mi">1</span>
+            
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="p">[</span><span class="n">check_rows</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">check_rows</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">check_cols</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">check_cols</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">checkerboard</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">even</span> 
+            
+            <span class="k">if</span> <span class="n">even</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">even</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">even</span> <span class="o">=</span> <span class="mi">0</span>
+                    
+    <span class="n">ones</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">checkerboard</span><span class="o">==</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">checkerboard</span><span class="o">==</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># grayscale image.</span>
+        <span class="n">im</span><span class="p">[</span><span class="n">ones</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ones</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">im1</span><span class="p">[</span><span class="n">ones</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ones</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">im</span><span class="p">[</span><span class="n">zeros</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">zeros</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">im2</span><span class="p">[</span><span class="n">zeros</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">zeros</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]]</span>
+        
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">im1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="c1"># rgb image.</span>
+        <span class="n">im</span><span class="p">[</span><span class="n">ones</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ones</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">im1</span><span class="p">[</span><span class="n">ones</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ones</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span>
+        <span class="n">im</span><span class="p">[</span><span class="n">zeros</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">zeros</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">im2</span><span class="p">[</span><span class="n">zeros</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">zeros</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span>
+    
+    <span class="k">return</span> <span class="n">im</span> </div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

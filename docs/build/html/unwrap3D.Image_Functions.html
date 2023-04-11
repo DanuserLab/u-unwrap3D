@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Image_Functions package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Image_Functions package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Image_Functions.image">unwrap3D.Image_Functions.image module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Image_Functions.recolor">unwrap3D.Image_Functions.recolor module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Image_Functions.smoothn">unwrap3D.Image_Functions.smoothn module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Image_Functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Image_Functions package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Image_Functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-image-functions-package">
+<h1>unwrap3D.Image_Functions package<a class="headerlink" href="#unwrap3d-image-functions-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Image_Functions.image">
+<span id="unwrap3d-image-functions-image-module"></span><h2>unwrap3D.Image_Functions.image module<a class="headerlink" href="#module-unwrap3D.Image_Functions.image" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.imadjust">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">imadjust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#imadjust"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.imadjust" title="Permalink to this definition"></a></dt>
+<dd><p>A crucial preprocessing for many applications is to contrast stretch the original microscopy volume intensities. This is done here through percentiles similar to Matlabs imadjust function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol</strong><span class="classifier">nd array</span></dt><dd><p>arbitrary n-dimensional image</p>
+</dd>
+<dt><strong>p1</strong><span class="classifier">scalar</span></dt><dd><p>lower percentile of intensity, specified as a number in the range 0-100. All intensities in a lower percentile than p1 will be mapped to 0.</p>
+</dd>
+<dt><strong>p2</strong><span class="classifier">scalar</span></dt><dd><p>upper percentile of intensity, specified as a number in the range 0-100. All intensities in the upper percentile than p2 will be mapped to the maximum value of the data type.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vol_rescale</strong><span class="classifier">nd array</span></dt><dd><p>image of the same dimensions as the input with contrast enchanced</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.map_intensity_interp2">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">map_intensity_interp2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I_ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_uint8</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#map_intensity_interp2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.map_intensity_interp2" title="Permalink to this definition"></a></dt>
+<dd><p>Interpolate a 2D image at specified coordinate points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>query_pts</strong><span class="classifier">(n_points,2) array</span></dt><dd><p>array of (y,x) image coordinates to interpolate intensites at from <code class="docutils literal notranslate"><span class="pre">I_ref</span></code></p>
+</dd>
+<dt><strong>grid_shape</strong><span class="classifier">(M,N) tuple</span></dt><dd><p>shape of the image to get intensities from</p>
+</dd>
+<dt><strong>I_ref</strong><span class="classifier">(M,N) array</span></dt><dd><p>2D image to interpolate intensities from</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>Interpolating algorithm. Either ‘spline’ to use scipy.interpolate.RectBivariateSpline or any other e.g. ‘linear’ from scipy.interpolate.RegularGridInterpolator</p>
+</dd>
+<dt><strong>cast_uint8</strong><span class="classifier">bool</span></dt><dd><p>Whether to return the result as a uint8 image.</p>
+</dd>
+<dt><strong>s</strong><span class="classifier">scalar</span></dt><dd><p>if method=’spline’, s=0 is a interpolating spline else s&gt;0 is a smoothing spline.</p>
+</dd>
+<dt><strong>fill_value</strong><span class="classifier">scalar</span></dt><dd><p>specifies the imputation value if any of query_pts needs to extrapolated.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>I_query</strong><span class="classifier">(n_points,) array</span></dt><dd><p>the intensities of <code class="docutils literal notranslate"><span class="pre">I_ref</span></code> interpolated at the specified <code class="docutils literal notranslate"><span class="pre">query_pts</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.map_intensity_interp3">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">map_intensity_interp3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I_ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_uint8</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#map_intensity_interp3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.map_intensity_interp3" title="Permalink to this definition"></a></dt>
+<dd><p>Interpolate a 3D volume image at specified coordinate points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>query_pts</strong><span class="classifier">(n_points,3) array</span></dt><dd><p>array of (x,y,z) image coordinates to interpolate intensites at from <code class="docutils literal notranslate"><span class="pre">I_ref</span></code></p>
+</dd>
+<dt><strong>grid_shape</strong><span class="classifier">(M,N,L) tuple</span></dt><dd><p>shape of the volume image to get intensities from</p>
+</dd>
+<dt><strong>I_ref</strong><span class="classifier">(M,N,L) array</span></dt><dd><p>3D image to interpolate intensities from</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>Interpolating order. One of those e.g. ‘linear’ from scipy.interpolate.RegularGridInterpolator</p>
+</dd>
+<dt><strong>cast_uint8</strong><span class="classifier">bool</span></dt><dd><p>Whether to return the result as a uint8 image.</p>
+</dd>
+<dt><strong>fill_value</strong><span class="classifier">scalar</span></dt><dd><p>specifies the imputation value if any of query_pts needs to extrapolated.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>I_query</strong><span class="classifier">(n_points,) array</span></dt><dd><p>the intensities of <code class="docutils literal notranslate"><span class="pre">I_ref</span></code> interpolated at the specified <code class="docutils literal notranslate"><span class="pre">query_pts</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.max_vol_img">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">max_vol_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_img_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#max_vol_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.max_vol_img" title="Permalink to this definition"></a></dt>
+<dd><p>Utility function to find the maximum intensty volume image given a list of volumetric image files. The volumes will automatically be padded to the specified target shape.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>vol_img_list</strong><span class="classifier">array of filepaths</span></dt><dd><p>list of volumetric image filepaths to compute the mean image for</p>
+</dd>
+<dt><strong>target_shape</strong><span class="classifier">(m,n,l) array</span></dt><dd><p>desired volume shape, must be at least the size of the largest volume shape.</p>
+</dd>
+<dt><strong>fill_method</strong><span class="classifier">str</span></dt><dd><p>method of specifying the missing pixels, one of</p>
+<dl class="simple">
+<dt>‘constant’<span class="classifier">str</span></dt><dd><p>fill with a constant value specifed by the additional argument <code class="docutils literal notranslate"><span class="pre">fill_value</span></code></p>
+</dd>
+<dt>‘mean’<span class="classifier">str</span></dt><dd><p>fill with the mean value of <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+<dt>‘median’<span class="classifier">str</span></dt><dd><p>fill with the median value of <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt><strong>fill_value</strong><span class="classifier">scalar</span></dt><dd><p>the constant value to initialise the new array if <code class="docutils literal notranslate"><span class="pre">fill_method=='constant'</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>max_vol</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>maximum intensity volume with the same datatype as that of the input volumes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.mean_vol_img">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">mean_vol_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_img_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#mean_vol_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.mean_vol_img" title="Permalink to this definition"></a></dt>
+<dd><p>Utility function to find the mean volume image given a list of volumetric image files. The volumes will automatically be padded to the specified target shape.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>vol_img_list</strong><span class="classifier">array of filepaths</span></dt><dd><p>list of volumetric image filepaths to compute the mean image for</p>
+</dd>
+<dt><strong>target_shape</strong><span class="classifier">(m,n,l) array</span></dt><dd><p>desired volume shape, must be at least the size of the largest volume shape.</p>
+</dd>
+<dt><strong>fill_method</strong><span class="classifier">str</span></dt><dd><p>method of specifying the missing pixels, one of</p>
+<dl class="simple">
+<dt>‘constant’<span class="classifier">str</span></dt><dd><p>fill with a constant value specifed by the additional argument <code class="docutils literal notranslate"><span class="pre">fill_value</span></code></p>
+</dd>
+<dt>‘mean’<span class="classifier">str</span></dt><dd><p>fill with the mean value of <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+<dt>‘median’<span class="classifier">str</span></dt><dd><p>fill with the median value of <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt><strong>fill_value</strong><span class="classifier">scalar</span></dt><dd><p>the constant value to initialise the new array if <code class="docutils literal notranslate"><span class="pre">fill_method=='constant'</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mean_vol</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>mean volume with the same datatype as that of the input volumes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.normalize">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">x</span></em>, <em class="sig-param"><span class="pre">pmin=2</span></em>, <em class="sig-param"><span class="pre">pmax=99.8</span></em>, <em class="sig-param"><span class="pre">axis=None</span></em>, <em class="sig-param"><span class="pre">clip=False</span></em>, <em class="sig-param"><span class="pre">eps=1e-20</span></em>, <em class="sig-param"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.normalize" title="Permalink to this definition"></a></dt>
+<dd><p>Percentile-based image normalization, same as <code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Image_Functions.image.imadust()</span></code> but exposes more flexibility in terms of axis selection and optional clipping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">nd array</span></dt><dd><p>arbitrary n-dimensional image</p>
+</dd>
+<dt><strong>pmin</strong><span class="classifier">scalar</span></dt><dd><p>lower percentile of intensity, specified as a number in the range 0-100. All intensities in a lower percentile than p1 will be mapped to 0.</p>
+</dd>
+<dt><strong>pmax</strong><span class="classifier">scalar</span></dt><dd><p>upper percentile of intensity, specified as a number in the range 0-100. All intensities in the upper percentile than p2 will be mapped to the maximum value of the data type.</p>
+</dd>
+<dt><strong>axis</strong><span class="classifier">int</span></dt><dd><p>if not None, compute the percentiles restricted to the specified axis, otherwise they will be based on the statistics of the whole image.</p>
+</dd>
+<dt><strong>clip</strong><span class="classifier">bool</span></dt><dd><p>whether to clip to the maximum and minimum of [0,1] for float32 or float64 data types.</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical stability</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">np.dtype</span></dt><dd><p>if not None, casts the input x into the specified dtype</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>x_out</strong><span class="classifier">nd array</span></dt><dd><p>normalized output image of the same dimensionality as the input image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.normalize_mi_ma">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">normalize_mi_ma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">x</span></em>, <em class="sig-param"><span class="pre">mi</span></em>, <em class="sig-param"><span class="pre">ma</span></em>, <em class="sig-param"><span class="pre">clip=False</span></em>, <em class="sig-param"><span class="pre">eps=1e-20</span></em>, <em class="sig-param"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#normalize_mi_ma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.normalize_mi_ma" title="Permalink to this definition"></a></dt>
+<dd><p>Linear image intensity rescaling based on the given minimum and maximum intensities, with optional clipping</p>
+<p>The new intensities will be</p>
+<div class="math notranslate nohighlight">
+\[x_{new} = \frac{x-\text{mi}}{\text{ma}-\text{mi} + \text{eps}}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">nd array</span></dt><dd><p>arbitrary n-dimensional image</p>
+</dd>
+<dt><strong>mi</strong><span class="classifier">scalar</span></dt><dd><p>minimum intensity value</p>
+</dd>
+<dt><strong>ma</strong><span class="classifier">scalar</span></dt><dd><p>maximum intensity value</p>
+</dd>
+<dt><strong>clip</strong><span class="classifier">bool</span></dt><dd><p>whether to clip the transformed image intensities to [0,1]</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical stability</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">np.dtype</span></dt><dd><p>if not None, casts the input x into the specified dtype</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">nd array</span></dt><dd><p>normalized output image of the same dimensionality as the input image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.pad_vol_2_size">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">pad_vol_2_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#pad_vol_2_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.pad_vol_2_size" title="Permalink to this definition"></a></dt>
+<dd><p>Utility function to center and copy the given volumetric image into a larger volume.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>im</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>input volume to copy</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier">(m,n,l) array</span></dt><dd><p>new volume shape</p>
+</dd>
+<dt><strong>fill_method</strong><span class="classifier">str</span></dt><dd><p>method of specifying the missing pixels, one of</p>
+<dl class="simple">
+<dt>‘constant’<span class="classifier">str</span></dt><dd><p>fill with a constant value specifed by the additional argument <code class="docutils literal notranslate"><span class="pre">fill_value</span></code></p>
+</dd>
+<dt>‘mean’<span class="classifier">str</span></dt><dd><p>fill with the mean value of <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+<dt>‘median’<span class="classifier">str</span></dt><dd><p>fill with the median value of <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt><strong>fill_value</strong><span class="classifier">scalar</span></dt><dd><p>the constant value to initialise the new array if <code class="docutils literal notranslate"><span class="pre">fill_method=='constant'</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>new_im</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>output volume the same shape as that specified by <code class="docutils literal notranslate"><span class="pre">shape</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.scattered_interp2d">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">scattered_interp2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pts2D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pts2Dvals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_uint8</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#scattered_interp2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.scattered_interp2d" title="Permalink to this definition"></a></dt>
+<dd><p>Given an unordered set of 2D points with associated intensities, use Delaunay triangulation to interpolate a 2D image of the given size. Grid points outside of the convex hull of the points will be set to the given <code class="docutils literal notranslate"><span class="pre">fill_value</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pts2D</strong><span class="classifier">(n_points,2)</span></dt><dd><p>array of (y,x) image coordinates where intensites are known</p>
+</dd>
+<dt><strong>pts2Dvals</strong><span class="classifier">(n_points,)</span></dt><dd><p>array of corresponding image intensities at <code class="docutils literal notranslate"><span class="pre">pts2D</span></code></p>
+</dd>
+<dt><strong>gridsize</strong><span class="classifier">(M,N) tupe</span></dt><dd><p>shape of the image to get intensities</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>one of the interpolatiion methods in <code class="docutils literal notranslate"><span class="pre">scipy.interpolate.griddata</span></code></p>
+</dd>
+<dt><strong>cast_uint8</strong><span class="classifier">bool</span></dt><dd><p>Whether to return the result as a uint8 image.</p>
+</dd>
+<dt><strong>fill_value :</strong></dt><dd><p>specifies the imputation value if any of query_pts needs to extrapolated.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">(M,N)</span></dt><dd><p>the interpolated dense image intensities of the given unordered 2D points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.image.std_norm">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.image.</span></span><span class="sig-name descname"><span class="pre">std_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/image.html#std_norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.image.std_norm" title="Permalink to this definition"></a></dt>
+<dd><p>Contrast normalization using the mean and standard deviation with optional clipping.</p>
+<p>The intensities are transformed relative to mean <span class="math notranslate nohighlight">\(\mu\)</span> and standard deviation <span class="math notranslate nohighlight">\(\sigma\)</span>. The transformed pixel intensities can then be effectively gated based on properties of a Gaussian distribution. Compared to percentile normalisation this methods is easier to tune.</p>
+<div class="math notranslate nohighlight">
+\[I_{new} = \frac{I-\mu}{\text{factor}\cdot\sigma + \text{eps}}\]</div>
+<p>The extent of enhancement is effectively adjusted through <code class="docutils literal notranslate"><span class="pre">factor</span></code>. If clipping is specified through <code class="docutils literal notranslate"><span class="pre">cutoff</span></code> the positive intensities up to <code class="docutils literal notranslate"><span class="pre">cutoff</span></code> is retained</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}I_{final} &amp;= \text{clip}(I_{new}, 0, \text{cutoff}) \\
+I_{final} &amp;= \frac{I_{final}-\min(I_{final})}{\max(I_{final})-\min(I_{final}) + \text{eps}}\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im</strong><span class="classifier">nd array</span></dt><dd><p>arbitrary n-dimensional image</p>
+</dd>
+<dt><strong>mean</strong><span class="classifier">scalar</span></dt><dd><p>The mean intensity to subtract off. if None, it is computed as the global mean of <cite>im</cite>.</p>
+</dd>
+<dt><strong>factor</strong><span class="classifier">scalar</span></dt><dd><p>adjusts the extent of contrast enhancment.</p>
+</dd>
+<dt><strong>cutoff</strong><span class="classifier">int</span></dt><dd><p>if not None, clip the transformed intensities to the range [0, cutoff] and then rescale the result to [0,1]</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical stability</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>im_</strong><span class="classifier">nd array</span></dt><dd><p>normalized output image of the same dimensionality as the input image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Image_Functions.recolor">
+<span id="unwrap3d-image-functions-recolor-module"></span><h2>unwrap3D.Image_Functions.recolor module<a class="headerlink" href="#module-unwrap3D.Image_Functions.recolor" title="Permalink to this headline"></a></h2>
+<p>This module collects together scripts to recolor images for applications such as histogram matching, color transfer etc.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.recolor.calc_rgb_histogram">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.recolor.</span></span><span class="sig-name descname"><span class="pre">calc_rgb_histogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rgb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">255)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/recolor.html#calc_rgb_histogram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.recolor.calc_rgb_histogram" title="Permalink to this definition"></a></dt>
+<dd><p>compute the RGB histogram of a 2D image, returning the bins and individual R, G, B histograms as a 3-tuple.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>rgb</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>2D RGB image</p>
+</dd>
+<dt><strong>bins</strong><span class="classifier">int</span></dt><dd><p>the number of intensity bins</p>
+</dd>
+<dt><strong>I_range</strong><span class="classifier">2-tuple</span></dt><dd><p>the (min, max) intensity range, <span class="math notranslate nohighlight">\(\min\le I \le\max\)</span> to compute histograms. Intensities outside this range are not counted</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>bins_</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>the edge intensities of all bins of length <code class="docutils literal notranslate"><span class="pre">bins</span></code> + 1</p>
+</dd>
+<dt><strong>(r_hist,g_hist, b_hist)</strong><span class="classifier">3-tuple</span></dt><dd><p>individual 1-D histograms of length <code class="docutils literal notranslate"><span class="pre">bins</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.recolor.color_transfer_stats">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.recolor.</span></span><span class="sig-name descname"><span class="pre">color_transfer_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/recolor.html#color_transfer_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.recolor.color_transfer_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Fast linear colour transfer between 2D 8-bit images based on mean and standard deviation colour statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>source</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>RGB image to resample color from</p>
+</dd>
+<dt><strong>target</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>RGB image to recolor</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>a small regularization number to ensure numerical stability</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>transfer</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>the 2nd image recolored based on the statistics of the 1st image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.recolor.image_stats">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.recolor.</span></span><span class="sig-name descname"><span class="pre">image_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/recolor.html#image_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.recolor.image_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the mean and standard deivation of each channel in an RGB-like 2D image, (MxNx3)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>image</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>input three channel RGB image</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>(lMean, lStd, aMean, aStd, bMean, bStd)</strong><span class="classifier">6-tuple</span></dt><dd><p>the mean and standard deviation of the 1st, 2nd and 3rd channels respectively</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.recolor.match_color">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.recolor.</span></span><span class="sig-name descname"><span class="pre">match_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pca'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret_matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/recolor.html#match_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.recolor.match_color" title="Permalink to this definition"></a></dt>
+<dd><p>Matches the colour distribution of a target image to that of a source image using a linear transform based on matrix decomposition. This effectively matches the mean and convariance of the distributions.</p>
+<p>Images are expected to be of form (w,h,c) and can be either float in [0,1] or uint8 [0,255]. Decomposition modes are chol (Cholesky), pca (principal components) or sym for different choices of basis. The effect is slightly different in each case.</p>
+<p>Optionally image masks can be used to selectively bias the color transformation.</p>
+<p>This method was popularised by the Neural style transfer paper by Gatsys et al. <a class="reference internal" href="#r1b21d63bb14f-1" id="id1">[1]</a></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>source_img</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>RGB image to resample color from</p>
+</dd>
+<dt><strong>target_img</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>RGB image to recolor</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str</span></dt><dd><p>selection of matrix decomposition</p>
+<dl class="simple">
+<dt>‘pca’<span class="classifier">str</span></dt><dd><p>this is principal components or Single value decomposition of the matrix</p>
+</dd>
+<dt>‘chol’<span class="classifier">str</span></dt><dd><p>this is a Cholesky matrix decomposition</p>
+</dd>
+<dt>‘sym’<span class="classifier">str</span></dt><dd><p>this is a symmetrizable decomposition</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>a small regularization number to ensure numerical stability</p>
+</dd>
+<dt><strong>source_mask</strong><span class="classifier">(MxN) array</span></dt><dd><p>binary mask, specifying the select region to obtain source color statistics from</p>
+</dd>
+<dt><strong>target_mask</strong><span class="classifier">(MxN) array</span></dt><dd><p>binary mask, specifying the select region to recolor with color from the <code class="docutils literal notranslate"><span class="pre">source_img</span></code></p>
+</dd>
+<dt><strong>ret_matrix</strong><span class="classifier">bool</span></dt><dd><p>if True, returns the 3x3 matrix capturing the correlation between the colorspace of <code class="docutils literal notranslate"><span class="pre">source_img</span></code> and <code class="docutils literal notranslate"><span class="pre">target_img</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>matched_img</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>the 2nd image recolored based on the statistics of the 1st image</p>
+</dd>
+<dt><strong>mix_matrix</strong><span class="classifier">(3x3) array</span></dt><dd><p>if ret_matrix==True, the 3x3 matrix capturing the correlation between the colorspace of <code class="docutils literal notranslate"><span class="pre">source_img</span></code> and <code class="docutils literal notranslate"><span class="pre">target_img</span></code> is returned as a second output</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Image_Functions.recolor.recolor_w_matrix" title="unwrap3D.Image_Functions.recolor.recolor_w_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unwrap3D.Image_Functions.recolor.recolor_w_matrix</span></code></a></dt><dd><p>A function to reuse the learnt mixing matrix to recolor further images without relearning.</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r1b21d63bb14f-1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Gatys, Leon A., et al. “Controlling perceptual factors in neural style transfer.” Proceedings of the IEEE conference on computer vision and pattern recognition. 2017.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.recolor.recolor_w_matrix">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.recolor.</span></span><span class="sig-name descname"><span class="pre">recolor_w_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mix_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/recolor.html#recolor_w_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.recolor.recolor_w_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Matches the colour distribution of a target image to that of a source image using a linear transform based on matrix decomposition. This effectively matches the mean and convariance of the distributions and can be used instead of histogram normalization</p>
+<p>Images are expected to be of form (w,h,c) and can be either float in [0,1] or uint8 [0,255]
+Modes are chol, pca or sym for different choices of basis. The effect is slightly different in each case.</p>
+<p>Optionally image masks can be used to selectively bias the color transformation.</p>
+<p>This method was popularised by the Neural style transfer paper by Gatsys et al. <a class="reference internal" href="#rb155b2a6331d-1" id="id3">[1]</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>source_img</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>RGB image to resample color from</p>
+</dd>
+<dt><strong>target_img</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>RGB image to recolor</p>
+</dd>
+<dt><strong>mix_matrix</strong><span class="classifier">(3x3) array</span></dt><dd><p>the mixing matrix capturing the covariance between the source and target img colorspaces</p>
+</dd>
+<dt><strong>source_mask</strong><span class="classifier">(MxN) array</span></dt><dd><p>binary mask, specifying the select region to obtain source color statistics from</p>
+</dd>
+<dt><strong>target_mask</strong><span class="classifier">(MxN) array</span></dt><dd><p>binary mask, specifying the select region to recolor with color from the <code class="docutils literal notranslate"><span class="pre">source_img</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>matched_img</strong><span class="classifier">(MxNx3) array</span></dt><dd><p>the 2nd image recolored based on the statistics of the 1st image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#unwrap3D.Image_Functions.recolor.match_color" title="unwrap3D.Image_Functions.recolor.match_color"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unwrap3D.Image_Functions.recolor.match_color</span></code></a></dt><dd><p>A function to learn the mixing matrix given the source and target images</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="rb155b2a6331d-1"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
+<dd><p>Gatys, Leon A., et al. “Controlling perceptual factors in neural style transfer.” Proceedings of the IEEE conference on computer vision and pattern recognition. 2017.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Image_Functions.smoothn">
+<span id="unwrap3d-image-functions-smoothn-module"></span><h2>unwrap3D.Image_Functions.smoothn module<a class="headerlink" href="#module-unwrap3D.Image_Functions.smoothn" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Image_Functions.smoothn.smoothn">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Image_Functions.smoothn.</span></span><span class="sig-name descname"><span class="pre">smoothn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nS0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothOrder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isrobust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MaxIter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TolZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weightstr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bisquare'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Image_Functions/smoothn.html#smoothn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Image_Functions.smoothn.smoothn" title="Permalink to this definition"></a></dt>
+<dd><p>This function is translated from Matlab</p>
+<p>function [z,s,exitflag,Wtot] = smoothn(varargin)</p>
+<p>SMOOTHN Robust spline smoothing for 1-D to N-D data.
+SMOOTHN provides a fast, automatized and robust discretized smoothing
+spline for data of any dimension.</p>
+<p>see <a class="reference internal" href="#r3e8618fc490b-1" id="id5">[1]</a> for all the details of the algorithm</p>
+<p>Z = SMOOTHN(Y) automatically smoothes the uniformly-sampled array Y. Y
+can be any N-D noisy array (time series, images, 3D data,…). Non
+finite data (NaN or Inf) are treated as missing values.</p>
+<p>Z = SMOOTHN(Y,S) smoothes the array Y using the smoothing parameter S.
+S must be a real positive scalar. The larger S is, the smoother the
+output will be. If the smoothing parameter S is omitted (see previous
+option) or empty (i.e. S = []), it is automatically determined using
+the generalized cross-validation (GCV) method.</p>
+<p>Z = SMOOTHN(Y,W) or Z = SMOOTHN(Y,W,S) specifies a weighting array W of
+real positive values, that must have the same size as Y. Note that a
+nil weight corresponds to a missing value.</p>
+<p><strong>Robust Smoothing</strong></p>
+<blockquote>
+<div><p>Z = SMOOTHN(…,’robust’) carries out a robust smoothing that minimizes
+the influence of outlying data.</p>
+<p>[Z,S] = SMOOTHN(…) also returns the calculated value for S so that
+you can fine-tune the smoothing subsequently if needed.</p>
+<p>An iteration process is used in the presence of weighted and/or missing
+values. Z = SMOOTHN(…,OPTION_NAME,OPTION_VALUE) smoothes with the
+termination parameters specified by OPTION_NAME and OPTION_VALUE. They
+can contain the following criteria</p>
+<blockquote>
+<div><p><em>TolZ</em>:       Termination tolerance on Z (default = 1e-3) TolZ must be in [0,1]</p>
+<p><em>MaxIter</em>:    Maximum number of iterations allowed (default = 100)</p>
+<p><em>Initial</em>:    Initial value for the iterative process (default = original data)</p>
+</div></blockquote>
+<p>Syntax: [Z,…] = SMOOTHN(…,’MaxIter’,500,’TolZ’,1e-4,’Initial’,Z0);</p>
+<p>[Z,S,EXITFLAG] = SMOOTHN(…) returns a boolean value EXITFLAG that
+describes the exit condition of SMOOTHN</p>
+<blockquote>
+<div><p>1       SMOOTHN converged.</p>
+<p>0       Maximum number of iterations was reached.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">array</span></dt><dd><p>uniformly-sampled array to smooth and fill, np.ma.masked_array or np.ndarray</p>
+</dd>
+<dt><strong>nS0</strong><span class="classifier">int</span></dt><dd><p>the number of samples used for cross-validation to determine optimal smoothing factor</p>
+</dd>
+<dt><strong>axis</strong><span class="classifier">array</span></dt><dd><p>specifies the order of the input image axis. By default assumes it is the order of the dimensions the image is passed.</p>
+</dd>
+<dt><strong>smoothOrder</strong><span class="classifier">scalar</span></dt><dd><p>used in the Lambda weighting  controlling smoothness regularization in the penalized least squares process</p>
+</dd>
+<dt><strong>sd</strong><span class="classifier">scalar</span></dt><dd><p>used to set the weights of missing pixels if running in infilling mode.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool</span></dt><dd><p>if True, print out the steps</p>
+</dd>
+<dt><strong>s0</strong><span class="classifier">scalar</span></dt><dd><p>initial guess of s, the smoothing parameter in cross-validation</p>
+</dd>
+<dt><strong>z0</strong><span class="classifier">array</span></dt><dd><p>initial guess for z, the output, calculated with nearest neighbor if not provided</p>
+</dd>
+<dt><strong>isrobust</strong><span class="classifier">bool</span></dt><dd><p>if True, perform iterative reweighting for outliers</p>
+</dd>
+<dt><strong>W</strong><span class="classifier">0-1</span></dt><dd><p>data weights</p>
+</dd>
+<dt><strong>s</strong><span class="classifier">scalar</span></dt><dd><p>smoothing parameter if not specified it is determined with GCVS (cross validation)</p>
+</dd>
+<dt><strong>MaxIter</strong><span class="classifier">int</span></dt><dd><p>maximum number of iterations for convergence</p>
+</dd>
+<dt><strong>TolZ</strong><span class="classifier">scalar</span></dt><dd><p>relative tolerance for change between iterations</p>
+</dd>
+<dt><strong>weightstr</strong><span class="classifier">str</span></dt><dd><p>specifies the reweighting loss for outliers if isrobust=True. One of ‘cauchy’, ‘talworth’ and bisquare’</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">array</span></dt><dd><p>the smoothed input array</p>
+</dd>
+<dt><strong>S</strong><span class="classifier">scalar</span></dt><dd><p>returns the calculated value for smoothing, S to allow for fine-tuning if required.</p>
+</dd>
+<dt><strong>exitflag</strong><span class="classifier">0 or 1</span></dt><dd><p>if 1, smoothn converged. if 0, the maximum number of iterations was used</p>
+</dd>
+<dt><strong>Wtot</strong><span class="classifier">scalar</span></dt><dd><p>return the weightings computed for the regression</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r3e8618fc490b-1"><span class="brackets"><a class="fn-backref" href="#id5">1</a></span></dt>
+<dd><p>Garcia D, Robust smoothing of gridded data in one and higher dimensions with missing values. Computational Statistics &amp; Data Analysis, 2010.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Image_Functions">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Image_Functions" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

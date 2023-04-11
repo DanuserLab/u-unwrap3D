@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>unwrap3D.Registration package &mdash; u-Unwrap3D 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> u-Unwrap3D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">unwrap3D.Registration package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Registration.registration">unwrap3D.Registration.registration module</a></li>
+<li><a class="reference internal" href="#module-unwrap3D.Registration">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">u-Unwrap3D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>unwrap3D.Registration package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/unwrap3D.Registration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="unwrap3d-registration-package">
+<h1>unwrap3D.Registration package<a class="headerlink" href="#unwrap3d-registration-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-unwrap3D.Registration.registration">
+<span id="unwrap3d-registration-registration-module"></span><h2>unwrap3D.Registration.registration module<a class="headerlink" href="#module-unwrap3D.Registration.registration" title="Permalink to this headline"></a></h2>
+<p>This module implements various different registration algorithms</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.COM_2d">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">COM_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#COM_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.COM_2d" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the center of mass between two images, im1 and im2 based solely on binary Otsu Thresholding. This can be used to compute the rough translational displacement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im1</strong><span class="classifier">array</span></dt><dd><p>n-dimension image 1</p>
+</dd>
+<dt><strong>im2</strong><span class="classifier">array</span></dt><dd><p>n-dimension image 2</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>com1</strong><span class="classifier">array</span></dt><dd><p>n-dimension center of mass coordinates of image 1</p>
+</dd>
+<dt>com2 :</dt><dd><p>n-dimension center of mass coordinates of image 2</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.SITK_multiscale_affine_registration">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">SITK_multiscale_affine_registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p12</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_tfm_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfm_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rigid'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Matte'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_numberOfHistogramBins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_intensity_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MetricSamplingPercentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink_factors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_sigmas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gradient'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#SITK_multiscale_affine_registration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.SITK_multiscale_affine_registration" title="Permalink to this definition"></a></dt>
+<dd><p>Main function to affine register two input volumes using SimpleITK library in a multiscale manner.</p>
+<p>Affine registration includes the following transformations</p>
+<ul class="simple">
+<li><p>rigid (rotation + translation)</p></li>
+<li><p>iso_similarity (isotropic scale + rigid)</p></li>
+<li><p>aniso_similarity (anisotropic scale + rigid)</p></li>
+<li><p>affine (skew + aniso_similarity)</p></li>
+</ul>
+<p>see SimpleITK notebooks, <a class="reference external" href="https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/61_Registration_Introduction_Continued.html">https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/61_Registration_Introduction_Continued.html</a></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>vol1</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>reference volume given as a Numpy array</p>
+</dd>
+<dt><strong>vol2</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>volume to register to vol2, given as a Numpy array</p>
+</dd>
+<dt><strong>imtype</strong><span class="classifier">int</span></dt><dd><p>specifies the -bit of the image e.g. 8-bit, 16-bit etc. Used to normalize the intensity if <code class="docutils literal notranslate"><span class="pre">rescale_intensity=False</span></code></p>
+</dd>
+<dt><strong>p12</strong><span class="classifier">(p1,p2) tuple</span></dt><dd><p>if provided, vol1 and vol2 are constract enhanced using percentage intensity normalization</p>
+</dd>
+<dt><strong>rescale_intensity</strong><span class="classifier">bool</span></dt><dd><p>if True, does min-max scaling of image intensities in the two volumes independently before registering. This follows percentage intensity normalization if specified.</p>
+</dd>
+<dt><strong>centre_tfm_model</strong><span class="classifier">str</span></dt><dd><p>specifies the initial centering model. This is one of two options. For microscopy, we find ‘geometry’ has less jitter and is best.</p>
+</dd>
+<dt><strong>tfm_type</strong><span class="classifier">str</span></dt><dd><p>Type of affine transform from 4. The more complex, the longer the registration.</p>
+<dl class="simple">
+<dt>‘rigid’ :</dt><dd><p>rotation + translation</p>
+</dd>
+<dt>‘iso_similarity’<span class="classifier"></span></dt><dd><p>isotropic scale + rotation + translation</p>
+</dd>
+<dt>‘aniso_similarity’ :</dt><dd><p>anisotropic scale + rotation + translation</p>
+</dd>
+<dt>‘affine’<span class="classifier"></span></dt><dd><p>skew + scale + rotation + translation</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>metric</strong><span class="classifier">str</span></dt><dd><p>This parameter is currently not used. Matte’s mutual information (‘Matte’) is used by default as it offers the best metric for fluorescence imaging and multimodal registration.</p>
+</dd>
+<dt><strong>metric_numberOfHistogramBins</strong><span class="classifier">int,</span></dt><dd><p>The number of histogram bins to compute mutual information. Higher bins may allow finer registration but also adds more intensity noise. Smaller bins is more robust to intensity variations but may not be as discriminative.</p>
+</dd>
+<dt><strong>sampling_intensity_method</strong><span class="classifier">str</span></dt><dd><p>This parameter is currently not used. ‘random’ is on by default. Evaluating the metric of registration is too expensive for the full image, thus we need to sample. Random is good since it avoids consistently evaluating the same grid points.</p>
+</dd>
+<dt><strong>MetricSamplingPercentage</strong><span class="classifier">scalar,</span></dt><dd><p>Number betwen 0-1 specifying the fraction of image voxels to evaluate the cost per registration iteration. Usually want to keep this fairly low for speed.</p>
+</dd>
+<dt><strong>shrink_factors</strong><span class="classifier">list of lists or scalars</span></dt><dd><p>Shrink factors relative to the original image’s size. When the list entry, shrink_factors[i], is a scalar the same factor is applied to all axes.
+When the list entry is a list, shrink_factors[i][j] is applied to axis j. This allows us to specify different shrink factors per axis. This is useful
+in the context of microscopy images where it is not uncommon to have unbalanced sampling such as a 512x512x8 image. In this case we would only want to 
+sample in the x,y axes and leave the z axis as is: [[[8,8,1],[4,4,1],[2,2,1]].</p>
+</dd>
+<dt><strong>smoothing_sigmas</strong><span class="classifier">list of lists or scalars</span></dt><dd><p>Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These are in pixel units.</p>
+</dd>
+<dt><strong>optimizer</strong><span class="classifier">str</span></dt><dd><p>The optimization algorithm used to find the parameters.</p>
+<dl class="simple">
+<dt>‘gradient’<span class="classifier"></span></dt><dd><p>uses regular gradient descent. registration_method.SetOptimizerAsGradientDescent</p>
+</dd>
+<dt>‘1+1_evolutionary’<span class="classifier"></span></dt><dd><p>uses 1+1 evolutionary which is default in Matlab. registration_method.SetOptimizerAsOnePlusOneEvolutionary</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>optimizer_params</strong><span class="classifier">dict</span></dt><dd><p>Python dictionary-like specification of the optimization parameters. See <a class="reference internal" href="unwrap3D.Parameters.html#unwrap3D.Parameters.params.gradient_descent_affine_reg" title="unwrap3D.Parameters.params.gradient_descent_affine_reg"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Parameters.params.gradient_descent_affine_reg()</span></code></a> for setting up gradient descent (Default) and 
+<a class="reference internal" href="unwrap3D.Parameters.html#unwrap3D.Parameters.params.evolutionary_affine_reg" title="unwrap3D.Parameters.params.evolutionary_affine_reg"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Parameters.params.evolutionary_affine_reg()</span></code></a> for setting up the evolutionary optimizer</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical precision</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>SimpleITK.Transform</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.SITK_multiscale_demons_registration">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">SITK_multiscale_demons_registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p12</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(2,</span> <span class="pre">99.8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_tfm_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">demons_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'diffeomorphic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_iters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_displacement_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink_factors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[2.0,</span> <span class="pre">1.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_sigmas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1.0,</span> <span class="pre">1.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#SITK_multiscale_demons_registration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.SITK_multiscale_demons_registration" title="Permalink to this definition"></a></dt>
+<dd><p>Main function to register two input volumes using Demon’s registration algorithm in the SimpleITK library in a multiscale manner.</p>
+<p>see SimpleITK notebooks, <a class="reference external" href="https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html">https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html</a></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>vol1</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>reference volume given as a Numpy array</p>
+</dd>
+<dt><strong>vol2</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>volume to register to vol2, given as a Numpy array</p>
+</dd>
+<dt><strong>imtype</strong><span class="classifier">int</span></dt><dd><p>specifies the -bit of the image e.g. 8-bit, 16-bit etc. Used to normalize the intensity if <code class="docutils literal notranslate"><span class="pre">rescale_intensity=False</span></code></p>
+</dd>
+<dt><strong>p12</strong><span class="classifier">(p1,p2) tuple</span></dt><dd><p>if provided, vol1 and vol2 are constract enhanced using percentage intensity normalization</p>
+</dd>
+<dt><strong>rescale_intensity</strong><span class="classifier">bool</span></dt><dd><p>if True, does min-max scaling of image intensities in the two volumes independently before registering. This follows percentage intensity normalization if specified.</p>
+</dd>
+<dt><strong>centre_tfm_model</strong><span class="classifier">str</span></dt><dd><p>specifies the initial centering model. This is one of two options. For microscopy, we find ‘geometry’ has less jitter and is best.</p>
+<dl class="simple">
+<dt>‘geometry’: str</dt><dd><p>uses sitk.CenteredTransformInitializerFilter.GEOMETRY. This computes the geometrical center independent of intensity.</p>
+</dd>
+<dt>‘moments’: str</dt><dd><p>uses sitk.CenteredTransformInitializerFilter.MOMENTS. This computes the geometrical center of mass of the volume based on using image intensity as a weighting.</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>demons_type</strong><span class="classifier">str</span></dt><dd><p>One of two demon’s filters in SimpleITK.</p>
+<dl class="simple">
+<dt>‘diffeomorphic’<span class="classifier">str</span></dt><dd><p>sitk.DiffeomorphicDemonsRegistrationFilter(). This implements the diffeomorphic demons approach of <a class="reference internal" href="#r8e3b40361415-1" id="id1">[1]</a> to penalise foldovers in the warp field and is more biologically plausible</p>
+</dd>
+<dt>‘symmetric’<span class="classifier">str</span></dt><dd><p>sitk.FastSymmetricForcesDemonsRegistrationFilter(). This implements the symmetric forces of <a class="reference internal" href="#r8e3b40361415-2" id="id2">[2]</a>. The idea is that in general the warp field of registering vol2 to vol1 and vice versa is not quite the same. in Symmetric forces demon the learning takes the average of these two warp fields to ensure symmetry preservation.</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>shrink_factors</strong><span class="classifier">list of lists or scalars</span></dt><dd><p>Shrink factors relative to the original image’s size. When the list entry, shrink_factors[i], is a scalar the same factor is applied to all axes.
+When the list entry is a list, shrink_factors[i][j] is applied to axis j. This allows us to specify different shrink factors per axis. This is useful
+in the context of microscopy images where it is not uncommon to have unbalanced sampling such as a 512x512x8 image. In this case we would only want to 
+sample in the x,y axes and leave the z axis as is: [[[8,8,1],[4,4,1],[2,2,1]].</p>
+</dd>
+<dt><strong>smoothing_sigmas</strong><span class="classifier">list of lists or scalars</span></dt><dd><p>Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These are in pixel units.</p>
+</dd>
+<dt><strong>eps</strong><span class="classifier">scalar</span></dt><dd><p>small number for numerical precision</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>SimpleITK.DisplacementFieldTransform</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r8e3b40361415-1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Vercauteren et al. “Diffeomorphic demons: Efficient non-parametric image registration.” NeuroImage 45.1 (2009): S61-S72.</p>
+</dd>
+<dt class="label" id="r8e3b40361415-2"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Avants et al. “Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain.” Medical image analysis 12.1 (2008): 26-41.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.matlab_affine_register">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">matlab_affine_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixed_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#matlab_affine_register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.matlab_affine_register" title="Permalink to this definition"></a></dt>
+<dd><p>Use Python-Matlab interface to conduct affine registration. The transformed image is saved to file to bypass speed bottleneck in transferring Matlab to Python</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fixed_file</strong><span class="classifier">filepath</span></dt><dd><p>the filepath of the image to be used as reference for registration.</p>
+</dd>
+<dt><strong>moving_file</strong><span class="classifier">filepath</span></dt><dd><p>the filepath of the image to be registered to the fixed image.</p>
+</dd>
+<dt><strong>save_file</strong><span class="classifier">filepath</span></dt><dd><p>the output filepath to save the registered image of the moving_file</p>
+</dd>
+<dt><strong>reg_config</strong><span class="classifier">dict</span></dt><dd><p>Python dict specifying the parameters for running the registration. See <a class="reference internal" href="unwrap3D.Parameters.html#unwrap3D.Parameters.params.affine_register_matlab" title="unwrap3D.Parameters.params.affine_register_matlab"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Parameters.params.affine_register_matlab()</span></code></a> for the parameters required to be set.</p>
+</dd>
+<dt><strong>multiscale</strong><span class="classifier">bool</span></dt><dd><p>if True, do multiscale registration given by the <code class="docutils literal notranslate"><span class="pre">register3D_intensity_multiscale</span></code> script, otherwise run the <code class="docutils literal notranslate"><span class="pre">register3D_rigid_faster</span></code> script.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>transform</strong><span class="classifier">4x4 array</span></dt><dd><p>the forward homogeneous transformation matrix to map fixed to moving.</p>
+</dd>
+<dt><strong>im1</strong><span class="classifier">array</span></dt><dd><p>return the fixed image as numpy array from fixed_file if <code class="docutils literal notranslate"><span class="pre">reg_config['return_img']!=1</span></code>. if <code class="docutils literal notranslate"><span class="pre">reg_config['return_img']==1</span></code>, the transform is directly applied within Matlab and the result saved to save_file</p>
+</dd>
+<dt><strong>im2_</strong><span class="classifier">array</span></dt><dd><p>return the transformed moving image after applying the transform as a numpy array if <code class="docutils literal notranslate"><span class="pre">reg_config['return_img']!=1</span></code>. if <code class="docutils literal notranslate"><span class="pre">reg_config['return_img']==1</span></code>, the transform is directly applied within Matlab and the result saved to save_file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.matlab_group_register_batch">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">matlab_group_register_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_ref_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#matlab_group_register_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.matlab_group_register_batch" title="Permalink to this definition"></a></dt>
+<dd><p>Temporal affine registration of an entire video using Matlab call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset_files</strong><span class="classifier">list of files</span></dt><dd><p>list of img files arranged in increasing temporal order</p>
+</dd>
+<dt><strong>ref_file</strong><span class="classifier">str</span></dt><dd><p>filepath of the initial reference file for registration.</p>
+</dd>
+<dt><strong>in_folder</strong><span class="classifier">str</span></dt><dd><p>specifies the parent folder of the dataset_files. This string is replaced with the out_folder string in order to generate the save paths for the registered timepoints.</p>
+</dd>
+<dt><strong>reg_config</strong><span class="classifier">dict</span></dt><dd><p>Python dict specifying the parameters for running the registration. See <a class="reference internal" href="unwrap3D.Parameters.html#unwrap3D.Parameters.params.affine_register_matlab" title="unwrap3D.Parameters.params.affine_register_matlab"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Parameters.params.affine_register_matlab()</span></code></a> for the parameters required to be set.</p>
+</dd>
+<dt><strong>reset_ref_steps</strong><span class="classifier">int</span></dt><dd><p>if reset_ref_steps &gt; 0, uses every nth registered file as the reference. default of 0 = fixed reference specified by ref_file, whilst 1 = sequential</p>
+</dd>
+<dt><strong>multiscale</strong><span class="classifier">bool</span></dt><dd><p>if True, do multiscale registration given by the <code class="docutils literal notranslate"><span class="pre">register3D_intensity_multiscale</span></code> script, otherwise run the <code class="docutils literal notranslate"><span class="pre">register3D_rigid_faster</span></code> script.</p>
+</dd>
+<dt><strong>debug</strong><span class="classifier">bool</span></dt><dd><p>if True, will plot for every timepoint the 3 mid-slices in x-y, y-z, x-z to qualitatively check registration. Highly recommended for checking parameters.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tforms</strong><span class="classifier">array</span></dt><dd><p>the compiled 4x4 transformation matrices between all successive timepoints</p>
+</dd>
+<dt><strong>tformfile</strong><span class="classifier">str</span></dt><dd><p>the filepath to the saved transforms</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.multiscale_demons">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">multiscale_demons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">registration_algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink_factors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_sigmas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#multiscale_demons"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.multiscale_demons" title="Permalink to this definition"></a></dt>
+<dd><p>Run the given registration algorithm in a multiscale fashion. The original scale should not be given as input as the
+original images are implicitly incorporated as the base of the pyramid.</p>
+<p>We use the algorithm here to run demons registration in multiscale hence the name.</p>
+<p>see SimpleITK notebooks, <a class="reference external" href="https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html">https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>registration_algorithm</strong><span class="classifier">SimpleITK algorithm instance</span></dt><dd><p>Any registration algorithm in <a class="reference external" href="https://simpleitk.readthedocs.io/en/master/filters.html">SimpleITK</a> that has an Execute(fixed_image, moving_image, displacement_field_image) method.</p>
+</dd>
+<dt><strong>fixed_image: SimpleITK image</strong></dt><dd><p>This is the reference image. Resulting transformation maps points from this image’s spatial domain to the moving image spatial domain.</p>
+</dd>
+<dt><strong>moving_image</strong><span class="classifier">SimpleITK image</span></dt><dd><p>This is the image to register to the fixed image. Resulting transformation maps points from the fixed_image’s spatial domain to this image’s spatial domain.</p>
+</dd>
+<dt><strong>initial_transform</strong><span class="classifier">SimpleITK transform</span></dt><dd><p>Any SimpleITK transform, used to initialize the displacement field.</p>
+</dd>
+<dt><strong>shrink_factors</strong><span class="classifier">list of lists or scalars</span></dt><dd><p>Shrink factors relative to the original image’s size. When the list entry, shrink_factors[i], is a scalar the same factor is applied to all axes.
+When the list entry is a list, shrink_factors[i][j] is applied to axis j. This allows us to specify different shrink factors per axis. This is useful
+in the context of microscopy images where it is not uncommon to have unbalanced sampling such as a 512x512x8 image. In this case we would only want to 
+sample in the x,y axes and leave the z axis as is: [[[8,8,1],[4,4,1],[2,2,1]].</p>
+</dd>
+<dt><strong>smoothing_sigmas</strong><span class="classifier">list of lists or scalars</span></dt><dd><p>Amount of smoothing which is done prior to resmapling the image using the given shrink factor. These are in physical (image spacing) units.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>SimpleITK.DisplacementFieldTransform</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.nonregister_3D_demons_matlab">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">nonregister_3D_demons_matlab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infile2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savefile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savetransformfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#nonregister_3D_demons_matlab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.nonregister_3D_demons_matlab" title="Permalink to this definition"></a></dt>
+<dd><p>This function uses Matlab’s imregdemons function to run Demon’s registration. The result is directly saved to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>infile1</strong><span class="classifier">str</span></dt><dd><p>filepath of the reference static image</p>
+</dd>
+<dt><strong>infile2</strong><span class="classifier">str</span></dt><dd><p>filepath of the moving image to register to the fixed image</p>
+</dd>
+<dt><strong>savefile</strong><span class="classifier">str</span></dt><dd><p>filepath to save the transformed moving image to</p>
+</dd>
+<dt><strong>savetransformfile</strong><span class="classifier">str</span></dt><dd><p>filepath to save the displacement field to</p>
+</dd>
+<dt><strong>reg_config</strong><span class="classifier">dict</span></dt><dd><p>parameters to pass to imregdemons. see <a class="reference internal" href="unwrap3D.Parameters.html#unwrap3D.Parameters.params.demons_register_matlab" title="unwrap3D.Parameters.params.demons_register_matlab"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Parameters.params.demons_register_matlab()</span></code></a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>return_val</strong><span class="classifier">int</span></dt><dd><p>return value of 1 if Matlab execution was successful and completed</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.sigmoid_join">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">sigmoid_join</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cut_off</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#sigmoid_join"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.sigmoid_join" title="Permalink to this definition"></a></dt>
+<dd><p>Joins two volumetric images, stack1 and stack2 in the first dimension using a sigmoid type blending function. Both stacks are assumed to be the same size.</p>
+<p>The sigmoid has the following mathematical expression</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}w_2 &amp;= \frac{1}{\left( 1+e^{-\text{grad} (x - x_c)} \right)^{1/\text{shape}}} \\
+w_1 &amp;= 1 - w_2\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x_c\)</span> denoting the <code class="docutils literal notranslate"><span class="pre">cut_off</span></code>.</p>
+<p>The blended image is then the weighted sum</p>
+<div class="math notranslate nohighlight">
+\[I_{blend} = w_1\cdot I_1 + w_2\cdot I_2\]</div>
+<p>see <a class="reference external" href="https://en.wikipedia.org/wiki/Generalised_logistic_function">https://en.wikipedia.org/wiki/Generalised_logistic_function</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>stack1</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>volume image whose intensities will dominant in the first dimension when &lt; <code class="docutils literal notranslate"><span class="pre">cut_off</span></code></p>
+</dd>
+<dt><strong>stack2</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>volume image whose intensities will dominant in the first dimension when &gt; <code class="docutils literal notranslate"><span class="pre">cut_off</span></code></p>
+</dd>
+<dt><strong>cut_off</strong><span class="classifier">int</span></dt><dd><p>the slice number of the first dimension where the transition from stack2 to stack1 will occur</p>
+</dd>
+<dt><strong>gradient</strong><span class="classifier">scalar</span></dt><dd><p>controls the sharpness of the transition between the two stacks</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier">scalar</span></dt><dd><p>controls the shape of the sigmoid, in particular introduces asymmetry in the shape</p>
+</dd>
+<dt><strong>debug</strong><span class="classifier">bool</span></dt><dd><p>if True, will use Matplotlib to plot the computed sigmoid weights for checking.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>the blended image of the same image dimension</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.simple_join">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">simple_join</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cut_off</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.7,</span> <span class="pre">0.3]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#simple_join"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.simple_join" title="Permalink to this definition"></a></dt>
+<dd><p>Joins two volumetric images, stack1 and stack2 in the first dimension by direct joining or linear weighting constrained to +/- offset to the desired <code class="docutils literal notranslate"><span class="pre">cut_off</span></code> slice number.</p>
+<p>The constrained linear blending within the interval <span class="math notranslate nohighlight">\([x_c-\Delta x, x_c + \Delta x]\)</span> is given by</p>
+<div class="math notranslate nohighlight">
+\[I = 
+\Biggl \lbrace 
+{ 
+w_2\cdot I_1 + w_1\cdot I_2 ,\text{ if } 
+  {x\in [x_c, x_c + \Delta x]}
+\atop 
+w_1\cdot I_1 + w_2\cdot I_2, \text{ if } 
+  {x\in [x_c-\Delta x, x_c]}
+}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x_c\)</span> denotes the <code class="docutils literal notranslate"><span class="pre">cut_off</span></code> point. The weight reversal enables asymmetric weights to be define once but used twice.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>stack1</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>volume image whose intensities will dominant in the first dimension when &lt; <code class="docutils literal notranslate"><span class="pre">cut_off</span></code></p>
+</dd>
+<dt><strong>stack2</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>volume image whose intensities will dominant in the first dimension when &gt; <code class="docutils literal notranslate"><span class="pre">cut_off</span></code></p>
+</dd>
+<dt><strong>cut_off</strong><span class="classifier">int</span></dt><dd><p>the slice number of the first dimension where the transition from stack2 to stack1 will occur</p>
+</dd>
+<dt><strong>blend</strong><span class="classifier">bool</span></dt><dd><p>if blend==True, the join occurs directly at the cut_off point with simple array copying and there is no blending. If True then the linear blending as described occurs around the cut_off point.</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier">int</span></dt><dd><p>the +/- slice numbers around the cut_off to linearly blend the intensities of stack1 and stack2 for a smoother effect.</p>
+</dd>
+<dt><strong>weights</strong><span class="classifier">2 vector array</span></dt><dd><p><span class="math notranslate nohighlight">\(w_1=\)</span> <code class="docutils literal notranslate"><span class="pre">weights[0]</span></code> and <span class="math notranslate nohighlight">\(w_2=\)</span> <code class="docutils literal notranslate"><span class="pre">weights[1]</span></code>. The sum of weights should be 1.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>the blended image of the same image dimension</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.smooth_and_resample">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">smooth_and_resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink_factors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_sigmas</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#smooth_and_resample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.smooth_and_resample" title="Permalink to this definition"></a></dt>
+<dd><p>Utility function used in <a class="reference internal" href="#unwrap3D.Registration.registration.multiscale_demons" title="unwrap3D.Registration.registration.multiscale_demons"><code class="xref py py-func docutils literal notranslate"><span class="pre">unwrap3D.Registration.registration.multiscale_demons()</span></code></a> for generating multiscale image pyramids for registration based on the SimpleITK library</p>
+<p>see SimpleITK notebooks, <a class="reference external" href="https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html">https://insightsoftwareconsortium.github.io/SimpleITK-Notebooks/Python_html/66_Registration_Demons.html</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>image</strong><span class="classifier">SimpleITK image</span></dt><dd><p>The image we want to resample.</p>
+</dd>
+<dt><strong>shrink_factors</strong><span class="classifier">scalar or array</span></dt><dd><p>Number(s) greater than one, such that the new image’s size is original_size/shrink_factor.</p>
+</dd>
+<dt><strong>smoothing_sigma(s): scalar or array</strong></dt><dd><p>Sigma(s) for Gaussian smoothing, this is in physical units, not pixels.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>image_resample</strong><span class="classifier">SimpleITK image</span></dt><dd><p>Image which is a result of smoothing the input and then resampling it using the given sigma(s) and shrink factor(s).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.transform_img_sitk">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">transform_img_sitk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#transform_img_sitk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.transform_img_sitk" title="Permalink to this definition"></a></dt>
+<dd><p>One-stop function for applying any SimpleITK transform to an input image. Linear interpolation is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vol: array</strong></dt><dd><p>input image as a numpy array</p>
+</dd>
+<dt><strong>tfm: SimpleITK.Transform</strong></dt><dd><p>A simpleITK transform instance such as that resulting from using the simpleITK registration functions in this module.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>v_transformed</strong><span class="classifier">array</span></dt><dd><p>resulting image after applying the given transform to the input, returned as a numpy array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_demons_matlab_tform_scipy">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_demons_matlab_tform_scipy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tformfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_demons_matlab_tform_scipy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_demons_matlab_tform_scipy" title="Permalink to this definition"></a></dt>
+<dd><p>Python-based warping of Matlab imregdemons displacement fields adjusting for the difference in coordinate convention.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>input 3D volumetric image to warp</p>
+</dd>
+<dt><strong>tformfile</strong><span class="classifier">str</span></dt><dd><p>filepath to the displacement field transform</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">‘F’ or ‘B’</span></dt><dd><p>if ‘F’ warps im in the forwards direction specified by the displacement field or if ‘B’ warps im in the backwards direction.</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">int</span></dt><dd><p>optional isotropic padding applied to every image dimension before warping</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>im_interp</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the warped 3D volumetric image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_demons_tfm">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_demons_tfm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savefile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_demons_tfm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_demons_tfm" title="Permalink to this definition"></a></dt>
+<dd><p>This function warps the input image file according to the deformation field specified in transformfile and saves the result in savefile. 
+If direction == 1 warp in the same direction else if direction == -1 in the reverse direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>infile</strong><span class="classifier">str</span></dt><dd><p>filepath of the image to transform</p>
+</dd>
+<dt><strong>savefile</strong><span class="classifier">str</span></dt><dd><p>filepath of transformed result</p>
+</dd>
+<dt><strong>transformfile</strong><span class="classifier">str</span></dt><dd><p>filepath to the displacement field transform</p>
+</dd>
+<dt><strong>downsample</strong><span class="classifier">int</span></dt><dd><p>this parameter specifies the highest level of downsampling the displacement field came from i.e. if the displacement field is the same size as the image then downsample=1. If the displacement field was generated at a scale 4x smaller than the input image then specify downsample=4 here.
+The displacment field will be rescaled by this factor before applying to the input image.</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">1 or -1</span></dt><dd><p>if 1, warps the image in the same direction of the diplacement field. If -1 warps the image in the reverse direction of the displacement field</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>return_val</strong><span class="classifier">int</span></dt><dd><p>if 1, the process completed successfully in Matlab</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_displacements_xyz">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_displacements_xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_displacements_xyz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_displacements_xyz" title="Permalink to this definition"></a></dt>
+<dd><p>Warps an image with a 3D displacement field specified by arrays, optionally returning the corresponding coordinates where the image intensities were interpolated from in the image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the input 3D volume image</p>
+</dd>
+<dt><strong>dx</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the displacements in x-direction (first image axis)</p>
+</dd>
+<dt><strong>dy</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the displacements in y-direction (second image axis)</p>
+</dd>
+<dt><strong>dz</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the displacements in z-direction (third image axis)</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">‘F’ or ‘B’</span></dt><dd><p>if ‘F’ warp image in the same direction as specified by (dx,dy,dz) or if ‘B’ warp image in the opposite direction of (-dx,-dy,-dz)</p>
+</dd>
+<dt><strong>ret_xyz</strong><span class="classifier">bool</span></dt><dd><p>if True, return as a second output the x-, y- and z- coordinates in <code class="docutils literal notranslate"><span class="pre">im</span></code> where <code class="docutils literal notranslate"><span class="pre">im_interp</span></code> intensities were interpolated at</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str</span></dt><dd><p>one of the boundary modes specified as <code class="docutils literal notranslate"><span class="pre">mode</span></code> argument in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html">scipy.map_coordinates</a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>im_interp</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the transformed image</p>
+</dd>
+<dt><strong>[XX, YY, ZZ]</strong><span class="classifier">list of arrays</span></dt><dd><p>the x-, y- and z- coordinates of same array shape as im where <code class="docutils literal notranslate"><span class="pre">im_interp</span></code> intensities were taken from <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_displacements_xyz_pts">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_displacements_xyz_pts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pts3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_displacements_xyz_pts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_displacements_xyz_pts" title="Permalink to this definition"></a></dt>
+<dd><p>Convenience function for warping forward or backward a 3D point cloud given the displacement field</p>
+<p>If direction == ‘F’, the new points, <span class="math notranslate nohighlight">\((x',y',z')\)</span> are</p>
+<div class="math notranslate nohighlight">
+\[(x',y',z') = (x+dx, y+dy, z+dz)\]</div>
+<p>If direction == ‘B’, the new points, <span class="math notranslate nohighlight">\((x',y',z')\)</span> are</p>
+<div class="math notranslate nohighlight">
+\[(x',y',z') = (x-dx, y-dy, z-dz)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pts3D</strong><span class="classifier">array</span></dt><dd><p>n-dimensional array with last dimension of size 3 for (x,y,z)</p>
+</dd>
+<dt><strong>dxyz</strong><span class="classifier">array</span></dt><dd><p>n-dimensional array with last dimension of size 3 for (dx,dy,dz)</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">‘F’ or ‘B’</span></dt><dd><p>if ‘F’ warp points in the same direction as specified by (dx,dy,dz) or if ‘B’ warp image in the opposite direction of (-dx,-dy,-dz)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>pts3D_warp</strong><span class="classifier">array</span></dt><dd><p>n-dimensional array with last dimension of size 3 for the new (x,y,z) coordinates after warping</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_transforms_xyz">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_transforms_xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_transforms_xyz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_transforms_xyz" title="Permalink to this definition"></a></dt>
+<dd><p>Warps a volume image with the given affine transformation matrix forward or reverse with trilinear interpolation, returning if specified the corresponding (x,y,z) grid points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the input 3D volume image</p>
+</dd>
+<dt><strong>tmatrix</strong><span class="classifier">(4x4) array</span></dt><dd><p>the homogeneous affine 3D transformation matrix</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">‘F’ or ‘B’</span></dt><dd><p>if ‘F’ warp image with tmatrix or if ‘B’ warp image with the matrix inverse of tmatrix</p>
+</dd>
+<dt><strong>ret_xyz</strong><span class="classifier">bool</span></dt><dd><p>if True, return as a second output the xyz- coordinates in <code class="docutils literal notranslate"><span class="pre">im</span></code> where <code class="docutils literal notranslate"><span class="pre">im_interp</span></code> intensities were interpolated at</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>im_interp</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the transformed image</p>
+</dd>
+<dt><strong>xyz_</strong><span class="classifier">list of arrays</span></dt><dd><p>the xyz- coordinates of same array shape as im where <code class="docutils literal notranslate"><span class="pre">im_interp</span></code> intensities were taken from <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_transforms_xyz_pts">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_transforms_xyz_pts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pts3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_transforms_xyz_pts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_transforms_xyz_pts" title="Permalink to this definition"></a></dt>
+<dd><p>Convenience function for warping forward or backward a 3D point cloud given an affine transform matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pts3D</strong><span class="classifier">array</span></dt><dd><p>n-dimensional array with last dimension of size 3 for (x,y,z)</p>
+</dd>
+<dt><strong>tmatrix</strong><span class="classifier">(4x4) array</span></dt><dd><p>the homogeneous affine 3D transformation matrix</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">‘F’ or ‘B’</span></dt><dd><p>if ‘F’ warp points with <code class="docutils literal notranslate"><span class="pre">tmatrix</span></code> or if ‘B’ warp points with the reverse transformation given by``np.linalg.inv(tmatrix)``, the matrix inverse</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>pts3D_warp</strong><span class="classifier">array</span></dt><dd><p>n-dimensional array with last dimension of size 3 for the new (x,y,z) coordinates after warping</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_transforms_xyz_similarity">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_transforms_xyz_similarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([[1.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0],</span> <span class="pre">[0.0,</span> <span class="pre">1.0,</span> <span class="pre">0.0],</span> <span class="pre">[0.0,</span> <span class="pre">0.0,</span> <span class="pre">1.0]])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_tform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_transforms_xyz_similarity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_transforms_xyz_similarity" title="Permalink to this definition"></a></dt>
+<dd><p>Warps a volume image forward or reverse  where the transformation matrix is explicitly given by the desired translation, rotation, zoom and shear matrices, returning if specified the corresponding (x,y,z) grid points and optional padding</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>im</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the input 3D volume image</p>
+</dd>
+<dt><strong>translation</strong><span class="classifier">(3,) array</span></dt><dd><p>the global (dx,dy,dz) translation vector</p>
+</dd>
+<dt><strong>rotation</strong><span class="classifier">(3x3) array</span></dt><dd><p>the desired rotations given as a rotation matrix</p>
+</dd>
+<dt><strong>zoom</strong><span class="classifier">(3,) array</span></dt><dd><p>the independent scaling factor in x-, y-, z- directions</p>
+</dd>
+<dt><strong>shear</strong><span class="classifier">(3,) array</span></dt><dd><p>the shearing factor in x-, y-, z- directions</p>
+</dd>
+<dt><strong>center_tform</strong><span class="classifier">bool</span></dt><dd><p>if true, the transformation will be applied preserving <code class="docutils literal notranslate"><span class="pre">im_center</span></code></p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">‘F’ or ‘B’</span></dt><dd><p>if ‘F’ warp points with the specified transformation or if ‘B’ warp points by the reverse transformation</p>
+</dd>
+<dt><strong>ret_xyz</strong><span class="classifier">bool</span></dt><dd><p>if True, return as a second output the xyz- coordinates in <code class="docutils literal notranslate"><span class="pre">im</span></code> where <code class="docutils literal notranslate"><span class="pre">im_interp</span></code> intensities were interpolated at</p>
+</dd>
+<dt><strong>pad</strong><span class="classifier">int</span></dt><dd><p>if not None, the input image is prepadded with the same number of pixels given by <code class="docutils literal notranslate"><span class="pre">pad</span></code> in all directions before transforming</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>im_interp</strong><span class="classifier">(MxNxL) array</span></dt><dd><p>the transformed image</p>
+</dd>
+<dt><strong>xyz_</strong><span class="classifier">list of arrays</span></dt><dd><p>the xyz- coordinates of same array shape as im where <code class="docutils literal notranslate"><span class="pre">im_interp</span></code> intensities were taken from <code class="docutils literal notranslate"><span class="pre">im</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="unwrap3D.Registration.registration.warp_3D_transforms_xyz_similarity_pts">
+<span class="sig-prename descclassname"><span class="pre">unwrap3D.Registration.registration.</span></span><span class="sig-name descname"><span class="pre">warp_3D_transforms_xyz_similarity_pts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pts3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([[1.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0],</span> <span class="pre">[0.0,</span> <span class="pre">1.0,</span> <span class="pre">0.0],</span> <span class="pre">[0.0,</span> <span class="pre">0.0,</span> <span class="pre">1.0]])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_tform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unwrap3D/Registration/registration.html#warp_3D_transforms_xyz_similarity_pts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unwrap3D.Registration.registration.warp_3D_transforms_xyz_similarity_pts" title="Permalink to this definition"></a></dt>
+<dd><p>Convenience function for warping forward or backward a 3D point cloud where  the transformation matrix is explicitly given by the desired translation, rotation, zoom and shear matrices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pts3D</strong><span class="classifier">array</span></dt><dd><p>n-dimensional array with last dimension of size 3 for (x,y,z)</p>
+</dd>
+<dt><strong>translation</strong><span class="classifier">(3,) array</span></dt><dd><p>the global (dx,dy,dz) translation vector</p>
+</dd>
+<dt><strong>rotation</strong><span class="classifier">(3x3) array</span></dt><dd><p>the desired rotations given as a rotation matrix</p>
+</dd>
+<dt><strong>zoom</strong><span class="classifier">(3,) array</span></dt><dd><p>the independent scaling factor in x-, y-, z- directions</p>
+</dd>
+<dt><strong>shear</strong><span class="classifier">(3,) array</span></dt><dd><p>the shearing factor in x-, y-, z- directions</p>
+</dd>
+<dt><strong>center_tform</strong><span class="classifier">bool</span></dt><dd><p>if true, the transformation will be applied preserving <code class="docutils literal notranslate"><span class="pre">im_center</span></code></p>
+</dd>
+<dt><strong>im_center</strong><span class="classifier">(3,) array</span></dt><dd><p>if None, the mean of <code class="docutils literal notranslate"><span class="pre">pt3D</span></code> in x-, y-, z- is taken as <code class="docutils literal notranslate"><span class="pre">im_center</span></code> and takes effect only if <code class="docutils literal notranslate"><span class="pre">center_tform=True</span></code></p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">‘F’ or ‘B’</span></dt><dd><p>if ‘F’ warp points with the specified transformation or if ‘B’ warp points by the reverse transformation</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>pts3D_warp</strong><span class="classifier">array</span></dt><dd><p>n-dimensional array with last dimension of size 3 for the new (x,y,z) coordinates after warping</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-unwrap3D.Registration">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-unwrap3D.Registration" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Felix Y. Zhou.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
