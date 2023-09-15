@@ -889,7 +889,7 @@ def compute_transform_bounds(im_shape, tf, contain_all=True):
     
     if contain_all:
         out_shape = np.max(out_box_corners, axis=0) - np.min(out_box_corners, axis=0)
-        out_shape = (np.rint(out_shape)).astype(np.int)
+        out_shape = (np.rint(out_shape)).astype(np.int32)
         
         # to shift the thing, we need to change the whole world grid!. 
         mod_tf = np.min(out_box_corners, axis=0)  # what is the required transformation parameters to get the shape in line? # double check? in terms of point clouds?
@@ -902,7 +902,7 @@ def compute_transform_bounds(im_shape, tf, contain_all=True):
         
     else:
         out_shape = np.max(out_box_corners,axis=0) # this should touch the edges now right? #- np.min(out_box_corners,axis=0) # not quite sure what dipy tries to do ?
-        out_shape = (np.rint(out_shape)).astype(np.int)
+        out_shape = (np.rint(out_shape)).astype(np.int32)
     
         return in_out_corners, out_shape
 
@@ -1460,8 +1460,8 @@ def resample_vol_intensity_rotation(img, rot_matrix_fwd,
         # points then linearly establish correspondence. 
         # this vectorial represntation allows asymmetric handling. 
         print(min_lims, max_lims)
-        min_lims = min_lims.astype(np.int) - np.hstack(pad)
-        max_lims = (np.ceil(max_lims)).astype(np.int) + np.hstack(pad)
+        min_lims = min_lims.astype(np.int32) - np.hstack(pad)
+        max_lims = (np.ceil(max_lims)).astype(np.int32) + np.hstack(pad)
         
         # we need to create new cartesian combination of datapoints. 
         if out_shape is None:

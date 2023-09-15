@@ -19,6 +19,11 @@ def set_axes_equal(ax: plt.Axes):
     """
     import numpy as np 
 
+    try:
+        ax.set_box_aspect(aspect = (1,1,1))
+    except:
+        pass
+
     limits = np.array([
         ax.get_xlim3d(),
         ax.get_ylim3d(),

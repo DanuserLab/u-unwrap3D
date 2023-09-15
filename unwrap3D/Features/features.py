@@ -73,7 +73,7 @@ class DsiftExtractor:
 		generates a derivative of Gaussian filter with the same specified :math:`\sigma` in both the X and Y
 		directions.
 		'''
-		fwid = np.int(2*np.ceil(sigma))
+		fwid = int(2*np.ceil(sigma))
 		G = np.array(range(-fwid,fwid+1))**2
 		G = G.reshape((G.size,1)) + G
 		G = np.exp(- G / 2.0 / sigma / sigma)

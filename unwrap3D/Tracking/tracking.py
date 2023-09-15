@@ -30,8 +30,8 @@ def remove_very_large_bbox(boxes, shape, thresh=0.5, aspect_ratio=None, method='
         
         box_density = np.zeros(shape)
         bbox_coverage = np.zeros(len(boxes_))
-        box_centroids_x = np.clip((.5*(boxes_[:,0] + boxes_[:,2])).astype(np.int), 0, shape[1]-1).astype(np.int)
-        box_centroids_y = np.clip((.5*(boxes_[:,1] + boxes_[:,3])).astype(np.int), 0, shape[0]-1).astype(np.int)
+        box_centroids_x = np.clip((.5*(boxes_[:,0] + boxes_[:,2])).astype(np.int32), 0, shape[1]-1).astype(np.int32)
+        box_centroids_y = np.clip((.5*(boxes_[:,1] + boxes_[:,3])).astype(np.int32), 0, shape[0]-1).astype(np.int32)
         
         if mode == 'fast':
             box_centroids = np.vstack([box_centroids_x, box_centroids_y]).T
@@ -114,8 +114,8 @@ def Eval_dense_optic_flow(prev, present, params):
     # Check version of opencv installed, if not 3.0.0 then issue alert.
 #    if '3.0.0' in cv2.__version__ or '3.1.0' in cv2.__version__:
         # Make the image pixels into floats.
-    prev = prev.astype(np.float)
-    present = present.astype(np.float)
+    prev = prev.astype(np.float32)
+    present = present.astype(np.float32)
 
     if cv2.__version__.split('.')[0] == '3' or cv2.__version__.split('.')[0] == '4':
         flow = cv2.calcOpticalFlowFarneback(prev, present, None, params['pyr_scale'], params['levels'], params['winsize'], params['iterations'], params['poly_n'], params['poly_sigma'], params['flags']) 
@@ -509,7 +509,7 @@ def assign_label_detection_to_track_frame_by_frame(bbox_array_time, bbox_detecti
         non_nan_select = np.logical_not(np.isnan(tracks_bboxes[:,0])) # just test the one coordinate. # only these need to be given a label!. 
 
         tracks_bboxes_bbox = tracks_bboxes[non_nan_select>0].copy()
-        labels_non_nan_select = np.zeros(len(tracks_bboxes_bbox), dtype=np.int) # preinitialise 
+        labels_non_nan_select = np.zeros(len(tracks_bboxes_bbox), dtype=np.int32) # preinitialise 
 
         # build the iou cost matrix. between rows: tracks and cols: the frame boxes. 
         iou_matrix = bbox_iou_corner_xy(tracks_bboxes_bbox, 
@@ -546,7 +546,7 @@ def compute_labeled_to_unlabeled_track(track_label_array):
         valid = np.logical_not(np.isnan(tra_label))
 
         num_valid = np.sum(valid)
-        valid_labels = tra_label[valid].astype(np.int)
+        valid_labels = tra_label[valid].astype(np.int32)
 
         num_nonzeros = np.sum(valid_labels > 0) 
         track_counts.append([num_valid, num_nonzeros, float(num_nonzeros) / num_valid, n_frames])
@@ -841,7 +841,7 @@ def track_bleb_bbox(vid_flow, # flow is already computed.
     print(vid_bbox_tracks_all_lens)
     print(vid_bbox_tracks_all_start_time)
     
-    vid_bbox_tracks_lifetime_ratios = vid_bbox_tracks_all_lens / (len(vid_flow) - vid_bbox_tracks_all_start_time).astype(np.float)
+    vid_bbox_tracks_lifetime_ratios = vid_bbox_tracks_all_lens / (len(vid_flow) - vid_bbox_tracks_all_start_time).astype(np.float32)
     
 # =============================================================================
 #     Turn into a proper array of n_tracks x n_time x 4 or 5.... 

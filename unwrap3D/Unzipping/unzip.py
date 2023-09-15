@@ -40,13 +40,16 @@ def voxelize_unwrap_params(unwrap_params,
 
 
     unwrap_params_ = unwrap_params.copy()
-    surf_unwrap_vol = np.zeros(vol_shape, dtype=np.bool)
+    try:
+        surf_unwrap_vol = np.zeros(vol_shape, dtype=np.bool)
+    except:
+        surf_unwrap_vol = np.zeros(vol_shape, dtype=np.bool_)
 
     if preupsample is not None:
-        unwrap_params_ = np.dstack([sktform.resize(unwrap_params_[...,ch], output_shape=(np.hstack(unwrap_params.shape[:2])*preupsample).astype(np.int), preserve_range=True) for ch in np.arange(unwrap_params.shape[-1])])
+        unwrap_params_ = np.dstack([sktform.resize(unwrap_params_[...,ch], output_shape=(np.hstack(unwrap_params.shape[:2])*preupsample).astype(np.int32), preserve_range=True) for ch in np.arange(unwrap_params.shape[-1])])
 
     # discretize. 
-    unwrap_params_ = np.round(unwrap_params_).astype(np.int) # 6-connectivity
+    unwrap_params_ = (unwrap_params_+0.5).astype(np.int32) # 6-connectivity
 
     surf_unwrap_vol[unwrap_params_[...,0],
                     unwrap_params_[...,1],
@@ -209,9 +212,9 @@ def prop_ref_surface(unwrap_params_ref,
         mean_dist_unwrap_params_ref = np.linalg.norm(unwrap_params_ref_flat-mean_pt[None,:], axis=-1).max()
         mean_surf_pts_ref = np.linalg.norm(surf_pts_ref-mean_pt[None,:], axis=-1).max() # strictly should do an ellipse fit... 
 
-        n_dist = np.int(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
+        n_dist = np.int64(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
         n_dist = n_dist + pad_dist # this is in pixels
-        n_dist = np.int(np.ceil(n_dist / float(d_step))) # so if we take 1./2 step then we should step 2*
+        n_dist = np.int64(np.ceil(n_dist / float(d_step))) # so if we take 1./2 step then we should step 2*
 
         # print(n_dist)
         # print('----')

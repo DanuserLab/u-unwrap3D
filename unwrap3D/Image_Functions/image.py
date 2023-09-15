@@ -413,3 +413,49 @@ def map_intensity_interp3(query_pts,
 	
 	return I_query
 
+
+def guidedfilter(I, G, radius, eps):
+    """ n-dimensional guided filter. 
+    
+    see: K.He, J.Sun, and X.Tang. Guided Image Filtering. TPAMI'12.
+    
+    Parameters
+	----------
+	I : n-d array
+		the input floating point image (0-1) to be filtered
+	G : n-d array
+		the guide floating point image (0-1) to filter I with
+	radius : int
+		the local radius determining the extent of influence by G.
+	eps : float
+		regularization parameter, the smaller the value, the more the image is filtered by G. 
+	
+	Returns
+	-------
+	q : n-d array
+		the filtered image of I using the guide image G of same dimensions
+    
+    """
+    import numpy as np 
+    import scipy.ndimage as ndimage 
+    
+    # step 1
+    meanI  = ndimage.uniform_filter(G, size=radius)
+    meanp  = ndimage.uniform_filter(I, size=radius)
+    corrI  = ndimage.uniform_filter(G*G, size=radius)
+    corrIp = ndimage.uniform_filter(I*G, size=radius)
+    
+    # step 2
+    varI   = corrI - meanI * meanI
+    covIp  = corrIp - meanI * meanp
+    
+    # step 3
+    a      = covIp / (varI + eps)
+    b      = meanp - a * meanI
+    # step 4
+    meana  = ndimage.uniform_filter(a, size=eps)
+    meanb  = ndimage.uniform_filter(b, size=eps)
+    # step 5
+    q = meana * G + meanb
+
+    return q

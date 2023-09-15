@@ -29,7 +29,7 @@ def smooth_vol(vol, ds=4, smooth=5, method='gaussian'):
     if method == 'median':
         small = median_filter(small, size=smooth)
 
-    return sktform.resize(small, np.array(vol_binary.shape), preserve_range=True)
+    return sktform.resize(small, np.array(vol.shape), preserve_range=True)
 
 def largest_component_vol(vol_binary, connectivity=1):
     r""" Given a binary segmentation, return only the largest connected component of the given connectivity
@@ -657,7 +657,7 @@ def gradient_watershed2D_binary(binary,
         if interp_bool:
             pts_vect_ii = np.array([interp2(pt_ii, binary.shape, I_ref=sdf_normals[ch], method='linear', cast_uint8=False) for ch in np.arange(len(sdf_normals))]).T
         else:
-            pts_vect_ii = np.array([sdf_normals[ch][pt_ii[:,0].astype(np.int), pt_ii[:,1].astype(np.int)] for ch in np.arange(len(sdf_normals))]).T
+            pts_vect_ii = np.array([sdf_normals[ch][pt_ii[:,0].astype(np.int32), pt_ii[:,1].astype(np.int32)] for ch in np.arange(len(sdf_normals))]).T
         
         pts_vect_ii = pts_vect_ii / (np.linalg.norm(pts_vect_ii, axis=-1)[:,None] + 1e-12)
         pt_ii_next = pt_ii + delta*pts_vect_ii
@@ -677,8 +677,8 @@ def gradient_watershed2D_binary(binary,
     """
     # parse ... 
     votes_grid_acc = np.zeros(binary.shape)
-    votes_grid_acc[(tracks[-1][:,0]).astype(np.int), 
-                   (tracks[-1][:,1]).astype(np.int)] += 1. # add a vote. 
+    votes_grid_acc[(tracks[-1][:,0]).astype(np.int32), 
+                   (tracks[-1][:,1]).astype(np.int32)] += 1. # add a vote. 
                    
     # smooth to get a density (fast KDE estimation)
     votes_grid_acc = ndimage.gaussian_filter(votes_grid_acc, sigma=smooth_sigma)  
@@ -705,9 +705,9 @@ def gradient_watershed2D_binary(binary,
         cell_seg_connected = sksegmentation.relabel_sequential(cell_seg_connected)[0]
     
     cell_seg_connected_original = np.zeros_like(cell_seg_connected)
-    cell_seg_connected_original[(pts[:,0]).astype(np.int), 
-                                (pts[:,1]).astype(np.int)] = cell_seg_connected[(tracks[-1][:,0]).astype(np.int), 
-                                                                                (tracks[-1][:,1]).astype(np.int)]
+    cell_seg_connected_original[(pts[:,0]).astype(np.int32), 
+                                (pts[:,1]).astype(np.int32)] = cell_seg_connected[(tracks[-1][:,0]).astype(np.int32), 
+                                                                                  (tracks[-1][:,1]).astype(np.int32)]
     
     if mask is not None:
         cell_seg_connected[mask == 0] = 0
@@ -833,7 +833,7 @@ def gradient_watershed3D_binary(binary,
         if interp_bool:
             pts_vect_ii = np.array([interp3(pt_ii, binary.shape, I_ref=sdf_normals[ch], method='linear', cast_uint8=False) for ch in np.arange(len(sdf_normals))]).T
         else:
-            pts_vect_ii = np.array([sdf_normals[ch][pt_ii[:,0].astype(np.int), pt_ii[:,1].astype(np.int), pt_ii[:,2].astype(np.int)] for ch in np.arange(len(sdf_normals))]).T
+            pts_vect_ii = np.array([sdf_normals[ch][pt_ii[:,0].astype(np.int32), pt_ii[:,1].astype(np.int32), pt_ii[:,2].astype(np.int32)] for ch in np.arange(len(sdf_normals))]).T
         pts_vect_ii = pts_vect_ii / (np.linalg.norm(pts_vect_ii, axis=-1)[:,None] + 1e-12)
         
         pt_ii_next = pt_ii + delta*pts_vect_ii            
@@ -852,9 +852,9 @@ def gradient_watershed3D_binary(binary,
     
     # parse ... 
     votes_grid_acc = np.zeros(binary.shape)
-    votes_grid_acc[(tracks[-1][:,0]).astype(np.int), 
-                   (tracks[-1][:,1]).astype(np.int),
-                   (tracks[-1][:,2]).astype(np.int)] += 1. # add a vote. 
+    votes_grid_acc[(tracks[-1][:,0]).astype(np.int32), 
+                   (tracks[-1][:,1]).astype(np.int32),
+                   (tracks[-1][:,2]).astype(np.int32)] += 1. # add a vote. 
                    
     # smooth to get a density (fast KDE estimation)
     votes_grid_acc = ndimage.gaussian_filter(votes_grid_acc, sigma=smooth_sigma)  
@@ -882,11 +882,11 @@ def gradient_watershed3D_binary(binary,
     
     
     cell_seg_connected_original = np.zeros_like(cell_seg_connected)
-    cell_seg_connected_original[(pts[:,0]).astype(np.int), 
-                                (pts[:,1]).astype(np.int),
-                                (pts[:,2]).astype(np.int)] = cell_seg_connected[(tracks[-1][:,0]).astype(np.int), 
-                                                                                (tracks[-1][:,1]).astype(np.int),
-                                                                                (tracks[-1][:,2]).astype(np.int)]
+    cell_seg_connected_original[(pts[:,0]).astype(np.int32), 
+                                (pts[:,1]).astype(np.int32),
+                                (pts[:,2]).astype(np.int32)] = cell_seg_connected[(tracks[-1][:,0]).astype(np.int32), 
+                                                                                  (tracks[-1][:,1]).astype(np.int32),
+                                                                                  (tracks[-1][:,2]).astype(np.int32)]
                                                  
     if mask is not None:
         cell_seg_connected[mask == 0] = 0

@@ -149,7 +149,7 @@ def penalized_smooth_topography_uv_img(height_func,
 
     output_shape = np.hstack(height_func.shape)
     height_binary_ds = sktform.resize(height_func, 
-                                      output_shape=(output_shape//ds).astype(np.int), 
+                                      output_shape=(output_shape//ds).astype(np.int32), 
                                       preserve_range=True); 
     # this will be used to rescale. 
     height_binary_ds_max = height_binary_ds.max()
@@ -157,7 +157,7 @@ def penalized_smooth_topography_uv_img(height_func,
 
     if uv_params is not None:
         uv_params_ds = sktform.resize(uv_params, 
-                                      output_shape=np.hstack([(output_shape//ds).astype(np.int), uv_params.shape[-1]]), 
+                                      output_shape=np.hstack([(output_shape//ds).astype(np.int32), uv_params.shape[-1]]), 
                                       preserve_range=True); 
     
     # use padding to help regularize. 
@@ -390,11 +390,11 @@ def segment_topography_vol_curvature_surface(vol_curvature,
     if len(smooth_curvature_sigma) == 1:
         vol_curvature_smooth = depth_binary_mask*ndimage.gaussian_filter(vol_curvature, sigma=smooth_curvature_sigma[0])
 
-        if vol_height is not None:
-            vol_curvature_smooth = np.concatenate([vol_curvature_smooth[...,None], 
-                                                   vol_height[...,None]], axis=-1)
-        else:
-            vol_curvature_smooth = vol_curvature_smooth[...,None] # augment. 
+        # if vol_height is not None:
+        #     vol_curvature_smooth = np.concatenate([vol_curvature_smooth[...,None], 
+        #                                            vol_height[...,None]], axis=-1)
+        # else:
+        vol_curvature_smooth = vol_curvature_smooth[...,None] # augment. 
         # if seg_method == 'kmeans':
         #     H_binary_depth_all_clusters = segmentation.multi_level_kmeans_thresh((vol_curvature_smooth[depth_binary_mask>0])[None,None,:,None],
         #                                                                        n_classes=n_classes, n_samples=n_samples, random_state=random_state, scale=scale_feats)
@@ -405,8 +405,8 @@ def segment_topography_vol_curvature_surface(vol_curvature,
         vol_curvature_smooth = np.array([depth_binary_mask*ndimage.gaussian_filter(vol_curvature, sigma=sigma) for sigma in smooth_curvature_sigma])
         vol_curvature_smooth = vol_curvature_smooth.transpose(1,2,3,0) # put this in the last dimension!. 
     
-        if vol_height is not None:
-            vol_curvature_smooth = np.concatenate([vol_curvature_smooth, vol_height[...,None]], axis=-1)
+        # if vol_height is not None:
+        #     vol_curvature_smooth = np.concatenate([vol_curvature_smooth, vol_height[...,None]], axis=-1)
 
     if seg_method == 'kmeans':
         H_binary_depth_all_clusters = segmentation.multi_level_kmeans_thresh((vol_curvature_smooth[depth_binary_mask>0])[None,None,:,:],

@@ -3,6 +3,14 @@
 from ..Geometry import geometry as geom 
 from ..Unzipping import unzip as uzip
 
+# requirements for alpha_wrap (requires python 3.8 and above.)
+from CGAL import CGAL_Alpha_wrap_3
+from CGAL.CGAL_Polyhedron_3 import Polyhedron_3
+from CGAL.CGAL_Kernel import Point_3
+
+import numpy as np
+import numpy.typing as npt
+
 
 def read_mesh(meshfile, 
               process=False, 
@@ -261,7 +269,7 @@ def split_mesh(mesh,
     return meshes, meshes_attributes
 
 
-def decimate_resample_mesh(mesh, remesh_samples, predecimate=True):
+def decimate_resample_mesh(mesh, remesh_samples, min_comp_size=100, predecimate=True):
     r""" Downsample (decimate) and optionally resample the mesh to equilateral triangles. 
 
     Parameters
@@ -270,6 +278,8 @@ def decimate_resample_mesh(mesh, remesh_samples, predecimate=True):
         input mesh 
     remesh_samples : 0-1
         fraction of the number of vertex points to target in size of the output mesh
+    min_comp_size : int
+        minimum size of a submesh to keep as valid. 
     predecimate : bool
         if True, small edges are first collapsed using igl.decimate in the ``igl`` library
 
@@ -284,11 +294,28 @@ def decimate_resample_mesh(mesh, remesh_samples, predecimate=True):
     import pyvista as pv
     import igl
     import trimesh
+    import numpy as np 
 
     if predecimate:
-        _, V, F, _, _ = igl.decimate(mesh.vertices, mesh.faces, int(.9*len(mesh.vertices))) # there is bug? 
+        _, V, F, _, _ = igl.decimate(mesh.vertices, mesh.faces, int(.9*len(mesh.faces))) # faces is good ? 
         if len(V) > 0: # have a check in here to prevent break down. 
             mesh = trimesh.Trimesh(V, F, validate=True) # why no good? 
+            
+            mesh_comps = mesh.split(only_watertight=False)
+            mesh_comps = [mm for mm in mesh_comps if len(mm.vertices)>=min_comp_size] # keep a min_size else the remeshing doesn't work 
+            # combine_mesh_components
+            mesh = trimesh.util.concatenate(mesh_comps)
+
+    n_points = int(remesh_samples*len(mesh.vertices))
+
+    mesh = pv.wrap(mesh) # convert to pyvista format. 
+    clus = pyacvd.Clustering(mesh)
+    clus.cluster(n_points, debug=False)
+    
+    mesh_new = clus.create_mesh() # create mesh. --- this is well we fail... 
+    del mesh
+    mesh = trimesh.Trimesh(mesh_new.points, mesh_new.faces.reshape((-1,4))[:, 1:4], validate=True, process=True) # we don't care. if change
+    
 
     # print(len(mesh.vertices))
     mesh = pv.wrap(mesh) # convert to pyvista format. 
@@ -297,11 +324,15 @@ def decimate_resample_mesh(mesh, remesh_samples, predecimate=True):
     mesh = clus.create_mesh()
 
     mesh = trimesh.Trimesh(mesh.points, mesh.faces.reshape((-1,4))[:, 1:4], validate=True) # we don't care. if change
-    # print(mesh.is_watertight)
+    
+    # largest component 
+    mesh_comps = mesh.split(only_watertight=False)
+    mesh = mesh_comps[np.argmax([len(mm.vertices) for mm in mesh_comps])]
+    
     return mesh
 
 
-def upsample_mesh(mesh, method='inplane'):
+def upsample_mesh(mesh, method='inplane', subdivisions=1):
     r""" Upsample a given mesh using simple barycentric splittng ('inplane') or using 'loop', which slightly smoothes the output 
     
     Parameters
@@ -322,12 +353,20 @@ def upsample_mesh(mesh, method='inplane'):
     """
     import igl 
     import trimesh 
+    
+    uv = mesh.vertices.copy()
+    uf = mesh.faces.copy()
 
     if method =='inplane': 
-        uv, uf = igl.upsample(mesh.vertices, mesh.faces)
+        for ii in np.arange(subdivisions):
+            uv, uf = igl.upsample(uv,uf)
     if method == 'loop':
-        uv, uf = igl.loop(mesh.vertices, mesh.faces)
-   
+        for ii in np.arange(subdivisions): 
+            uv, uf = igl.loop(uv,uf)
+    if method == 'barycenter': # should be the most stable. 
+        for ii in np.arange(subdivisions): 
+            uv, uf = igl.false_barycentric_subdivision(uv,uf)
+            
     mesh_out = trimesh.Trimesh(uv, uf, validate=False, process=False)
     
     return mesh_out 
@@ -387,13 +426,14 @@ def marching_cubes_mesh_binary(vol,
                                 keep_largest_only=True, 
                                 min_comp_size=20, 
                                 split_mesh=True, 
-                                upsamplemethod='inplane'):
-    r""" Mesh an input binary volume using Marching Cubes algorithm with optional remeshing to improve mesh quality 
+                                upsamplemethod='inplane',
+                                pad_width=0):
+    r""" Mesh an input binary volume using Marching Cubes algorithm with optional remeshing to improve mesh quality. If remeshing this will return the largest mesh component.
 
     Parameters
     ----------
-    vol : trimesh.Trimesh
-        input mesh
+    vol : np.array
+        input volume with intensities in the range 0-1 (M x N x L)
     presmooth : scalar
         pre Gaussian smoothing with the specified sigma to get a better marching cubes mesh. 
     contourlevel : 
@@ -422,6 +462,8 @@ def marching_cubes_mesh_binary(vol,
         if True, runs connected component to filter out Marching cubes components that are too small (keep_largest_only=False) or keep only the largest (keep_largest_only=True) prior to remeshing        
     upsamplemethod : str
         one of 'inplane' or 'loop' allowed in igl.upsample. This is called to meet the minimum number of vertices in the final mesh as specified in ``min_mesh_size``
+    pad_width : int
+        zero padding of input vol. Recommended to prevent 'holes' caused by image boundaries. Set None to turn off.    
 
     Returns
     -------
@@ -444,11 +486,17 @@ def marching_cubes_mesh_binary(vol,
     else:
         img = vol.copy()
 
+    if pad_width is not None:
+        img = np.pad(img, pad_width=[[pad_width,pad_width],[pad_width,pad_width], [pad_width,pad_width]])
+
     try:
         V, F, _, _ = marching_cubes_lewiner(img, level=contourlevel, allow_degenerate=False)
     except:
         V, F, _, _ = marching_cubes(img, level=contourlevel, method='lewiner', allow_degenerate=False)
 
+    if pad_width is not None:
+        V = V-pad_width # remove the padding
+        
     mesh = trimesh.Trimesh(V,F, validate=True)
     
     if split_mesh:
@@ -463,6 +511,8 @@ def marching_cubes_mesh_binary(vol,
         # we need to recombine this
         # mesh = mesh_comps[np.argmax([len(cc.vertices) for cc in mesh_comps])]
     if remesh:
+        # this current causes a bunch of unknown issues and seems primarily related to sharp features and pyacvd. 
+        
         if remesh_method == 'pyacvd':
             mesh = decimate_resample_mesh(mesh, remesh_samples, predecimate=predecimate)
             # other remesh is optimesh which allows us to reshift the vertices (change the connections)
@@ -473,12 +523,2751 @@ def marching_cubes_mesh_binary(vol,
             mesh, _, mean_quality = relax_mesh( mesh, relax_method=remesh_params['relax_method'], tol=remesh_params['tol'], n_iters=remesh_params['n_iters']) # don't need the quality parameters. 
             # print('mean mesh quality: ', mean_quality)
 
-    mesh_check = len(mesh.vertices) >= min_mesh_size # mesh_min size is only applied here.!
-    while(mesh_check==0):
-        mesh = upsample_mesh(mesh, method=upsamplemethod)
-        mesh_check = len(mesh.vertices) >= min_mesh_size
 
+    if min_mesh_size is not None:
+        """
+        current limitation is just applied to the largest single component. 
+        """
+        mesh_comps = mesh.split(only_watertight=False);
+        mesh_sizes = np.hstack([len(mm.vertices) for mm in mesh_comps])
+        mesh_check = np.max(mesh_sizes) >= min_mesh_size # mesh_min size is only applied here.!
+        
+        
+        while(mesh_check==0):
+            # print('')
+            mesh = mesh_comps[np.argmax([len(vv.vertices) for vv in mesh_comps])]
+            mesh_out = upsample_mesh(mesh, method=upsamplemethod)
+            
+            mesh_comps = mesh_out.split(only_watertight=False);
+            mesh_sizes = np.hstack([len(mm.vertices) for mm in mesh_comps])
+            mesh_check = np.max(mesh_sizes) >= min_mesh_size # mesh_min size is only applied here.!            
+            mesh_out = mesh_comps[np.argmax([len(vv.vertices) for vv in mesh_comps])]
+            
+            mesh = mesh_out.copy()
+    
     return mesh
+
+
+
+
+def cgal_vertices_faces_triangle_mesh(Q: Polyhedron_3):
+    r""" Convert CGAL polyhedron object from the alphawrap library back into numpy vertices and faces to be accessible.
+    
+    Parameters
+    ----------
+    Q : CGAL Polyhedron_3 oject
+        surface mesh 
+    
+    Returns
+    -------
+    vertices : (N,3) numpy array
+        numpy array of mesh vertices
+    faces : (M,3) numpy array
+        numpy array of triangle face indices
+
+    """
+    vertices = np.zeros((Q.size_of_vertices(), 3), dtype=float)
+    vertices_packed = {}
+    faces = np.zeros((Q.size_of_facets(), 3), dtype=float)
+    next_idx_v = 0
+    for idx_f, facet in enumerate(Q.facets()):
+        he = facet.halfedge()
+        
+        for j in range(3):
+            p = he.vertex().point()
+            v = tuple((p.x(), p.y(), p.z()))
+            idx_v = vertices_packed.get(v, -1)
+            if idx_v < 0:
+                vertices[next_idx_v, :] = v
+                vertices_packed[v] = next_idx_v
+                idx_v = next_idx_v
+                next_idx_v += 1
+            faces[idx_f,j] = idx_v
+            he = he.next()
+            
+    return vertices, faces
+
+
+def alpha_wrap(points: npt.ArrayLike, alpha: float = 20.0, offset = 0.001):
+    r""" Runs the Alphawrapping algorithm from CGAL on an input set of points provided as a numpy array 
+    
+    See https://www.cgal.org/2022/05/18/alpha_wrap/ for algorithm details. In essence offset is the size that the algorithm considers points to have finite mass and alpha is the size of the ball it will do delaunay-style triangulation.
+    
+    Parameters
+    ----------
+    points : (N,3) numpy array
+        surface points to shrinkwrap into a mesh
+    alpha : float 
+        alpha controls the minimum carving size, and thus the size of straits and holes that cannot be traversed during carving. 
+    offset : float 
+        offset is the value of the distance field level-set defining the offset surface. It controls the distance of the mesh vertices to the input, and thus the tightness of the approximation
+    
+    Returns
+    -------
+    nv : (N,3) numpy array
+        numpy array of triangle mesh vertices
+    nf : (M,3) numpy array
+        numpy array of triangle mesh face indices
+
+    """
+
+    vertices_cgal = [Point_3(x, y, z) for x, y, z in points.astype(np.double)]
+    Q = Polyhedron_3()
+    CGAL_Alpha_wrap_3.alpha_wrap_3(vertices_cgal, alpha, offset, Q)
+
+    nv, nf = cgal_vertices_faces_triangle_mesh(Q)
+
+    return nv, nf
+
+
+def alphawrap_genus0(mesh, max_factor=0.5, offset=0.05, tol=0.5):
+    r""" Runs the Alphawrapping algorithm from CGAL on an input set of points provided by the mesh and uses interval bisection to guarantee the tightest wrap for a given offset.
+    
+    See https://www.cgal.org/2022/05/18/alpha_wrap/ for alphawrap algorithm details. In essence offset is the size that the algorithm considers points to have finite mass and alpha is the size of the ball it will do delaunay-style triangulation.
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    max_factor: float
+        the maximum size of alpha to search for specified as a fraction of the bounding box extent of the mesh
+    offset : float 
+        offset is the value of the distance field level-set defining the offset surface. It controls the distance of the mesh vertices to the input, and thus the tightness of the approximation
+    tol: float
+        the absolute difference between the upper nad lower interval values to call convergence. 
+    
+    Returns
+    -------
+    mesh_out : trimesh.Trimesh
+        new genus-0 mesh that shrinkwraps the original mesh
+    test_intervals : 2-tuple
+        final interval where the 1st number is the alpha that produces non-genus0 mesh and the 2nd number is the alpha that produces a genu0 mesh
+
+    """
+    
+    import numpy as np 
+    import igl 
+    
+    # determine the mesh extent to define upper bound. 
+    mesh_extents = mesh.extents 
+    mean_extent = np.nanmean(mesh_extents)
+    mean_edge_len = igl.avg_edge_length(mesh.vertices, mesh.faces)
+    
+    # specify initial test_interval
+    test_interval = [mean_edge_len * 2, max_factor*mean_extent] # this is top down search... we can also do bottom up... 
+    
+    euler_numbers = [np.nan, np.nan]
+    iteration = 0
+    last_euler = test_interval[1]
+    
+    while np.abs(np.diff(test_interval)) > tol:
+    
+        interval = test_interval[1]
+        
+        v_watertight, f_watertight = alpha_wrap(mesh.vertices, 
+                                                alpha=interval, #mean_extent*ratio, 
+                                                offset=offset) # how small can we set offset? 
+        
+        # recalc euler number 
+        mesh_out = create_mesh(vertices=v_watertight,
+                               faces=f_watertight)
+        
+        euler = mesh_out.euler_number
+        
+        if euler == 2: 
+            euler_numbers[1] = euler
+            test_interval[1] = np.maximum( .5*(test_interval[0] + test_interval[1]), mean_edge_len * 2)
+            last_euler = interval
+        else:
+            euler_numbers[0] = euler
+            test_interval[0] = interval
+            test_interval[1] = last_euler
+        
+        iteration += 1
+        
+    v_watertight, f_watertight = alpha_wrap(mesh.vertices, 
+                                            alpha=last_euler, #mean_extent*ratio, 
+                                            offset=offset)
+
+    mesh_out = create_mesh(vertices=v_watertight,
+                           faces=f_watertight)
+
+    return mesh_out, test_interval
+    
+#### to do: genus detection.... ( non-sphere mappable areas. ) --- this is super hard without building something like a reeb graph. 
+
+def volumewrap_genus0(mesh, borderpad=50, 
+                      dilate_ksize=3, 
+                      erode_ksize=3,
+                      upsample_iters_max=10, 
+                      pitch=2, 
+                      max_search_dilation=25,
+                      mesh_smooth=3,
+                      bordermesh=0):
+    r""" Voxelizes input mesh into a binary volume, then applies successive numbers of dilation until the maximum number of iterations is reached or the extracted mesh from marching cubes is genus-0
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    borderpad : int
+        pad size around the mesh coordinates defining the volumetric grid that the mesh is voxelized onto
+    dilate_ksize : int
+        optional dilation of the voxelized volume with a ball kernel of specified radius to fill holes so that scipy.ndimage.morphology.binary_fill_holes will allow a complete volume to be otained
+    erode_ksize : int
+        optional erosion of the voxelized volume with a ball kernel of specified radius
+    vol_shape : (m,n,l) tuple
+        the size of the volume image to voxelize onto  
+    upsample_iters_max : int 
+        the maximum number of recursive mesh subdivisions to achieve the target pitch 
+    pitch : scalar
+        target side length of each voxel, the mesh will be recursively subdivided up to the maximum number of iterations specified by ``upsample_iters_max`` until this is met.
+    max_search_dilation : int
+        maximum number of iterations to dilate the initial binary voxelized mesh by skimage.morphology.ball(1)
+    bordermesh : int
+        if > 0, the extra border such that the extracted mesh is closed even if its boundary lies at the image border. 
+    
+    Returns
+    -------
+    mesh_binary_out 
+        new binary image which when meshed with marching cubes would yield a genus-0 mesh
+    mesh_out : trimesh.Trimesh
+        new genus-0 mesh that shrinkwraps the original mesh
+    final_dilation : int
+        final dilation to generate a genus0 mesh
+
+    """
+    
+    import numpy as np 
+    import skimage.morphology as skmorph
+    from ..Segmentation import segmentation as unwrap3D_segmentation
+    import scipy.ndimage as ndimage
+    from tqdm import tqdm 
+    
+    
+    # initial voxelization of the input mesh. 
+    binary0 = voxelize_image_mesh_pts(mesh,
+                                      pad = borderpad, 
+                                      dilate_ksize=dilate_ksize, 
+                                      erode_ksize = erode_ksize,
+                                      upsample_iters_max=upsample_iters_max,
+                                      pitch=pitch)
+                                      
+    # initial extraction of a mesh from the binary. 
+    mesh0 = marching_cubes_mesh_binary(binary0, 
+                                       presmooth=1,
+                                       contourlevel=0.5,
+                                       remesh=False,
+                                       pad_width=bordermesh)
+    
+    genus_mesh0 = mesh0.euler_number
+    
+    if genus_mesh0 == 2:
+        # we are done
+        return binary0, mesh0, 0
+    else:
+        mesh_binary_out = binary0.copy()
+        
+        for iter_ii in tqdm(np.arange(max_search_dilation)):
+            mesh_binary_out = skmorph.binary_dilation(mesh_binary_out, skmorph.ball(1)) # increase the dilation by 1. 
+            mesh_binary_out = unwrap3D_segmentation.largest_component_vol(mesh_binary_out)
+            mesh_binary_out = ndimage.binary_fill_holes(mesh_binary_out)
+            
+            mesh_out = marching_cubes_mesh_binary(mesh_binary_out, 
+                                                  presmooth=mesh_smooth,
+                                                  contourlevel=0.5,
+                                                  remesh=False,
+                                                  pad_width=bordermesh)
+            genus_mesh = mesh_out.euler_number
+            
+            if genus_mesh == 2:    
+                return mesh_binary_out, mesh_out, iter_ii 
+                break
+            
+        # return the last anyhow. 
+        return mesh_binary_out, mesh_out, iter_ii 
+                    
+            
+
+### some prototype functions for filling in holes. --- these are incorrect. 
+def patch_hole_verts_harmonic(mesh, v_inds, subdivisions=3):
+        
+    r""" patch a mesh hole by joining boundary points to an extra mean point and then minimizing the Laplacian energy. New faces and points are appended to the original preserving the vertex and face order. 
+    
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    v_inds: np.array
+        the vertex indices that requires stitching together. 
+    subdivisions : int 
+        the number of times to upsample the stitched over patch.     
+    
+    Returns
+    -------
+    mesh_out : trimesh.Trimesh
+        new mesh with hole patched
+
+    """
+    
+    # get the boundary vertex index. 
+    import igl
+    import trimesh
+    import numpy as np 
+    
+    # get the coordinates 
+    bound_vert_pts = mesh.vertices[v_inds].copy()
+    
+    # specify a fake mean of the coordinates. 
+    mean_bound_pt = np.nanmean(bound_vert_pts, axis=0) # get the mean point. 
+    
+    
+    # create a new faces. 
+    stitch_pts = np.vstack([bound_vert_pts, 
+                            mean_bound_pt])
+    stitch_tri = (np.vstack([np.arange(len(bound_vert_pts)), 
+                              np.hstack([np.arange(len(bound_vert_pts))[1:], 0]),
+                              len(bound_vert_pts)*np.ones(len(bound_vert_pts))]).T).astype(np.int32)
+    stitch_tri = stitch_tri[:,::-1] # to ensure correct face orientation. 
+    
+    boundary_mesh_up_v = stitch_pts.copy()
+    boundary_mesh_up_f = stitch_tri.copy()
+    
+    # upsample this stitched patch 
+    if subdivisions>0:
+        # boundary_mesh_up_v, boundary_mesh_up_f = igl.upsample(stitch_pts,
+        #                                                       stitch_tri, 
+        #                                                       subdivisions)  
+        
+        for iter_ii in np.arange(subdivisions):
+            boundary_mesh_up_v, boundary_mesh_up_f = igl.false_barycentric_subdivision(boundary_mesh_up_v,
+                                                                                       boundary_mesh_up_f)  
+    # else:
+    #     boundary_mesh_up_v = stitch_pts.copy()
+    #     boundary_mesh_up_f = stitch_tri.copy()
+    
+    # solve the laplacian with fixed boundaries! to make a smooth patch. adjusting internal nodes.
+    z_harmonic = igl.harmonic_weights(boundary_mesh_up_v, 
+                                      boundary_mesh_up_f, 
+                                      igl.boundary_loop(boundary_mesh_up_f), 
+                                      boundary_mesh_up_v[igl.boundary_loop(boundary_mesh_up_f)], 
+                                      1)
+    
+    offset = len(mesh.vertices) - len(v_inds)
+    boundary_mesh_up_f_reindex = boundary_mesh_up_f + offset
+    boundary_mesh_up_f_reindex_ = boundary_mesh_up_f_reindex.copy() # this is temp. 
+    
+    for ii in np.arange(len(v_inds)):    
+        # then replace index in the first bound_vert_indices by their index in the full mesh. 
+        boundary_mesh_up_f_reindex_[boundary_mesh_up_f_reindex==(ii+offset)] = v_inds[ii].copy() # replace. 
+        
+    boundary_mesh_up_f_reindex = boundary_mesh_up_f_reindex_.copy() # overwrite. 
+    
+    
+    # create a new mesh out. 
+    out_v = np.vstack([mesh.vertices, 
+                       z_harmonic[len(v_inds):]])
+    out_f = np.vstack([mesh.faces, # original faces. 
+                       boundary_mesh_up_f_reindex])
+    
+    mesh_out = create_mesh(vertices=out_v,
+                               faces=out_f)
+    
+    return mesh_out 
+
+
+def patch_hole_verts_fanstitch(mesh, v_inds, subdivisions=3):
+        
+    r""" patch a mesh hole by joining boundary points to an extra mean point with optional subdivision via barycenter. New faces and points are appended to the original preserving the vertex and face order. 
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    v_inds: np.array
+        the vertex indices that requires stitching together. 
+    subdivisions : int 
+        the number of times to upsample the stitched over patch.     
+    
+    Returns
+    -------
+    mesh_out : trimesh.Trimesh
+        new mesh with hole patched
+
+    """
+    
+    # get the boundary vertex index. 
+    import igl
+    import numpy as np 
+    
+    # v_new = mesh.vertices.copy()
+    # f_new = mesh.faces.copy()
+    # # while patch:
+    # # # for iiii in np.arange(1):
+    # #     # get largest
+    # #     loop= igl.boundary_loop(f_new)
+        
+    # #     if len(loop) == 0:
+    # #         patch=False
+    # #     else:
+    # #         verts_loops = v_new[loop].copy()
+            
+    # #         mean_point = np.nanmean(verts_loops, axis=0)
+    # #         mean_point_index = len(v_new)
+    # #         v_new = np.vstack([v_new, mean_point])
+            
+    # #         f_patch = np.vstack([loop, 
+    # #                               np.roll(loop, 1),
+    # #                               np.ones(len(loop))*mean_point_index]).T
+    # #         f_patch = f_patch.astype(np.int32)
+    # #         f_new = np.vstack([f_new, f_patch])
+
+    
+    # this attaches all points to the virtual mean point. 
+    bound_vert_pts = mesh.vertices[v_inds].copy()
+    
+    # specify a fake mean of the coordinates. 
+    mean_bound_pt = np.nanmean(bound_vert_pts, axis=0) # get the mean point. 
+    
+    # mean_point_index = len(v_new)
+    # v_new = np.vstack([v_new, mean_bound_pt])
+    
+    # f_patch = np.vstack([v_inds, 
+    #                       np.roll(v_inds, 1),
+    #                       np.ones(len(v_inds))*mean_point_index]).T
+    # f_patch = f_patch.astype(np.int32)
+    # f_new = np.vstack([f_new, f_patch])
+    
+    # mesh_out = create_mesh(vertices=v_new,
+    #                        faces=f_new)
+
+    # if subdivisions == 0: 
+    #     return mesh_out
+    # else:
+        
+    #     mesh_out =  upsample_mesh(mesh_out, method='barycenter', subdivisions=subdivisions) # new points are appended... 
+        
+    #     return mesh_out
+        
+    # create a new faces. 
+    stitch_pts = np.vstack([bound_vert_pts, 
+                            mean_bound_pt])
+    stitch_tri = (np.vstack([np.arange(len(bound_vert_pts)), 
+                              np.hstack([np.arange(len(bound_vert_pts))[1:], 0]),
+                              len(bound_vert_pts)*np.ones(len(bound_vert_pts))]).T).astype(np.int32)
+    stitch_tri = stitch_tri[:,::-1] # to ensure correct face orientation. 
+    
+    # upsample this stitched patch 
+    boundary_mesh_up_v = stitch_pts.copy()
+    boundary_mesh_up_f = stitch_tri.copy()
+
+    if subdivisions>0:
+
+        for iter_ii in np.arange(subdivisions):
+            boundary_mesh_up_v, boundary_mesh_up_f = igl.false_barycentric_subdivision(boundary_mesh_up_v,
+                                                                                       boundary_mesh_up_f)  
+
+    
+    offset = len(mesh.vertices) - len(v_inds)
+    boundary_mesh_up_f_reindex = boundary_mesh_up_f + offset
+    boundary_mesh_up_f_reindex_ = boundary_mesh_up_f_reindex.copy() # this is temp. 
+    
+    for ii in np.arange(len(v_inds)):    
+        # then replace index in the first bound_vert_indices by their index in the full mesh. 
+        boundary_mesh_up_f_reindex_[boundary_mesh_up_f_reindex==(ii+offset)] = v_inds[ii] # replace. 
+        
+    boundary_mesh_up_f_reindex = boundary_mesh_up_f_reindex_.copy() # overwrite. 
+    
+    
+    # create a new mesh out. 
+    out_v = np.vstack([mesh.vertices, 
+                       boundary_mesh_up_v[len(v_inds):]])
+    out_f = np.vstack([mesh.faces, # original faces. 
+                       boundary_mesh_up_f_reindex])
+    
+    mesh_out = create_mesh(vertices=out_v,
+                           faces=out_f)
+    
+    return mesh_out 
+
+
+def patch_hole_zip(mesh, v_inds, subdivisions=0):
+    
+    r""" patch a mesh hole by joining boundary points by zippering. this requires an even number of v_inds for which this function will add an extra point, the mean of the start and end points. v_inds should represent a non-closed loop.  
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    v_inds: np.array
+        the vertex indices that requires stitching together. 
+    subdivisions : int 
+        the number of times to upsample the stitched over patch.     
+    
+    Returns
+    -------
+    mesh_out : trimesh.Trimesh
+        new mesh with hole patched
+
+    """
+    import trimesh
+    import numpy as np 
+    import igl 
+    
+    # lets zip up the hole. --- needs even number of points. 
+    verts = mesh.vertices[v_inds].copy() # get the mesh verts. 
+
+    # check for even-ness
+    if np.mod(len(verts), 2) == 1:
+        # i.e. odd. then we need to add a new point in. 
+        new_pt = .5*(verts[0]+verts[-1])        
+        verts2 = np.vstack([verts,
+                            new_pt])
+    else:
+        verts2 = verts.copy()
+        
+    inds = np.vstack([np.arange(len(verts2)//2),
+                      np.arange(len(verts2)//2, len(verts2))[::-1]])
+    
+    tri1 = np.vstack([inds[0, :-1], 
+                      inds[0, 1:], 
+                      inds[1, :-1]]).T
+    
+    tri2 = np.vstack([inds[1, 1:][::-1], 
+                      inds[1, :-1][::-1], 
+                      inds[0, 1:][::-1]]).T
+    
+    stitch_tri = np.vstack([tri1, tri2])
+    stitch_tri = stitch_tri[:,::-1]
+    
+    boundary_mesh_up_v = verts2.copy()
+    boundary_mesh_up_f = stitch_tri.copy()
+    
+    if subdivisions>0:
+        # # upsample this stitched patch 
+        # boundary_mesh_up_v, boundary_mesh_up_f = igl.upsample(verts2,
+        #                                                       stitch_tri, 
+        #                                                       subdivisions)  
+        for iter_ii in np.arange(subdivisions):
+            boundary_mesh_up_v, boundary_mesh_up_f = igl.false_barycentric_subdivision(boundary_mesh_up_v,
+                                                                                       boundary_mesh_up_f)  
+    # else:
+    #     boundary_mesh_up_v = verts2.copy()
+    #     boundary_mesh_up_f = stitch_tri.copy()
+    
+
+    offset = len(mesh.vertices) - len(v_inds)
+    boundary_mesh_up_f_reindex = boundary_mesh_up_f + offset
+    boundary_mesh_up_f_reindex_ = boundary_mesh_up_f_reindex.copy() # this is temp. 
+    
+    for ii in np.arange(len(v_inds)):    
+        # then replace index in the first bound_vert_indices by their index in the full mesh. 
+        boundary_mesh_up_f_reindex_[boundary_mesh_up_f_reindex==(ii+offset)] = v_inds[ii]
+        
+    boundary_mesh_up_f_reindex = boundary_mesh_up_f_reindex_.copy()
+    
+    # create a new mesh out. 
+    out_v = np.vstack([mesh.vertices, 
+                       boundary_mesh_up_v[len(v_inds):]])
+    out_f = np.vstack([mesh.faces, 
+                       boundary_mesh_up_f_reindex])
+    
+    mesh_out = create_mesh(vertices=out_v,
+                           faces=out_f)
+    
+    return mesh_out
+    
+
+
+def clean_mesh_loops(mesh, min_size=3, reindex_mesh=False, max_iter=5):
+    
+    r""" Find all holes - open loops in the given mesh. The input mesh is editted so that the Loops smaller than the minimal size are removed. minsize cannot be less than 3. 
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    min_size : int
+        minimal number of vertices forming valid loops. This is lower bounded by 3. 
+    reindex_mesh : bool
+        if True, unreferenced vertices will be checked for and removed. 
+    
+    Returns
+    -------
+    mesh_out : trimesh.Trimesh
+        new mesh with all vertices participating in smaller than min_size is removed. 
+
+    """
+    import trimesh
+    import igl 
+    import numpy as np 
+    
+    
+    loops = igl.all_boundary_loop(mesh.faces)
+    
+    if len(loops) > 0:
+        
+        len_loops = [len(cc) for cc in loops]
+        print(len_loops)
+    
+        """
+        make new mesh where we further delete all loop-1, loop-2 ---> we keep running this until this is all gone.
+        - add fake mean point and new triangles to close the mesh. 
+        - remove all unreferenced vertices -> i.e. vertices not part of any triangle. 
+        - retest and assert genus.
+        """
+        mesh_out = create_mesh(mesh.vertices,
+                               mesh.faces)
+        
+        check = True
+        min_num = np.maximum(3, min_size)
+        
+        counter = 0
+        
+        # while check or counter <= max_iter:
+        while check:
+            loops = igl.all_boundary_loop(mesh_out.faces)
+            len_loops = np.hstack([len(cc) for cc in loops])
+            
+            if np.sum(len_loops<min_num) > 0: 
+                remove_verts = np.hstack([loops[iii] for iii in np.arange(len(loops)) if len_loops[iii]<min_num])
+                remove_faces = np.hstack([np.argwhere(mesh_out.faces==vv)[:,0] for vv in remove_verts])
+                
+                mesh_out.faces = mesh_out.faces[np.setdiff1d(np.arange(len(mesh_out.faces)), remove_faces)]
+            else:
+                check = False
+                
+            counter += 1
+                
+        if reindex_mesh:
+            mesh_out=trimesh.Trimesh(mesh_out.vertices,
+                                     mesh_out.faces, 
+                                     process=True,
+                                     validate=True)
+        
+        return mesh_out
+    else:
+        mesh_out = mesh.copy()
+        
+    return mesh_out
+    
+
+
+def patch_all_holes_exhaustive( mesh, method='fanstitch', subdivisions=0, reindex_mesh=False, reindex_mesh_final=False):
+
+    r""" Exhaustively patch all holes in a mesh, in an iterative manner starting with the largest open loop 
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    subdivisions : int 
+        the number of times to upsample the stitched over patch.     
+    
+    Returns
+    -------
+    mesh_out : trimesh.Trimesh
+        new mesh with all holes patched
+
+    """
+    
+    """
+    iterative patching by fan stitching the openloop and keeping the largest mesh component until there is no more loops
+    """
+    import igl
+    import trimesh
+
+    print('patching all holes .... ')
+    # first clean mesh loops
+    mesh_clean = clean_mesh_loops(mesh, min_size=3, reindex_mesh=reindex_mesh)
+    mesh_out = mesh_clean.copy()
+
+    patch = True
+
+    while patch:
+    # for iiii in np.arange(1):
+        # get largest
+        loop = igl.boundary_loop(mesh_out.faces)
+        
+        if len(loop) == 0:
+            patch=False
+        else:
+            if method == 'fanstitch':
+                mesh_out = patch_hole_verts_fanstitch(mesh_out, 
+                                                      loop, 
+                                                      subdivisions=subdivisions)
+            if method == 'harmonic':
+                mesh_out = patch_hole_verts_harmonic(mesh_out, 
+                                                        loop, 
+                                                        subdivisions=subdivisions)
+            if method == 'zipper':
+                mesh_out = patch_hole_zip(mesh_out, 
+                                            loop, 
+                                            subdivisions=subdivisions)
+            
+    if reindex_mesh_final:
+        mesh_out = trimesh.Trimesh(mesh_out.vertices,
+                                   mesh_out.faces,
+                                   process=True,
+                                   validate=True)
+
+    return mesh_out
+    
+
+
+def patch_all_holes( mesh, v_inds_list=None, max_size=None, method='harmonic', use_length=False, subdivisions=0):
+
+    r""" patch all holes in a mesh
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    v_inds_list: list of np.array
+        if specified, the list of the vertex indices that requires stitching together. If None, then detect all holes smaller than max size and patch them
+    max_size : int or float
+        the maximum size of hole to patch. bigger than this is excluded. If v_inds_list is given then that takes precedence. 
+    use_length : bool
+        if True, uses the edge length to compute size or else just use the number of points
+    subdivisions : int 
+        the number of times to upsample the stitched over patch.     
+    
+    Returns
+    -------
+    mesh_out : trimesh.Trimesh
+        new mesh with all holes patched
+
+    """
+    
+    import igl
+    
+    mesh_out = mesh.copy()
+     
+    if v_inds_list is not None:
+        all_holes = list(v_inds_list)
+    else:
+        all_holes = igl.all_boundary_loop(mesh.faces)
+        
+
+    if len(all_holes) > 0:
+        if max_size is not None:
+            if use_length == False:
+                hole_sizes = np.hstack([len(hh) for hh in all_holes])
+                fix_holes = np.arange(len(hole_sizes))[hole_sizes < max_size]
+            else:
+                hole_sizes = np.hstack([np.sum(np.linalg.norm( np.diff(mesh.vertices[hh], axis=0), axis=-1)) for hh in all_holes])
+                fix_holes = np.arange(len(hole_sizes))[hole_sizes < max_size]
+        else:
+            fix_holes = np.arange(len(all_holes))
+                
+            
+        if method == 'fanstitch':
+            for hh_ii in fix_holes:
+                mesh_out = patch_hole_verts_fanstitch(mesh_out, 
+                                                      all_holes[hh_ii], 
+                                                      subdivisions=subdivisions)
+
+        if method == 'harmonic':
+            for hh_ii in fix_holes:
+                mesh_out = patch_hole_verts_harmonic(mesh_out, 
+                                                    all_holes[hh_ii], 
+                                                    subdivisions=subdivisions)
+            return mesh_out
+        
+        if method == 'zipper':
+            for hh_ii in fix_holes:
+                mesh_out = patch_hole_zip(mesh_out, 
+                                          all_holes[hh_ii], 
+                                          subdivisions=subdivisions)
+            return mesh_out
+                
+    else:
+        return mesh_out
+
+
+### this is pretty experimental at the moment.... 
+def detect_topographic_mesh_boundary_partialholes(mesh, 
+                                                    vol_shape, 
+                                                    curvature_flow=True, 
+                                                    delta_flow=1e3, 
+                                                    flow_iters=50,
+                                                    nearest_k=15,
+                                                    tol_neighbor_indices=5, 
+                                                    thresh_count=5,
+                                                    dist_tol_factor=1.5,
+                                                    min_size=3):
+    
+    r""" patch a mesh hole by joining boundary points by zippering. this requires an even number of v_inds for which this function will add an extra point, the mean of the start and end points. v_inds should represent a non-closed loop.  
+    
+    the detection works by dividing the boundary of the topography into 4 segments pertaining to the border. Then in each segment it runs nearest neighbor and tests whether a minimal number of neighbor points come from beyond the neighboring indices in the v_inds ordering. If so, then this is evidence of a loop-back and needs stitching. 
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh object
+        mesh given as a trimesh mesh format such as that created by create_mesh in this module. 
+    vol_shape : (3,) tuple
+        gives the topographic volume shape, used to help define the corner segments
+    curvature_flow : bool
+        if True, uses curvature flow of the boundary to help locate the corners of the topography mesh. This is most accurate. If False, the corners will attempt to be found by idealistic matching to 4 corners constructed by ref_depth and the 4 corners of the image grid spanned by vertices of the input mesh
+    delta_flow : scalar 
+        specifies the speed of flow if curvature_flow=True. Higher flow gives faster convergence. 
+    flow_iters : int
+        specifies the number of iterations of curvature flow. Higher will give more flow 
+    nearest_k : int
+        the number of neighbors to use in k-nearest neighbor search.
+    tol_neighbor_indices : int
+        this is the search range of the nearest ordered points on v_inds where we wouldn't be surprised they overlap in u, v coordinate. 
+    thresh_count : int
+        this is the minimum number of points found that violates the neighbor indices condition
+    dist_tol_factor : float
+        multiplication factor of the mean absolute difference in x or y coordinate along the border segments. Used to determine by real distance that two vertex points are overlapping on the segment. 
+    min_size : int
+        the minimum size contiguous number of detected vertices in order to be warrant stitching.
+    
+        
+    Returns
+    -------
+    stitch_verts_inds : np.array
+        sequence of vertex indices to stitch together 
+
+    """
+    
+    import skimage.morphology as skmorph 
+    import skimage.measure as skmeasure
+    import point_cloud_utils as pcu
+
+    
+    ### find the corner boundaries 
+    bnd, corner_bnd_ind, corner_v_ind = find_and_loc_corner_rect_open_surface(mesh, 
+                                                                              vol_shape=vol_shape, 
+                                                                              ref_depth=0, 
+                                                                              order='cc', 
+                                                                              curvature_flow=curvature_flow, 
+                                                                              delta_flow=delta_flow, 
+                                                                              flow_iters=flow_iters)
+    
+    # reconstruct the border segments. 
+    border_segments = reconstruct_border_inds(bnd, corner_bnd_ind)
+    border_segments_verts = [bnd[bb] for bb in border_segments]
+    
+
+    stitch_verts_inds = []
+    
+    ### iterate for each segment check which of x, or y is meant to be changing and find segments where nearest neighbors are spaced far. 
+    for seg_ii in np.arange(len(border_segments_verts))[:]:
+        
+        pts_seg_ii = mesh.vertices[border_segments_verts[seg_ii]]
+        
+        # find the mean change. 
+        mean_change_0 = np.abs(np.nanmean(np.diff(pts_seg_ii[:,1], axis=0)))
+        mean_change_1 = np.abs(np.nanmean(np.diff(pts_seg_ii[:,2], axis=0)))
+        
+        
+        if mean_change_0 < mean_change_1:
+            pts_a = np.vstack([np.zeros(len(pts_seg_ii)), 
+                                np.zeros(len(pts_seg_ii)),
+                               pts_seg_ii[:,2]]).T
+            dists_b_to_a, corrs_b_to_a = pcu.k_nearest_neighbors(pts_a, pts_a, nearest_k)
+            # # dists_b_to_a, corrs_b_to_a = pcu.k_nearest_neighbors(pts_seg_ii_xy, pts_seg_ii_xy, k)
+            dist_flag = np.sum(dists_b_to_a > (mean_change_1*dist_tol_factor), axis=1) == 0 
+            criteria_flag =  np.sum(np.abs(corrs_b_to_a-np.arange(len(corrs_b_to_a))[:,None]) > tol_neighbor_indices, axis=1) > thresh_count
+            flag_nodes = np.logical_and(dist_flag, criteria_flag)
+
+        else:
+            pts_a = np.vstack([np.zeros(len(pts_seg_ii)), 
+                                np.zeros(len(pts_seg_ii)),
+                               # pts_seg_ii[:,0],
+                               pts_seg_ii[:,1]]).T
+            dists_b_to_a, corrs_b_to_a = pcu.k_nearest_neighbors(pts_a, pts_a, nearest_k)
+            dist_flag = np.sum(dists_b_to_a > (mean_change_0*dist_tol_factor), axis=1) ==0 
+            criteria_flag =  np.sum(np.abs(corrs_b_to_a-np.arange(len(corrs_b_to_a))[:,None]) > tol_neighbor_indices, axis=1) > thresh_count
+            flag_nodes = np.logical_and(dist_flag, criteria_flag)
+            
+            
+        #### detect contig. regions. # and take the first chronological and smallest.  
+        # treat as image
+        if np.sum(flag_nodes) > 0: 
+        
+            flag_nodes_img = np.vstack([flag_nodes,
+                                        flag_nodes,
+                                        flag_nodes])>0
+            flag_nodes_img = skmorph.remove_small_objects(flag_nodes_img, min_size=min_size*3)
+            flag_nodes_img_label = skmeasure.label(flag_nodes_img>0)
+            
+            positions = np.argwhere(flag_nodes_img_label>0)
+        
+            if len(positions)>0:
+                start_index = positions[0,1]; 
+                end_index = positions[-1,1]
+                correct_vert_indices = (border_segments_verts[seg_ii])[start_index:end_index+1]
+                stitch_verts_inds.append(correct_vert_indices)
+
+    return stitch_verts_inds
+
+
+def detect_low_quality_triangles(v,f, q_thresh=0.1, map_to_verts=False):
+    
+    r""" Computes a face quality score from 0-1 where 1 is the perfect equilateral triangle. Optionally map the computed values to a vertex scalar. 
+    
+    Parameters
+    ----------
+    v : (NV,3) array
+        mesh vertex coordinates
+    f : (NF,3) array
+        face connectivity of mesh
+    q_thresh : float (0-1)
+        quality scores < q_thresh are deemed low quality faces. 
+    map_to_verts : bool 
+        if True, returns the score and boolean on the vertex instead of as by default a face measure. 
+        
+    Returns
+    -------
+    q : np.array
+        an (NV,) or (NF,) array of the triangle quality as vertex or face-associated measure.
+    q_bool : np.array
+        an (NV,) or (NF,) binary array of low quality vertices or faces
+
+    """
+    import igl
+    import numpy as np 
+    import skimage.filters as skfilters 
+
+    q =  2.* igl.inradius(v,f) / igl.circumradius(v,f)# 2 * inradius / circumradius
+
+    if q_thresh is None:
+        q_thresh = skfilters.threshold_otsu(q)
+    
+    if map_to_verts:
+        q = igl.average_onto_vertices(v,f,
+                                        np.vstack([q,
+                                                   q,
+                                                   q]).T)[:,0]
+        
+    q_bool = q<q_thresh
+    
+    return q, q_bool
+
+
+def _detect_nonconverged_triangles(mesh, 
+                                   mesh_ref, 
+                                   q_thresh=0.1, 
+                                   max_dist_cutoff=3, 
+                                   sigma_dist_cutoff=3, 
+                                   sigma_area_cutoff=3, 
+                                   nearest_k=1,
+                                   close_holes_voxels=1,
+                                   dilate_voxels=3,
+                                   erode_voxels=3,
+                                   minsize=5,
+                                   maxsize=50):
+    
+    
+    import point_cloud_utils as pcu
+    import skimage.morphology as skmorph
+    import skimage.measure as skmeasure
+    import scipy.ndimage as ndimage 
+    import numpy as np 
+    import igl
+    
+    
+    """
+    find curvature --- we should orient and make sure!. 
+    """
+    inverted = np.sign(mesh.volume) == -1
+    
+    if inverted:
+        v1, v2, k1, k2 = igl.principal_curvature(mesh.vertices, mesh.faces[:,::-1], radius=11) # make it larger.
+    else:
+        v1, v2, k1, k2 = igl.principal_curvature(mesh.vertices, mesh.faces, radius=11) # make it larger.
+    h2 = 0.5 * (k1 + k2)
+    
+    # if use_face:
+    #     h2  = igl.average_onto_faces(mesh.faces, h2) # this is fine. 
+    pos_curvature_bool = h2 > 1e-2 # which is which? 
+    
+    # # test 1, triangle quality 
+    # if use_face: 
+    #     q, bad_q_bool = detect_low_quality_triangles(mesh.vertices,
+    #                                                 mesh.faces, q_thresh=q_thresh, map_to_verts=False)
+    # else:
+    q, bad_q_bool = detect_low_quality_triangles(mesh.vertices,
+                                                mesh.faces, q_thresh=q_thresh, map_to_verts=True)
+        
+    # if use_face: 
+    #     pts_query = igl.barycenter(mesh.vertices, mesh.faces)
+    #     pts_ref = igl.barycenter(mesh_ref.vertices, mesh_ref.faces)
+    # else:
+    pts_query = mesh.vertices.copy()
+    pts_ref = mesh_ref.vertices.copy()
+    # test 2, distance to reference. 
+    dists_a_b, index_a_b = pcu.k_nearest_neighbors(pts_query, # current barycenters
+                                                   pts_ref, # target barycenters
+                                                   k = nearest_k)  # take the nearest as the most extremal.
+
+    if len(dists_a_b.shape)==1:
+        dists_a_b = dists_a_b[:,None]
+    mean_dist_mesh_ref = np.nanmean(dists_a_b, axis=1)
+    
+    dist_thresh = np.maximum(max_dist_cutoff, 
+                             np.nanmean(mean_dist_mesh_ref) + sigma_dist_cutoff*np.nanstd(mean_dist_mesh_ref)) # don't set by otsu
+
+    #### try thresholding.... #### we could have done this after thresholding... to do label_prop.
+    bad_verts_dist_bool = mean_dist_mesh_ref >= dist_thresh
+    
+    
+    """
+    remove very large triangles - corresponding to large flat areas
+    """
+    mesh_triangle_areas = igl.doublearea(mesh.vertices,
+                                    mesh.faces)
+    # if use_face == False: 
+    mesh_triangle_areas = igl.average_onto_vertices(mesh.vertices, 
+                                                     mesh.faces, 
+                                                     np.hstack([mesh_triangle_areas[:,None]]*3))[:,0]
+
+    # get the preliminary combined bad 
+    remove_irregular = np.logical_or(bad_q_bool, bad_verts_dist_bool) # remove both !.
+    # remove_irregular = np.logical_and(bad_verts_q_bool, bad_verts_dist_bool) # remove both !.
+    remove_irregular = np.logical_or(mesh_triangle_areas>np.mean(mesh_triangle_areas)+sigma_area_cutoff*np.std(mesh_triangle_areas), 
+                                     remove_irregular)
+    
+    # # implementing additional curvature check!.
+    remove_irregular = np.logical_and(remove_irregular, pos_curvature_bool==0) # only take non-position curvature? 
+    
+    remove_irregular = remove_small_mesh_components_binary(mesh.vertices,
+                                                           mesh.faces,
+                                                           labels=remove_irregular*1,
+                                                           vertex_labels_bool=True,
+                                                           physical_size=False,
+                                                           minsize=minsize)
+
+    #### now we do some postprocessing using voxelization to get contig regions.  
+    pad = dilate_voxels * 3
+    
+    max_size = np.max(mesh.vertices, axis=0).astype(np.int32)+2*pad
+    voxel_binary_remove = np.zeros(max_size, dtype=bool)
+    
+    verts_remove = mesh.vertices[remove_irregular>0].astype(np.int32)
+    voxel_binary_remove[verts_remove[:,0]+pad, verts_remove[:,1]+pad, verts_remove[:,2]+pad] = 1 # populate the array. 
+
+    # apply closing and dilation.
+    voxel_binary_remove = ndimage.binary_closing(voxel_binary_remove, structure=skmorph.ball(1), iterations=close_holes_voxels)
+    voxel_binary_remove = ndimage.binary_fill_holes(voxel_binary_remove)
+    
+    if dilate_voxels>0:
+        voxel_binary_remove = ndimage.binary_dilation(voxel_binary_remove, structure=skmorph.ball(1), iterations=dilate_voxels)
+    if erode_voxels>0:
+        voxel_binary_remove = ndimage.binary_erosion(voxel_binary_remove, structure=skmorph.ball(1), iterations=erode_voxels)
+    voxel_binary_remove = skmorph.remove_small_objects(voxel_binary_remove, min_size=minsize)
+    
+    # also remove large holes
+    if np.sum(voxel_binary_remove)>0:
+        labelled = skmorph.label(voxel_binary_remove)
+        regprops = skmeasure.regionprops(labelled)
+        
+        areas = np.hstack([reg.area for reg in regprops])
+        remove_ids = areas > maxsize
+        
+        for idd in remove_ids:
+            voxel_binary_remove[labelled==idd] = 0 # zero out.
+        
+    """
+    to do: check curvature, remove those that have net positive curvature to avoid including genuine features like filopodia tips.
+    """
+    remove_irregular = voxel_binary_remove[mesh.vertices[:,0].astype(np.int32)+pad,
+                                           mesh.vertices[:,1].astype(np.int32)+pad,
+                                           mesh.vertices[:,2].astype(np.int32)+pad]
+    
+    return q, mean_dist_mesh_ref, remove_irregular
+
+
+def remove_nonshrinkwrap_triangles(mesh_in,
+                                   mesh_ref,
+                                   q_thresh=0.1,
+                                   max_dist_cutoff=1.5,
+                                   sigma_dist_cutoff=2, 
+                                   sigma_area_cutoff=2, 
+                                   nearest_k=1,
+                                   dilate_voxels=3,
+                                   erode_voxels=1,
+                                   minsize=10):
+    
+    import scipy.stats as spstats
+    
+    q, dist_ref, remove_bool = _detect_nonconverged_triangles(mesh_in, 
+                                                              mesh_ref, # this is the reference mesh. 
+                                                              q_thresh=q_thresh, # this might be ok. but we should also try self-intersections distances. 
+                                                              max_dist_cutoff=max_dist_cutoff, 
+                                                              sigma_dist_cutoff=sigma_dist_cutoff, 
+                                                              sigma_area_cutoff=sigma_area_cutoff,
+                                                              nearest_k=nearest_k,
+                                                              dilate_voxels=dilate_voxels,
+                                                              erode_voxels=erode_voxels,
+                                                              minsize=minsize)
+
+    """
+    wrap the following into a function ( also since we removing on faces.... we might stick with faces!. )
+    """
+    mesh_wrap = mesh_in.copy()
+    
+    # cut, largest_component and patch. 
+    remove_faces_bool = spstats.mode((remove_bool[mesh_in.faces]*1).astype(np.int32), axis=1)[0]
+    keep_faces_bool = np.logical_not(remove_faces_bool>0)
+    
+    # modify the mesh faces 
+    mesh_wrap.faces = mesh_wrap.faces[keep_faces_bool]
+    
+    # keep largest mesh
+    mesh_comps = mesh_wrap.split(only_watertight=False)
+    mesh_wrap = mesh_comps[np.argmax([len(cc.vertices) for cc in mesh_comps])] # keep the largest comp.
+    
+    # stitch the resultant holes
+    mesh_wrap = patch_all_holes_exhaustive( mesh_wrap, 
+                                            method='fanstitch', # should be most reliable for 1. 
+                                            subdivisions=0, # increase this? 
+                                            reindex_mesh=False, 
+                                            reindex_mesh_final=True)
+    
+    return mesh_wrap
+
+ 
+# #### here is the primary genus0 shrinkwrap with all the bells and whistles. 
+# def shrinkwrap_genus0_beta(mesh_in, 
+#                       voxelize_padsize=25,
+#                       voxelize_dilate_ksize = 3, 
+#                       voxelize_erode_ksize = 3,
+#                       extra_pad=25,
+#                       tightest_genus0_initial=False,
+#                       genus0_alpha_frac = 0.1,
+#                       genus0_alpha_auto = False,
+#                       genus0_offset = 0.1,
+#                       genus0_tol = 0.1, 
+#                       total_shrinkwrap_iters = 100,
+#                       total_refine_shrinkwrap_iters=100,
+#                       check_nonconverge_triangles=True, 
+#                       decay_rate = 1/2.,
+#                       remesh_iters=10,
+#                       conformalize=False, # use active contours
+#                       min_size=80000, # minimum mesh vertices
+#                       upsample=1, 
+#                       min_lr=0.24, # minimum step_size dropping from 1.
+#                       make_manifold = True,
+#                       watertight_fraction=0.1,
+#                       deltaL=5e-4,
+#                       alpha=0.2,
+#                       beta=.5,# what if we reduce the bending? 
+#                       solver='pardiso',
+#                       debugviz=False):
+    
+#     import point_cloud_utils as pcu
+#     import scipy.ndimage as ndimage
+#     import igl 
+#     import scipy.stats as spstats
+#     from ..Segmentation import segmentation as unwrap3D_segmentation
+#     import pylab as plt 
+#     from matplotlib import cm
+#     from ..Visualisation import colors as vol_colors
+    
+    
+#     mesh = mesh_in.copy()
+    
+#     """
+#     Repair input mesh 
+#     """
+#     #### we don't have to do this. 
+#     remove_offset = 0
+    
+#     if make_manifold: 
+#         if mesh.is_watertight == False:
+                
+#             # print('using manifold')
+#             v_watertight, f_watertight = pcu.make_mesh_watertight(mesh.vertices, 
+#                                                                   mesh.faces, 
+#                                                                   resolution=watertight_fraction*len(mesh.faces))
+#             # min_coords = np.min(v_watertight, axis=0)
+#             v_watertight = v_watertight - np.min(v_watertight, axis=0) + 20
+            
+#             mesh_watertight = create_mesh(v_watertight,
+#                                           f_watertight)
+            
+#             remove_offset = 20 - np.min(mesh.vertices, axis=0)
+#             mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            
+#         else:
+#             mesh_watertight = mesh.copy()
+#             remove_offset = 0 
+#     else:
+#         mesh_watertight = mesh.copy()
+#         remove_offset = 0
+#     print('initial:', mesh.euler_number)
+#     print('initial_watertight:', mesh_watertight.euler_number)
+    
+#     """
+#     1. derive the binary to compute the edge gradient vector. 
+#         # fix this. 
+#     """
+#     binary = voxelize_image_mesh_pts(mesh_watertight,
+#                                      pad=voxelize_padsize, 
+#                                      dilate_ksize=voxelize_dilate_ksize,
+#                                      erode_ksize=voxelize_erode_ksize)
+    
+#     # debugviz
+#     if debugviz:
+#         import pylab as plt 
+#         plt.figure()
+#         plt.title('checking voxelized binary matches mesh vertices')
+#         plt.imshow(binary.max(axis=0)); 
+#         plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'r.', alpha=0.1)
+#         plt.show()
+        
+#     binary = ndimage.zoom(binary * 255., 
+#                           zoom=[upsample,upsample,upsample], # why i need to upsample? 
+#                           order=1, 
+#                           mode='reflect')
+#     binary = binary / 255. > 0.5
+#     binary = np.pad(binary, 
+#                     pad_width=[[extra_pad, extra_pad], [extra_pad, extra_pad], [extra_pad, extra_pad]])
+    
+    
+#     # """
+#     # rederive the mesh. consistent with the binary --- not important for now. 
+#     # """
+#     # mesh = meshtools.marching_cubes_mesh_binary(binary, 
+#     #                                             presmooth=1., 
+#     #                                             contourlevel=.5, 
+#     #                                             remesh=True, 
+#     #                                             remesh_method='pyacvd', 
+#     #                                             remesh_samples=.5, 
+#     #                                             remesh_params=None, 
+#     #                                             predecimate=True, 
+#     #                                             min_mesh_size=40000, 
+#     #                                             keep_largest_only=True, 
+#     #                                             min_comp_size=20, 
+#     #                                             split_mesh=True, 
+#     #                                             upsamplemethod='barycenter',
+#     #                                             pad_width=10)
+#     # print('remesh voxelize:', mesh.euler_number)
+    
+    
+#     # mesh = 
+    
+#     """
+#     technically if this is 2 then we are done ... else we do the minimal alpha wrap and do refinement. 
+#     """
+#     mesh.vertices = mesh.vertices + extra_pad
+#     mean_extent = np.mean(mesh.extents) # estimate the mean extent. 
+    
+#     # mesh_genus0, mesh_interval = meshtools.alphawrap_genus0(mesh, 
+#     #                                                           max_factor=0.5, 
+#     #                                                           offset=1, # how tight should this be set!.  # interesting....
+#     #                                                           tol=0.1)
+#     # print(mesh_interval)
+    
+#     if genus0_alpha_auto: 
+#         mesh_genus0, mesh_interval = alphawrap_genus0(mesh, 
+#                                                       max_factor=genus0_alpha_frac*mean_extent, 
+#                                                       offset=genus0_offset, # how tight should this be set!.  # interesting....
+#                                                       tol=genus0_tol)
+#         print('initiating a genus-0 mesh automatically with interval: ', mesh_interval)
+        
+#     else:
+#         v,f = alpha_wrap(mesh.vertices,
+#                          alpha=genus0_alpha_frac*mean_extent,
+#                          offset=genus0_tol)
+#         mesh_genus0 = create_mesh(v,f)
+        
+#         print('initiating a genus-0 mesh to user specification with alpha, offset: (%s, %s)' %(genus0_alpha_frac*mean_extent, genus0_tol))    
+    
+#     if debugviz:
+#         # viz. 
+#         fig = plt.figure(figsize=(8,8))
+#         ax = fig.add_subplot(projection='3d')
+#         ax.scatter(mesh_genus0.vertices[...,2], 
+#                    mesh_genus0.vertices[...,1],
+#                    mesh_genus0.vertices[...,0], 
+#                    s=0.1, 
+#                    c='k') 
+#         ax.view_init(-60, 180)
+#         # plotting.set_axes_equal(ax)
+#         plt.show()
+        
+#         # tmp = mesh_genus0.export('genus0_alphawrap_initial.obj')
+    
+#     """
+#     2. compute the extended attraction surface vector field. 
+#     """
+#     vector_field, sdf = unwrap3D_segmentation.edge_attract_gradient_vector(binary, 
+#                                                                            return_sdf=True, 
+#                                                                            smooth_gradient=1, # better to not smooth. 
+#                                                                            eps=1e-12, 
+#                                                                            norm_vectors=True,
+#                                                                            rev_sign=False)
+
+#     # do we want curvature regulation ? 
+    
+#     # # sdf_normals = np.array(np.gradient(sdf))
+#     # # sdf_normals = sdf_normals/(np.linalg.norm(sdf_normals, axis=0)[None,...] + 1e-12)
+#     # curvature_2D = segmentation.mean_curvature_field(vector_field)
+#     # # curvature_2D = ndimage.gaussian_filter(curvature_2D, sigma=1)
+#     # curvature_2D = _normalize99(np.abs(curvature_2D)) # rescales to a factor between 0-1
+    
+#     # # # # # exp_dist = np.exp(-(np.max(np.abs(sdf)) - np.abs(sdf))/np.mean(np.abs(sdf)))
+    
+#     # # # # # cutoff = 50
+#     # # # # # exp_dist = np.exp(-(np.mean(np.abs(sdf))- np.abs(sdf))/np.mean(np.abs(sdf)))
+#     # # # # # exp_dist = np.exp(-np.abs(sdf)- np.abs(sdf))/np.mean(np.abs(sdf))
+#     # # # # exp_dist = np.exp(-(np.abs(sdf))/np.mean(np.abs(sdf)))
+#     # # # # # exp_dist = (exp_dist-exp_dist.min()) /(exp_dist.max()-exp_dist.min())
+#     # # # # # exp_dist = np.clip(exp_dist, 0.1, 1)
+#     # # # # vector_field = vector_field * exp_dist[None,...] # multiplicative factor distance based rescaling 
+    
+#     # vector_field = vector_field * curvature_2D[None,...]
+
+#     """
+#     3. shrinkwrap
+#     """
+#     ### preprocess the mesh 
+#     mesh_wrap = mesh_genus0.copy()
+    
+#     # # correct the coordinates of the mesh_genus0 mesh.
+#     mesh_genus0.vertices = mesh_genus0.vertices - extra_pad - remove_offset #+ 0.5
+    
+    
+#     # make sure now that the centroids are matched.!
+#     # mesh_genus0_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_genus0.vertices, axis=0)
+#     # mesh_genus0.vertices = mesh_genus0.vertices + mesh_genus0_diff[None,:]
+    
+    
+#     # upsample - is it because of this ? 
+#     while len(mesh_wrap.vertices) < min_size: # this is needed. 
+#         mesh_wrap = upsample_mesh(mesh_wrap, 
+#                                   method='inplane') # turns out inplane subdivision appears essential ?
+    
+#     print(mesh_wrap.vertices.shape)
+    
+    
+#     if debugviz:
+#         plt.figure(figsize=(8,8))
+#         plt.imshow(binary.max(axis=0)); 
+#         plt.plot(mesh_wrap.vertices[:,2], mesh_wrap.vertices[:,1], 'r.', alpha=0.01)
+#         plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'g.', alpha=0.01)
+#         plt.show()
+        
+#         fig = plt.figure(figsize=(8,8))
+#         ax = fig.add_subplot(projection='3d')
+#         ax.scatter(mesh_wrap.vertices[...,2], 
+#                     mesh_wrap.vertices[...,1],
+#                     mesh_wrap.vertices[...,0], 
+#                     s=0.1, 
+#                     c='k') 
+#         ax.view_init(-60, 180)
+#         # plotting.set_axes_equal(ax)
+#         plt.show()
+        
+    
+#     # factor = 0.25
+    
+    
+#     """
+#     now we assess convergence at each step. # this part we should separate out into a separate reusable function!)
+#     """
+#     # this is the reference point cloud which will be used to assess convergence. 
+#     mesh_ref_v = mesh.vertices
+    
+#     mesh_iter = [mesh_wrap]
+#     chamfer_dist = [pcu.chamfer_distance(mesh_wrap.vertices, mesh_ref_v)]
+#     euler_numbers_iter = [mesh_wrap.euler_number]
+    
+#     lr = 1 
+    
+#     for iii in np.arange(total_shrinkwrap_iters//remesh_iters):
+        
+#         print(iii)
+        
+#         if iii>0:
+            
+#             # # # # decimate and remesh
+#             # mesh_wrap.vertices = pcu.laplacian_smooth_mesh(mesh_wrap.vertices, 
+#             #                                                 mesh_wrap.faces, 
+#             #                                                 num_iters=1, use_cotan_weights=True) # ad some smoothing too. 
+            
+#             # mesh_wrap = meshtools.upsample_mesh(mesh_wrap, method='inplane')
+            
+#             ##### directly go to mesh-editting.... # what we want is remove the highly stretched faces. relative to the first timepoint.
+#             # and do so in a way that preserves the topology. 
+                    
+#             mesh_wrap = decimate_resample_mesh(mesh_wrap, 
+#                                                remesh_samples=0.5)
+            
+#             # upsample 
+#             # while len(mesh_wrap.vertices) < ((1.+factor)**iii)*min_size:
+#             while len(mesh_wrap.vertices) < min_size:
+#             # while igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces) > 1: 
+#                 mesh_wrap = upsample_mesh(mesh_wrap, method='inplane')
+                
+#             # print(len(mesh_wrap.vertices))
+#             # print(igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces))
+#             print('==========================')
+#             print(mesh_wrap.euler_number)
+#             print('--------------------------')
+            
+#         # if iii < 3: 
+#         Usteps = parametric_mesh_constant_img_flow(mesh_wrap, 
+#                                                     external_img_gradient=vector_field.transpose(1,2,3,0), 
+#                                                     # mesh_ref=None, 
+#                                                       niters=remesh_iters, 
+#                                                       # momenta=0., 
+#                                                       deltaL=deltaL, 
+#                                                       step_size=lr, 
+#                                                       method='implicit', 
+#                                                       robust_L=False, 
+#                                                       mollify_factor=1e-5,
+#                                                       conformalize=conformalize, 
+#                                                       eps=1e-12,
+#                                                       alpha=alpha,
+#                                                       beta=beta,# what if we reduce the bending? 
+#                                                       solver=solver)
+  
+#         mesh_wrap = create_mesh(Usteps[...,-1], 
+#                                 mesh_wrap.faces)
+        
+#         # recompute distance
+#         diff = pcu.chamfer_distance(mesh_wrap.vertices, 
+#                                     mesh_ref_v)
+        
+        
+#         # if np.abs(diff - chamfer_dist[-1]) < 1e-2: 
+#         if diff > chamfer_dist[-1]: 
+#             # drop the learning rate. 
+#             if lr*decay_rate > min_lr:
+#                 lr = lr*decay_rate # half this.
+#             else:
+#                 lr = 1. 
+            
+#             print(iii, diff, 'changing lr: ', lr)
+        
+#         print(iii, diff)
+        
+#         # this should be a new copy.
+#         mesh_wrap_out = mesh_wrap.copy()
+#         mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+        
+#         # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
+#         # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
+        
+#         chamfer_dist.append(diff)
+#         euler_numbers_iter.append(mesh_wrap.euler_number)
+#         mesh_iter.append(mesh_wrap_out)
+
+        
+#     """
+#     if specified... detect for and remove bad triangles and far away triangles. 
+#     """
+#     if check_nonconverge_triangles==True:
+
+#         mesh_wrap = mesh_iter[np.argmin(chamfer_dist)].copy() # take this 
+#         mesh_wrap.vertices = mesh_wrap.vertices + extra_pad + remove_offset
+        
+#         """
+#         determine a vertex boolean for removal. 
+#         """
+#         # tri quality check 
+#         q_thresh = 0.3 
+#         sigma_dist_cutoff = 1 # this should only fire in the necked region.... 
+#         dist_cutoff = 5 ### this seems to be removing a ton..... !? 
+#         minsize_vertex_remove = 10
+#         minsize_vertex_remove_physical_size=True
+#         minsize_vertex_remove_postdiffuse = 10
+#         minsize_vertex_remove_physical_size_postdiffuse = False
+#         diffuse_alpha = 0.05 
+#         # diffuse_alpha = 0.1 
+        
+#         # centers = igl.barycenter(mesh_wrap.vertices,
+#         #                          mesh_wrap.faces)
+#         # # compute the face quality measure. 
+        
+#         q =  2.* igl.inradius(mesh_wrap.vertices, mesh_wrap.faces) / igl.circumradius(mesh_wrap.vertices, mesh_wrap.faces)# 2 * inradius / circumradius
+
+#         # tri distance check 
+#         dists_a_b, index_a_b = pcu.k_nearest_neighbors(mesh_wrap.vertices, # current barycenters 
+#                                                        mesh.vertices, # target barycenters
+#                                                         k = 1)  # take the nearest as the most extremal.    
+        
+#         ### check for overlap. 
+#         fig = plt.figure(figsize=(8,8))
+#         ax = fig.add_subplot(projection='3d')
+#         ax.scatter(mesh.vertices[...,2], 
+#                    mesh.vertices[...,1],
+#                    mesh.vertices[...,0], 
+#                    s=0.1, 
+#                    c='k') 
+#         ax.scatter(mesh_wrap.vertices[...,2], 
+#                    mesh_wrap.vertices[...,1],
+#                    mesh_wrap.vertices[...,0], 
+#                    s=0.1, 
+#                    c='r') 
+#         ax.view_init(-60, 180)
+#         # plotting.set_axes_equal(ax)
+#         plt.show()
+        
+        
+#         if len(dists_a_b.shape)==1:
+#             dists_a_b = dists_a_b[:,None]
+#         mean_dist_mesh_ref = np.nanmean(dists_a_b, axis=1)
+
+
+#         # export mesh. 
+#         mesh_wrap.visual.vertex_colors = np.uint8(255*vol_colors.get_colors(mean_dist_mesh_ref, 
+#                                                                             colormap=cm.coolwarm)[:,:3])
+        
+#         tmp = mesh_wrap.export('mean_dist_ref.obj')
+
+
+#         dist_thresh = np.maximum(dist_cutoff, np.nanmean(mean_dist_mesh_ref) + sigma_dist_cutoff*np.nanstd(mean_dist_mesh_ref)) # don't set by otsu
+#         print(dist_thresh)
+#         print('=====')
+        
+#         #### try thresholding.... #### we could have done this after thresholding... to do label_prop.
+#         remove_irregular_dist = mean_dist_mesh_ref>dist_thresh
+
+
+#         v_q = igl.average_onto_vertices(mesh_wrap.vertices, 
+#                                         mesh_wrap.faces, 
+#                                         np.vstack([q,
+#                                                    q,
+#                                                    q]).T)
+#         remove_irregular_tri = v_q[:,0]<q_thresh
+        
+        
+#         mesh_wrap.visual.vertex_colors = np.uint8(255*vol_colors.get_colors(v_q[:,0], 
+#                                                                             colormap=cm.coolwarm)[:,:3])
+#         tmp = mesh_wrap.export('tri_quality_ref.obj')
+        
+        
+#         import skimage.filters as skfilters
+#         print(skfilters.threshold_otsu(v_q))
+        
+        
+#         remove_irregular = np.logical_or(remove_irregular_dist, remove_irregular_tri) # remove both !. 
+#         # remove_irregular = np.logical_and(remove_irregular_dist, remove_irregular_tri)
+#         # remove_irregular = remove_irregular_tri
+        
+#         """
+#         diffuse the vertex boolean over the mesh to ensure more smoothness
+#         """
+#         vertex_remove_labels = remove_small_mesh_components_binary(mesh_wrap.vertices,
+#                                                                    mesh_wrap.faces,
+#                                                                    labels=remove_irregular*1, 
+#                                                                    vertex_labels_bool=True, 
+#                                                                    physical_size=minsize_vertex_remove_physical_size, 
+#                                                                    minsize=minsize_vertex_remove)
+            
+        
+#         """
+#         instead of below we should try voxelizing the vertex remove_labels and then using volumetric ball dilations to remove the entire patch ---- test this in isolation!. 
+#         """
+        
+#         # # set up the affinity function for diffusion!. 
+#         # W_mesh = vertex_geometric_affinity_matrix(mesh_wrap, 
+#         #                                           gamma=None, 
+#         #                                           eps=1e-12, 
+#         #                                           alpha=diffuse_alpha, # smaller abides by the dihedral angle.
+#         #                                           normalize=True)
+
+#         # # label diffusion.
+#         # z_label_props_labels, z_label_props_labels_proba = labelspreading_mesh_binary(mesh_wrap.vertices,
+#         #                                                                               mesh_wrap.faces,
+#         #                                                                               (vertex_remove_labels==1)*1,
+#         #                                                                               W=W_mesh, 
+#         #                                                                               niters=15, # how many iterations? 
+#         #                                                                               return_proba=True, 
+#         #                                                                               thresh=.4)# thresholding gives faster convergence... 
+
+#         # # small hole inpainting 
+#         # vertex_remove_labels = remove_small_mesh_label_holes_binary(mesh_wrap.vertices,
+#         #                                                             mesh_wrap.faces,
+#         #                                                             labels=np.array(z_label_props_labels)*1, 
+#         #                                                             vertex_labels_bool=True, 
+#         #                                                             physical_size=minsize_vertex_remove_physical_size_postdiffuse, 
+#         #                                                             minsize=minsize_vertex_remove_postdiffuse)
+
+        
+#         fig = plt.figure(figsize=(8,8))
+#         ax = fig.add_subplot(projection='3d')
+#         ax.scatter(mesh_wrap.vertices[...,2], 
+#                    mesh_wrap.vertices[...,1],
+#                    mesh_wrap.vertices[...,0], 
+#                    s=0.1, 
+#                    c=vertex_remove_labels,
+#                    cmap='coolwarm') 
+#         ax.view_init(-60, 180)
+#         # plotting.set_axes_equal(ax)
+        
+
+#         # Cut these vertices from the mesh. 
+#         remove_faces_bool = spstats.mode(vertex_remove_labels[mesh_wrap.faces], axis=1)[0]
+#         keep_faces_bool = np.logical_not(remove_faces_bool)
+
+#         # modify the mesh faces 
+#         mesh_wrap.faces = mesh_wrap.faces[keep_faces_bool]
+        
+#         # keep largest mesh
+#         mesh_comps = mesh_wrap.split(only_watertight=False)
+#         mesh_wrap = mesh_comps[np.argmax([len(cc.vertices) for cc in mesh_comps])] # keep the largest comp.
+        
+#         """
+#         save this out. 
+#         """
+#         tmp = mesh_wrap.export('tmp.obj') # up to here is fine... as in it runs.. 
+        
+#         """
+#         stitch the resultant holes. 
+#         """
+#         # does this not work? 
+#         mesh_wrap_stitch = patch_all_holes_exhaustive( mesh_wrap, 
+#                                                        method='fanstitch', # should be most reliable for 1. 
+#                                                        subdivisions=0, 
+#                                                        reindex_mesh=False, 
+#                                                        reindex_mesh_final=True)
+        
+#         """
+#         extra refine. 
+#         """
+#         refine_mesh_iter = [mesh_wrap_stitch]
+#         refine_chamfer_dist = [pcu.chamfer_distance(mesh_wrap_stitch.vertices, mesh_ref_v)]
+#         refine_euler_numbers_iter = [mesh_wrap_stitch.euler_number]
+        
+#         lr = 1 
+        
+#         mesh_wrap_refine = mesh_wrap_stitch.copy()
+        
+        
+#         for jjj in np.arange(total_refine_shrinkwrap_iters//remesh_iters):
+            
+#             print('refine ', jjj)
+
+#             mesh_wrap_refine = decimate_resample_mesh(mesh_wrap_refine, 
+#                                                       remesh_samples=0.5)
+            
+#             # upsample 
+#             # while len(mesh_wrap.vertices) < ((1.+factor)**iii)*min_size:
+#             while len(mesh_wrap_refine.vertices) < min_size:
+#             # while igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces) > 1: 
+#                 mesh_wrap_refine = upsample_mesh(mesh_wrap_refine, method='inplane')
+                
+                
+#             print(len(mesh_wrap_refine.vertices))
+#             # print(igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces))
+#             print('==========================')
+#             print(mesh_wrap_refine.euler_number)
+#             print('--------------------------')
+                
+#             # if iii < 3: 
+#             Usteps = parametric_mesh_constant_img_flow(mesh_wrap_refine, 
+#                                                         external_img_gradient=vector_field.transpose(1,2,3,0), 
+#                                                         # mesh_ref=None, 
+#                                                           niters=remesh_iters, 
+#                                                           # momenta=0., 
+#                                                           deltaL=deltaL, 
+#                                                           step_size=lr, 
+#                                                           method='implicit', 
+#                                                           robust_L=False, 
+#                                                           mollify_factor=1e-5,
+#                                                           conformalize=conformalize, 
+#                                                           eps=1e-12,
+#                                                           alpha=alpha,
+#                                                           beta=beta,# what if we reduce the bending? 
+#                                                           solver=solver)
+      
+#             mesh_wrap_refine = create_mesh(Usteps[...,-1], 
+#                                            mesh_wrap_refine.faces)
+            
+#             # recompute distance
+#             diff = pcu.chamfer_distance(mesh_wrap_refine.vertices, 
+#                                         mesh_ref_v)
+            
+            
+#             # if np.abs(diff - chamfer_dist[-1]) < 1e-2: 
+#             if diff > refine_chamfer_dist[-1]: 
+#                 # drop the learning rate. 
+#                 if lr*decay_rate > min_lr:
+#                     lr = lr*decay_rate # half this.
+#                 else:
+#                     lr = 1. 
+                
+#                 print(jjj, diff, 'changing lr: ', lr)
+            
+#             print(jjj, diff)
+            
+#             # this should be a new copy.
+#             mesh_wrap_out_refine = mesh_wrap_refine.copy()
+#             mesh_wrap_out_refine.vertices = mesh_wrap_out_refine.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+            
+#             # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
+#             # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
+#             refine_chamfer_dist.append(diff)
+            
+#             chamfer_dist.append(diff)
+#             euler_numbers_iter.append(mesh_wrap_out_refine.euler_number)
+#             refine_euler_numbers_iter.append(mesh_wrap_out_refine.euler_number)
+            
+#             mesh_iter.append(mesh_wrap_out_refine)
+#             refine_mesh_iter.append(mesh_wrap_out_refine)
+            
+#         # mesh_wrap_out_final = refine_mesh_iter[np.argmin(refine_chamfer_dist)]
+#         mesh_wrap_out_final = mesh_wrap_out_refine.copy()
+        
+#         return mesh_wrap_out_final, mesh_genus0, (chamfer_dist, euler_numbers_iter, mesh_iter), (mesh_wrap, mesh_wrap_stitch)
+
+#     else:
+#         # mesh_genus0.vertices = mesh_genus0.vertices - extra_pad # reverse the geometrical transformations. 
+#         mesh_wrap_out_final = mesh_iter[np.argmin(chamfer_dist)]
+        
+#         return mesh_wrap_out_final, mesh_genus0, (chamfer_dist, euler_numbers_iter, mesh_iter)
+
+
+def _normalize99(Y,lower=0.01,upper=99.99):
+    """ normalize image so 0.0 is 0.01st percentile and 1.0 is 99.99th percentile
+    Upper and lower percentile ranges configurable.
+
+    Parameters
+    ----------
+    Y: ndarray, float
+        Component array of lenth N by L1 by L2 by ... by LN.
+    upper: float
+        upper percentile above which pixels are sent to 1.0
+
+    lower: float
+        lower percentile below which pixels are sent to 0.0
+
+    Returns
+    --------------
+    normalized array with a minimum of 0 and maximum of 1
+
+    """
+    import numpy as np
+
+    X = Y.copy()
+
+    return np.interp(X, (np.percentile(X, lower), np.percentile(X, upper)), (0, 1))
+
+
+def shrinkwrap_genus0(mesh_in, 
+                      voxelize_padsize=25,
+                      voxelize_dilate_ksize = 3, 
+                      voxelize_erode_ksize = 3,
+                      extra_pad=25,
+                      # tightest_genus0_initial=True,
+                      genus0_alpha_frac = 0.1,
+                      genus0_alpha_auto = False,
+                      genus0_offset = 0.1,
+                      genus0_tol = 0.1, 
+                      total_shrinkwrap_iters = 200, # master number of iterations.
+                      decay_rate = 1., # no decay. 
+                      remesh_iters=10,
+                      conformalize=False, # use active contours
+                      min_size=80000, # minimum mesh vertices
+                      upsample=1, 
+                      min_lr=0.24, # minimum step_size dropping from 1.
+                      make_manifold = False,
+                      watertight_fraction=0.1,
+                      deltaL=5e-4,
+                      alpha=0.2,
+                      beta=.5,# what if we reduce the bending? 
+                      solver='pardiso',
+                      curvature_weighting=False, 
+                      check_nonconverge_triangles=True, 
+                      burn_in_refine_epochs=5, # the number of epochs to wait if check_nonconverge_triangles. 
+                      nonconverge_q_thresh=0.1,
+                      nonconverge_max_dist_cutoff=5,
+                      nonconverge_sigma_dist_cutoff=3,
+                      nonconverge_minsize = 20,
+                      nonconverge_refine_iter=20,
+                      debugviz=False,
+                      noprogress_mesh_prop=True):
+    
+    
+    import point_cloud_utils as pcu
+    import scipy.ndimage as ndimage
+    import igl 
+    import numpy as np 
+    import scipy.stats as spstats
+    from ..Segmentation import segmentation as unwrap3D_segmentation
+    import pylab as plt 
+    from matplotlib import cm
+    from ..Visualisation import colors as vol_colors
+    import skimage.morphology as skmorph
+    
+    
+    mesh = mesh_in.copy()
+    
+    """
+    Repair input mesh 
+    """
+    #### we don't have to do this. 
+    remove_offset = 0
+    
+    if make_manifold: 
+        if mesh.is_watertight == False:
+                
+            # print('using manifold')
+            v_watertight, f_watertight = pcu.make_mesh_watertight(mesh.vertices, 
+                                                                  mesh.faces, 
+                                                                  resolution=watertight_fraction*len(mesh.faces))
+            # min_coords = np.min(v_watertight, axis=0)
+            v_watertight = v_watertight - np.min(v_watertight, axis=0) + 20
+            
+            mesh_watertight = create_mesh(v_watertight,
+                                          f_watertight)
+            
+            remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            
+        else:
+            mesh_watertight = mesh.copy()
+            remove_offset = 0 
+    else:
+        mesh_watertight = mesh.copy()
+        remove_offset = 0
+    print('initial:', mesh.euler_number)
+    print('initial_watertight:', mesh_watertight.euler_number)
+    
+    """
+    1. derive the binary to compute the edge gradient vector. 
+        # fix this. 
+    """
+    binary = voxelize_image_mesh_pts(mesh_watertight,
+                                     pad=voxelize_padsize, 
+                                     dilate_ksize=voxelize_dilate_ksize,
+                                     erode_ksize=voxelize_erode_ksize)
+    
+    # debugviz
+    if debugviz:
+        import pylab as plt 
+        plt.figure()
+        plt.title('checking voxelized binary matches mesh vertices')
+        plt.imshow(binary.max(axis=0)); 
+        plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'r.', alpha=0.1)
+        plt.show()
+        
+    binary = ndimage.zoom(binary * 255., 
+                          zoom=[upsample,upsample,upsample], # why i need to upsample? 
+                          order=1, 
+                          mode='reflect')
+    binary = binary / 255. > 0.5
+    binary = np.pad(binary, 
+                    pad_width=[[extra_pad, extra_pad], [extra_pad, extra_pad], [extra_pad, extra_pad]])
+    
+    
+    """
+    technically if this is 2 then we are done ... else we do the minimal alpha wrap and do refinement. 
+        - todo: insert a dropout clause. 
+    """
+    mesh.vertices = mesh.vertices + extra_pad
+    mean_extent = np.mean(mesh.extents) # estimate the mean extent. 
+    
+    # mesh_genus0, mesh_interval = meshtools.alphawrap_genus0(mesh, 
+    #                                                           max_factor=0.5, 
+    #                                                           offset=1, # how tight should this be set!.  # interesting....
+    #                                                           tol=0.1)
+    # print(mesh_interval)
+    
+    if genus0_alpha_auto: 
+        mesh_genus0, mesh_interval = alphawrap_genus0(mesh, 
+                                                      max_factor=genus0_alpha_frac*mean_extent, 
+                                                      offset=genus0_offset, # how tight should this be set!.  # interesting....
+                                                      tol=genus0_tol)
+        print('initiating a genus-0 mesh automatically with interval: ', mesh_interval)
+        
+    else:
+        v,f = alpha_wrap(mesh.vertices,
+                         alpha=genus0_alpha_frac*mean_extent,
+                         offset=genus0_tol)
+        mesh_genus0 = create_mesh(v,f)
+        print('initiating a genus-0 mesh to user specification with alpha, offset: (%s, %s)' %(genus0_alpha_frac*mean_extent, genus0_tol))    
+    
+    if debugviz:
+        # viz. 
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(mesh_genus0.vertices[...,2], 
+                   mesh_genus0.vertices[...,1],
+                   mesh_genus0.vertices[...,0], 
+                   s=0.1, 
+                   c='k') 
+        ax.view_init(-60, 180)
+        # plotting.set_axes_equal(ax)
+        plt.show()
+        
+        # tmp = mesh_genus0.export('genus0_alphawrap_initial.obj')
+    
+    """
+    2. compute the extended attraction surface vector field. 
+    """
+    vector_field, sdf = unwrap3D_segmentation.edge_attract_gradient_vector(binary, 
+                                                                           return_sdf=True, 
+                                                                           smooth_gradient=1, # better to not smooth. 
+                                                                           eps=1e-12, 
+                                                                           norm_vectors=True,
+                                                                           rev_sign=False)
+
+    if curvature_weighting:
+    
+        sdf_normals = np.array(np.gradient(sdf))
+        sdf_normals = sdf_normals/(np.linalg.norm(sdf_normals, axis=0)[None,...] + 1e-12)
+        curvature = unwrap3D_segmentation.mean_curvature_field(sdf_normals)
+        # curvature_2D = ndimage.gaussian_filter(curvature_2D, sigma=1)
+        curvature = _normalize99(np.abs(curvature)) # rescales to a factor between 0-1 to multiply to vector field 
+        vector_field = vector_field * curvature[None,...]
+        
+    """
+    3. shrinkwrap
+    """
+    ### preprocess the mesh 
+    mesh_wrap = mesh_genus0.copy()    
+    # # correct the coordinates of the mesh_genus0 mesh.
+    mesh_genus0.vertices = mesh_genus0.vertices - extra_pad - remove_offset #+ 0.5
+
+    
+    #### make sure there is enough vertices.! 
+    # upsample - is it because of this ? 
+    while len(mesh_wrap.vertices) < min_size: # this is needed. 
+        mesh_wrap = upsample_mesh(mesh_wrap, 
+                                  method='inplane') # turns out inplane subdivision appears essential ?
+    
+    print(mesh_wrap.vertices.shape)
+    
+    
+    if debugviz:
+        plt.figure(figsize=(8,8))
+        plt.imshow(binary.max(axis=0)); 
+        plt.plot(mesh_wrap.vertices[:,2], mesh_wrap.vertices[:,1], 'r.', alpha=0.01)
+        plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'g.', alpha=0.01)
+        plt.show()
+        
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(mesh_wrap.vertices[...,2], 
+                    mesh_wrap.vertices[...,1],
+                    mesh_wrap.vertices[...,0], 
+                    s=0.1, 
+                    c='k') 
+        ax.view_init(-60, 180)
+        # plotting.set_axes_equal(ax)
+        plt.show()
+        
+    
+    # factor = 0.25
+    
+    
+    """
+    now we assess convergence at each step. # this part we should separate out into a separate reusable function!)
+    """
+    # this is the reference point cloud which will be used to assess convergence. 
+    mesh_ref_v = mesh.vertices
+    
+    mesh_initial = mesh_wrap.copy(); 
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset 
+    
+    mesh_iter = [mesh_initial] # this first one must not be properly offset. 
+    chamfer_dist = [pcu.chamfer_distance(mesh_wrap.vertices, mesh_ref_v)]
+    euler_numbers_iter = [mesh_initial.euler_number]
+    
+    lr = 1 
+    
+    for iii in np.arange(total_shrinkwrap_iters//remesh_iters):
+        
+        print(iii)
+        
+        if iii>0:
+            
+            """
+            check and cut non-converged necks that impede flow. 
+            """
+            if check_nonconverge_triangles:
+                if iii>burn_in_refine_epochs: # then this aspect kicks in. 
+            
+                    # detect irregular . 
+                    q, dist_ref, remove_bool = _detect_nonconverged_triangles(mesh_wrap, 
+                                                                              mesh, # this is the reference mesh. 
+                                                                              q_thresh=nonconverge_q_thresh, 
+                                                                              max_dist_cutoff=nonconverge_max_dist_cutoff, 
+                                                                              sigma_dist_cutoff=nonconverge_sigma_dist_cutoff, 
+                                                                              nearest_k=1,
+                                                                              dilate_voxels=3,
+                                                                              erode_voxels=1,
+                                                                              minsize=nonconverge_minsize)
+                    
+                    ### check the removal. 
+                    if debugviz:
+                        
+                        fig = plt.figure(figsize=(8,8))
+                        ax = fig.add_subplot(projection='3d')
+                        ax.scatter(mesh_wrap.vertices[...,2], 
+                                    mesh_wrap.vertices[...,1],
+                                    mesh_wrap.vertices[...,0], 
+                                    s=0.1, 
+                                    c=remove_bool,
+                                    cmap='coolwarm') 
+                        ax.view_init(-60, 180)
+                        # plotting.set_axes_equal(ax)
+                        plt.show()
+                    
+                    # cut, largest_component and patch. 
+                    remove_faces_bool = spstats.mode((remove_bool[mesh_wrap.faces]*1).astype(np.int32), axis=1)[0]
+                    keep_faces_bool = np.logical_not(remove_faces_bool>0)
+
+                    # modify the mesh faces 
+                    mesh_wrap.faces = mesh_wrap.faces[keep_faces_bool]
+                    
+                    # keep largest mesh
+                    mesh_comps = mesh_wrap.split(only_watertight=False)
+                    mesh_wrap = mesh_comps[np.argmax([len(cc.vertices) for cc in mesh_comps])] # keep the largest comp.
+                    
+                    # stitch the resultant holes
+                    mesh_wrap = patch_all_holes_exhaustive( mesh_wrap, 
+                                                                    method='fanstitch', # should be most reliable for 1. 
+                                                                    subdivisions=0, # increase this? 
+                                                                    reindex_mesh=False, 
+                                                                    reindex_mesh_final=True)
+                    
+                    # # what if a voxelization is good?
+                    # print('revoxelize')
+                    # # binary_wrap = voxelize_image_mesh_pts(mesh_wrap, 
+                    # #                                       dilate_ksize=2)
+                    # binary_wrap = np.zeros_like(binary)
+                    # binary_wrap[mesh_wrap.vertices[:,0].astype(np.int32),
+                    #             mesh_wrap.vertices[:,1].astype(np.int32),
+                    #             mesh_wrap.vertices[:,2].astype(np.int32)] = 1
+                    # binary_wrap = ndimage.binary_closing(binary_wrap, structure=skmorph.ball(1), iterations=3)
+                    # binary_wrap = ndimage.binary_dilation(binary_wrap, skmorph.ball(2))
+                    # binary_wrap = unwrap3D_segmentation.largest_component_vol(binary_wrap)
+                    # binary_wrap = ndimage.binary_fill_holes(binary_wrap)
+                    
+                    # mesh_wrap = marching_cubes_mesh_binary(binary_wrap,
+                    #                                        contourlevel=0.5)
+                    
+                    
+            mesh_wrap = decimate_resample_mesh(mesh_wrap, 
+                                               remesh_samples=0.5)
+            
+            # upsample 
+            # while len(mesh_wrap.vertices) < ((1.+factor)**iii)*min_size:
+            while len(mesh_wrap.vertices) < min_size:
+            # while igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces) > 1: 
+                mesh_wrap = upsample_mesh(mesh_wrap, method='inplane')
+                
+            # print(len(mesh_wrap.vertices))
+            # print(igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces))
+            print('==========================')
+            print(mesh_wrap.euler_number)
+            print('--------------------------')
+            
+        # if iii < 3: 
+            
+        if check_nonconverge_triangles:
+            if iii>burn_in_refine_epochs: # then this aspect kicks in. 
+                Usteps = parametric_mesh_constant_img_flow(mesh_wrap, 
+                                                            external_img_gradient=vector_field.transpose(1,2,3,0), 
+                                                            # mesh_ref=None, 
+                                                              niters=nonconverge_refine_iter, 
+                                                              # momenta=0., 
+                                                              deltaL=deltaL, 
+                                                              step_size=lr, 
+                                                              method='implicit', 
+                                                              robust_L=False, 
+                                                              mollify_factor=1e-5,
+                                                              conformalize=conformalize, 
+                                                              eps=1e-12,
+                                                              alpha=alpha,
+                                                              beta=beta,# what if we reduce the bending? 
+                                                              solver=solver)
+                
+            else:
+                
+                Usteps = parametric_mesh_constant_img_flow(mesh_wrap, 
+                                                            external_img_gradient=vector_field.transpose(1,2,3,0), 
+                                                            # mesh_ref=None, 
+                                                              niters=remesh_iters, 
+                                                              # momenta=0., 
+                                                              deltaL=deltaL, 
+                                                              step_size=lr, 
+                                                              method='implicit', 
+                                                              robust_L=False, 
+                                                              mollify_factor=1e-5,
+                                                              conformalize=conformalize, 
+                                                              eps=1e-12,
+                                                              alpha=alpha,
+                                                              beta=beta,# what if we reduce the bending? 
+                                                              solver=solver)
+            
+        else:
+            
+            Usteps = parametric_mesh_constant_img_flow(mesh_wrap, 
+                                                        external_img_gradient=vector_field.transpose(1,2,3,0), 
+                                                        # mesh_ref=None, 
+                                                          niters=remesh_iters, 
+                                                          # momenta=0., 
+                                                          deltaL=deltaL, 
+                                                          step_size=lr, 
+                                                          method='implicit', 
+                                                          robust_L=False, 
+                                                          mollify_factor=1e-5,
+                                                          conformalize=conformalize, 
+                                                          eps=1e-12,
+                                                          alpha=alpha,
+                                                          beta=beta,# what if we reduce the bending? 
+                                                          solver=solver)
+  
+        mesh_wrap = create_mesh(Usteps[...,-1], 
+                                mesh_wrap.faces)
+        
+        # recompute distance
+        diff = pcu.chamfer_distance(mesh_wrap.vertices, 
+                                    mesh_ref_v)
+        
+        
+        # if np.abs(diff - chamfer_dist[-1]) < 1e-2: 
+        if diff > chamfer_dist[-1]: 
+            # drop the learning rate. 
+            if lr*decay_rate > min_lr:
+                lr = lr*decay_rate # half this.
+            else:
+                lr = 1. 
+            
+            print(iii, diff, 'changing lr: ', lr)
+        
+        print(iii, diff)
+        
+        # this should be a new copy.
+        mesh_wrap_out = mesh_wrap.copy()
+        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+        
+        # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
+        # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
+        
+        chamfer_dist.append(diff)
+        euler_numbers_iter.append(mesh_wrap.euler_number)
+        mesh_iter.append(mesh_wrap_out)
+
+        
+    # mesh_genus0.vertices = mesh_genus0.vertices - extra_pad # reverse the geometrical transformations. 
+    # mesh_wrap_out_final = mesh_iter[np.argmin(chamfer_dist)]
+    mesh_wrap_out_final = mesh_iter[-1].copy()
+    
+    return mesh_wrap_out_final, mesh_genus0, (chamfer_dist, euler_numbers_iter, mesh_iter)
+
+
+# # define a function which attracts a mesh to another mesh or surface-of-interest, where surface is defined by binary or mesh ? 
+# def attract_surface_mesh(mesh_in, 
+#                          mesh_ref, 
+#                          voxelize_padsize=25, # this is just leave enough padding space 
+#                          voxelize_dilate_ksize = 3, 
+#                          voxelize_erode_ksize = 3,
+#                          extra_pad=25,
+#                          total_iters=100,
+#                          decay_rate = 1., # no decay. 
+#                          remesh_iters=10,
+#                          conformalize=False, # if False, use active contours
+#                          min_size=80000,
+#                          upsample=1,
+#                          min_lr=0.24,
+#                          deltaL=5e-4,
+#                          alpha=0.2,
+#                          beta=.5,# what if we reduce the bending? 
+#                          solver='pardiso',
+#                          curvature_weighting=False, 
+#                          debugviz=False):
+    
+# should replicate the below but with a provided external mesh ..... 
+def attract_surface_mesh(mesh_in,
+                         mesh_ref, 
+                         use_GVF=False,
+                         GVF_mu = 0.01, 
+                         GVF_iterations=10,
+                        voxelize_padsize=25, # this is just leave enough padding space 
+                        voxelize_dilate_ksize = 3, 
+                        voxelize_erode_ksize = 3,
+                        extra_pad=25,
+                        tightest_genus0_initial=True,
+                        genus0_alpha_frac = 0.1,
+                        genus0_alpha_auto = False,
+                        genus0_offset = 0.1,
+                        genus0_tol = 0.1, 
+                        total_shrinkwrap_iters = 100, # master number of iterations.
+                        decay_rate = 1., # no decay. 
+                        remesh_iters=10,
+                        conformalize=False, # use active contours
+                        min_size=80000, # minimum mesh vertices
+                        upsample=1, 
+                        min_lr=0.24, # minimum step_size dropping from 1.
+                        make_manifold = False,
+                        watertight_fraction=0.1,
+                        deltaL=5e-4,
+                        alpha=0.2,
+                        beta=.5,# what if we reduce the bending? 
+                        solver='pardiso',
+                        curvature_weighting=False, 
+                        debugviz=False,
+                        noprogress_prop_mesh=True):
+      
+    
+    import point_cloud_utils as pcu
+    import scipy.ndimage as ndimage
+    import igl 
+    import numpy as np 
+    import scipy.stats as spstats
+    from ..Segmentation import segmentation as unwrap3D_segmentation
+    import pylab as plt 
+    from matplotlib import cm
+    from ..Visualisation import colors as vol_colors
+    
+    
+    mesh = mesh_ref.copy()
+    mesh_wrap = mesh_in.copy()
+    
+    """
+    Repair input mesh 
+    """
+    #### we don't have to do this. 
+    remove_offset = 0
+    
+    if make_manifold: 
+        if mesh.is_watertight == False:
+                
+            # print('using manifold')
+            v_watertight, f_watertight = pcu.make_mesh_watertight(mesh.vertices, 
+                                                                  mesh.faces, 
+                                                                  resolution=watertight_fraction*len(mesh.faces))
+            # min_coords = np.min(v_watertight, axis=0)
+            v_watertight = v_watertight - np.min(v_watertight, axis=0) + 20
+            
+            mesh_watertight = create_mesh(v_watertight,
+                                          f_watertight)
+            
+            remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            min_mesh_verts = np.min(mesh.vertices, axis=0)
+            mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            mesh_wrap.vertices = mesh_wrap.vertices - min_mesh_verts + 20 + 0.5  # apply the same transformation 
+            
+        else:
+            mesh_watertight = mesh.copy()
+            remove_offset = 0 
+    else:
+        mesh_watertight = mesh.copy()
+        remove_offset = 0
+    print('initial:', mesh.euler_number)
+    print('initial_watertight:', mesh_watertight.euler_number)
+    
+    """
+    1. derive the binary to compute the edge gradient vector. 
+        # fix this. 
+    """
+    binary = voxelize_image_mesh_pts(mesh_watertight,
+                                     pad=voxelize_padsize, 
+                                     dilate_ksize=voxelize_dilate_ksize,
+                                     erode_ksize=voxelize_erode_ksize)
+    
+    # debugviz
+    if debugviz:
+        import pylab as plt 
+        plt.figure()
+        plt.title('checking voxelized binary matches mesh vertices')
+        plt.imshow(binary.max(axis=0)); 
+        plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'r.', alpha=0.1)
+        plt.show()
+        
+    binary = ndimage.zoom(binary * 255., 
+                          zoom=[upsample,upsample,upsample], # why i need to upsample? 
+                          order=1, 
+                          mode='reflect')
+    binary = binary / 255. > 0.5
+    binary = np.pad(binary, 
+                    pad_width=[[extra_pad, extra_pad], [extra_pad, extra_pad], [extra_pad, extra_pad]])
+    
+    
+    """
+    technically if this is 2 then we are done ... else we do the minimal alpha wrap and do refinement. 
+        - todo: insert a dropout clause. 
+    """
+    mesh.vertices = mesh.vertices + extra_pad
+    mesh_wrap.vertices = mesh_wrap.vertices + extra_pad 
+    
+    mean_extent = np.mean(mesh.extents) # estimate the mean extent. 
+    mesh_watertight.vertices = mesh_watertight.vertices + extra_pad
+    
+
+    if debugviz:
+        # viz. 
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(mesh_wrap.vertices[...,2], 
+                   mesh_wrap.vertices[...,1],
+                   mesh_wrap.vertices[...,0], 
+                   s=0.1, 
+                   c='k') 
+        ax.view_init(-60, 180)
+        # plotting.set_axes_equal(ax)
+        plt.show()
+        
+        # tmp = mesh_genus0.export('genus0_alphawrap_initial.obj')
+    
+    """
+    2. compute the extended attraction surface vector field. 
+    """
+    vector_field, sdf = unwrap3D_segmentation.edge_attract_gradient_vector(binary, 
+                                                                           return_sdf=True, 
+                                                                           smooth_gradient=1, # better smooth less. 
+                                                                           eps=1e-12, 
+                                                                           norm_vectors=True,
+                                                                           rev_sign=False,
+                                                                           use_GVF=use_GVF,
+                                                                           GVF_mu = GVF_mu, 
+                                                                           GVF_iterations=GVF_iterations)
+
+    if curvature_weighting:
+    
+        sdf_normals = np.array(np.gradient(sdf))
+        sdf_normals = sdf_normals/(np.linalg.norm(sdf_normals, axis=0)[None,...] + 1e-12)
+        curvature = unwrap3D_segmentation.mean_curvature_field(sdf_normals)
+        # curvature_2D = ndimage.gaussian_filter(curvature_2D, sigma=1)
+        curvature = _normalize99(np.abs(curvature)) # rescales to a factor between 0-1 to multiply to vector field 
+        vector_field = vector_field * curvature[None,...]
+        
+    """
+    3. propagate the mesh. 
+    """
+    ### preprocess the mesh 
+    mesh_initial = mesh_wrap.copy()    
+    # # correct the coordinates of the mesh_genus0 mesh.
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset #+ 0.5
+
+    # correct for the mesh_watertight
+    mesh_watertight.vertices = mesh_watertight.vertices - extra_pad - remove_offset
+    
+    
+    # #### make sure there is enough vertices.! 
+    # while len(mesh_wrap.vertices) < min_size: # this is needed. 
+    #     mesh_wrap = upsample_mesh(mesh_wrap, 
+    #                               method='inplane') # turns out inplane subdivision appears essential ?
+    
+    # print(mesh_wrap.vertices.shape)
+    
+    
+    if debugviz:
+        plt.figure(figsize=(8,8))
+        plt.imshow(binary.max(axis=0)); 
+        plt.plot(mesh_wrap.vertices[:,2], mesh_wrap.vertices[:,1], 'r.', alpha=0.01)
+        plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'g.', alpha=0.01)
+        plt.show()
+        
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(mesh_wrap.vertices[...,2], 
+                    mesh_wrap.vertices[...,1],
+                    mesh_wrap.vertices[...,0], 
+                    s=0.1, 
+                    c='k') 
+        ax.view_init(-60, 180)
+        # plotting.set_axes_equal(ax)
+        plt.show()
+        
+    """
+    now we assess convergence at each step. # this part we should separate out into a separate reusable function!)
+    """
+    # this is the reference point cloud which will be used to assess convergence. 
+    mesh_ref_v = mesh.vertices
+    
+    mesh_initial = mesh_wrap.copy(); 
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset 
+    
+    mesh_iter = [mesh_initial] # this first one must not be properly offset. 
+    chamfer_dist = [pcu.chamfer_distance(mesh_wrap.vertices, mesh_ref_v)]
+    euler_numbers_iter = [mesh_initial.euler_number]
+    
+    lr = 1 
+    
+    for iii in np.arange(total_shrinkwrap_iters//remesh_iters):
+    # for iii in np.arange(total_shrinkwrap_iters):    
+        
+        print(iii)
+        
+        # if iii>0 and np.mod(iii, remesh_iters) == 0:
+        if iii>0:
+            mesh_wrap = decimate_resample_mesh(mesh_wrap, 
+                                               remesh_samples=0.5)
+            
+            # upsample 
+            # while len(mesh_wrap.vertices) < ((1.+factor)**iii)*min_size:
+            while len(mesh_wrap.vertices) < min_size:
+            # while igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces) > 1: 
+                mesh_wrap = upsample_mesh(mesh_wrap, method='inplane')
+                
+            # print(len(mesh_wrap.vertices))
+            # print(igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces))
+            print('==========================')
+            print(mesh_wrap.euler_number)
+            print('--------------------------')
+            
+            
+        Usteps = parametric_mesh_constant_img_flow(mesh_wrap, 
+                                                    external_img_gradient=vector_field.transpose(1,2,3,0), 
+                                                    # mesh_ref=None, 
+                                                      niters=remesh_iters, 
+                                                      # momenta=0., 
+                                                      deltaL=deltaL, 
+                                                      step_size=lr, 
+                                                      method='implicit', 
+                                                      robust_L=False, 
+                                                      mollify_factor=1e-5,
+                                                      conformalize=conformalize, 
+                                                      eps=1e-12,
+                                                      alpha=alpha,
+                                                      beta=beta,# what if we reduce the bending? 
+                                                      solver=solver,
+                                                      noprogress=noprogress_prop_mesh)
+  
+        mesh_wrap = create_mesh(Usteps[...,-1], 
+                                mesh_wrap.faces)
+        
+        # recompute distance
+        diff = pcu.chamfer_distance(mesh_wrap.vertices, 
+                                    mesh_ref_v)
+        
+        
+        # if np.abs(diff - chamfer_dist[-1]) < 1e-2: 
+        if diff > chamfer_dist[-1]: 
+            # drop the learning rate. 
+            if lr*decay_rate > min_lr:
+                lr = lr*decay_rate # half this.
+            else:
+                lr = 1. 
+            
+            print(iii, diff, 'changing lr: ', lr)
+        
+        print(iii, diff)
+        
+        # this should be a new copy.
+        mesh_wrap_out = mesh_wrap.copy()
+        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+        
+        # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
+        # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
+        
+        chamfer_dist.append(diff)
+        euler_numbers_iter.append(mesh_wrap.euler_number)
+        mesh_iter.append(mesh_wrap_out)
+
+        
+    # mesh_genus0.vertices = mesh_genus0.vertices - extra_pad # reverse the geometrical transformations. 
+    # mesh_wrap_out_final = mesh_iter[np.argmin(chamfer_dist)]
+    mesh_wrap_out_final = mesh_iter[-1].copy() # always take the last one. 
+    
+    return mesh_wrap_out_final, mesh_watertight, mesh_initial, (chamfer_dist, euler_numbers_iter, mesh_iter)
+    
+    
+    
+
+# this itself is enough
+def shrinkwrap_genus0_basic(mesh_in,
+                            use_GVF = True,
+                            GVF_mu = 0.01, 
+                            GVF_iterations = 10, 
+                            voxelize_padsize=25, # this is just leave enough padding space 
+                            voxelize_dilate_ksize = 3, 
+                            voxelize_erode_ksize = 3,
+                            extra_pad=25,
+                            tightest_genus0_initial=True,
+                            genus0_alpha_frac = 0.1,
+                            genus0_alpha_auto = False,
+                            genus0_offset = 0.1,
+                            genus0_tol = 0.1, 
+                            total_shrinkwrap_iters = 100, # master number of iterations.
+                            decay_rate = 1., # no decay. 
+                            remesh_iters=10,
+                            conformalize=False, # use active contours
+                            min_size=80000, # minimum mesh vertices
+                            upsample=1, 
+                            min_lr=0.24, # minimum step_size dropping from 1.
+                            make_manifold = False,
+                            watertight_fraction=0.1,
+                            deltaL=5e-4,
+                            alpha=0.2,
+                            beta=.5,# what if we reduce the bending? 
+                            solver='pardiso',
+                            curvature_weighting=False, 
+                            debugviz=False,
+                            noprogress_prop_mesh=True):
+          
+    
+    import point_cloud_utils as pcu
+    import scipy.ndimage as ndimage
+    import igl 
+    import numpy as np 
+    import scipy.stats as spstats
+    from ..Segmentation import segmentation as unwrap3D_segmentation
+    import pylab as plt 
+    from matplotlib import cm
+    from ..Visualisation import colors as vol_colors
+    
+    
+    mesh = mesh_in.copy()
+    
+    """
+    Repair input mesh 
+    """
+    #### we don't have to do this. 
+    remove_offset = 0
+    
+    if make_manifold: 
+        if mesh.is_watertight == False:
+                
+            # print('using manifold')
+            v_watertight, f_watertight = pcu.make_mesh_watertight(mesh.vertices, 
+                                                                  mesh.faces, 
+                                                                  resolution=watertight_fraction*len(mesh.faces))
+            # min_coords = np.min(v_watertight, axis=0)
+            v_watertight = v_watertight - np.min(v_watertight, axis=0) + 20
+            
+            mesh_watertight = create_mesh(v_watertight,
+                                          f_watertight)
+            
+            remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            
+        else:
+            mesh_watertight = mesh.copy()
+            remove_offset = 0 
+    else:
+        mesh_watertight = mesh.copy()
+        remove_offset = 0
+    print('initial:', mesh.euler_number)
+    print('initial_watertight:', mesh_watertight.euler_number)
+    
+    """
+    1. derive the binary to compute the edge gradient vector. 
+        # fix this. 
+    """
+    binary = voxelize_image_mesh_pts(mesh_watertight,
+                                     pad=voxelize_padsize, 
+                                     dilate_ksize=voxelize_dilate_ksize,
+                                     erode_ksize=voxelize_erode_ksize)
+    
+    # debugviz
+    if debugviz:
+        import pylab as plt 
+        plt.figure()
+        plt.title('checking voxelized binary matches mesh vertices')
+        plt.imshow(binary.max(axis=0)); 
+        plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'r.', alpha=0.1)
+        plt.show()
+        
+    binary = ndimage.zoom(binary * 255., 
+                          zoom=[upsample,upsample,upsample], # why i need to upsample? 
+                          order=1, 
+                          mode='reflect')
+    binary = binary / 255. > 0.5
+    binary = np.pad(binary, 
+                    pad_width=[[extra_pad, extra_pad], [extra_pad, extra_pad], [extra_pad, extra_pad]])
+    
+    
+    """
+    technically if this is 2 then we are done ... else we do the minimal alpha wrap and do refinement. 
+        - todo: insert a dropout clause. 
+    """
+    mesh.vertices = mesh.vertices + extra_pad
+    mean_extent = np.mean(mesh.extents) # estimate the mean extent. 
+    
+    mesh_watertight.vertices = mesh_watertight.vertices + extra_pad
+    
+    
+    if genus0_alpha_auto: 
+        mesh_genus0, mesh_interval = alphawrap_genus0(mesh, 
+                                                      max_factor=genus0_alpha_frac*mean_extent, 
+                                                      offset=genus0_offset, # how tight should this be set!.  # interesting....
+                                                      tol=genus0_tol)
+        print('initiating a genus-0 mesh automatically with interval: ', mesh_interval)
+        
+    else:
+        v,f = alpha_wrap(mesh.vertices,
+                         alpha=genus0_alpha_frac*mean_extent,
+                         offset=genus0_tol)
+        mesh_genus0 = create_mesh(v,f)
+        print('initiating a genus-0 mesh to user specification with alpha, offset: (%s, %s)' %(genus0_alpha_frac*mean_extent, genus0_tol))    
+    
+    if debugviz:
+        # viz. 
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(mesh_genus0.vertices[...,2], 
+                   mesh_genus0.vertices[...,1],
+                   mesh_genus0.vertices[...,0], 
+                   s=0.1, 
+                   c='k') 
+        ax.view_init(-60, 180)
+        # plotting.set_axes_equal(ax)
+        plt.show()
+        
+        # tmp = mesh_genus0.export('genus0_alphawrap_initial.obj')
+    
+    """
+    2. compute the extended attraction surface vector field. 
+    """
+    vector_field, sdf = unwrap3D_segmentation.edge_attract_gradient_vector(binary, 
+                                                                           return_sdf=True, 
+                                                                           smooth_gradient=1, # better smooth less. 
+                                                                           eps=1e-12, 
+                                                                           norm_vectors=True,
+                                                                           rev_sign=False,
+                                                                           use_GVF=use_GVF,
+                                                                           GVF_mu = GVF_mu, 
+                                                                           GVF_iterations = GVF_iterations)
+
+    vector_field = vector_field/(np.linalg.norm(vector_field, axis=0)[None,...] + 1e-20)
+
+    if curvature_weighting:
+    
+        sdf_normals = np.array(np.gradient(sdf))
+        sdf_normals = sdf_normals/(np.linalg.norm(sdf_normals, axis=0)[None,...] + 1e-20)
+        curvature = unwrap3D_segmentation.mean_curvature_field(sdf_normals)
+        # curvature_2D = ndimage.gaussian_filter(curvature_2D, sigma=1)
+        curvature = _normalize99(np.abs(curvature)) # rescales to a factor between 0-1 to multiply to vector field 
+        vector_field = vector_field * curvature[None,...]
+        
+        
+    """
+    3. shrinkwrap
+    """
+    ### preprocess the mesh 
+    mesh_wrap = mesh_genus0.copy()    
+    # # correct the coordinates of the mesh_genus0 mesh.
+    mesh_genus0.vertices = mesh_genus0.vertices - extra_pad - remove_offset #+ 0.5
+
+    # correct for the mesh_watertight
+    mesh_watertight.vertices = mesh_watertight.vertices - extra_pad - remove_offset
+    
+    #### make sure there is enough vertices.! 
+    # upsample - is it because of this ? 
+    while len(mesh_wrap.vertices) < min_size: # this is needed. 
+        mesh_wrap = upsample_mesh(mesh_wrap, 
+                                  method='inplane') # turns out inplane subdivision appears essential ?
+    
+    print(mesh_wrap.vertices.shape)
+    
+    
+    if debugviz:
+        plt.figure(figsize=(8,8))
+        plt.imshow(binary.max(axis=0)); 
+        plt.plot(mesh_wrap.vertices[:,2], mesh_wrap.vertices[:,1], 'r.', alpha=0.01)
+        plt.plot(mesh.vertices[:,2], mesh.vertices[:,1], 'g.', alpha=0.01)
+        plt.show()
+        
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(mesh_wrap.vertices[...,2], 
+                    mesh_wrap.vertices[...,1],
+                    mesh_wrap.vertices[...,0], 
+                    s=0.1, 
+                    c='k') 
+        ax.view_init(-60, 180)
+        # plotting.set_axes_equal(ax)
+        plt.show()
+        
+    """
+    now we assess convergence at each step. # this part we should separate out into a separate reusable function!)
+    """
+    # this is the reference point cloud which will be used to assess convergence. 
+    mesh_ref_v = mesh.vertices
+    
+    mesh_initial = mesh_wrap.copy(); 
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset 
+    
+    mesh_iter = [mesh_initial] # this first one must not be properly offset. 
+    chamfer_dist = [pcu.chamfer_distance(mesh_wrap.vertices, mesh_ref_v)]
+    euler_numbers_iter = [mesh_initial.euler_number]
+    
+    lr = 1 
+    
+    for iii in np.arange(total_shrinkwrap_iters//remesh_iters):
+    # for iii in np.arange(total_shrinkwrap_iters):    
+        
+        print(iii)
+        
+        # if iii>0 and np.mod(iii, remesh_iters) == 0:
+        if iii>0:
+            mesh_wrap = decimate_resample_mesh(mesh_wrap, 
+                                               remesh_samples=0.5)
+            
+            # upsample 
+            # while len(mesh_wrap.vertices) < ((1.+factor)**iii)*min_size:
+            while len(mesh_wrap.vertices) < min_size:
+            # while igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces) > 1: 
+                mesh_wrap = upsample_mesh(mesh_wrap, method='inplane')
+                
+            # print(len(mesh_wrap.vertices))
+            # print(igl.avg_edge_length(mesh_wrap.vertices, mesh_wrap.faces))
+            print('==========================')
+            print(mesh_wrap.euler_number)
+            print('--------------------------')
+            
+            
+        Usteps = parametric_mesh_constant_img_flow(mesh_wrap, 
+                                                    external_img_gradient=vector_field.transpose(1,2,3,0), 
+                                                    # mesh_ref=None, 
+                                                      niters=remesh_iters, 
+                                                      # momenta=0., 
+                                                      deltaL=deltaL, 
+                                                      step_size=lr, 
+                                                      method='implicit', 
+                                                      robust_L=False, 
+                                                      mollify_factor=1e-5,
+                                                      conformalize=conformalize, 
+                                                      eps=1e-12,
+                                                      alpha=alpha,
+                                                      beta=beta,# what if we reduce the bending? 
+                                                      solver=solver,
+                                                      noprogress=noprogress_prop_mesh, 
+                                                      normalize_grad=True)
+  
+        mesh_wrap = create_mesh(Usteps[...,-1], 
+                                mesh_wrap.faces)
+        
+        # recompute distance
+        diff = pcu.chamfer_distance(mesh_wrap.vertices, 
+                                    mesh_ref_v)
+        
+        
+        # if np.abs(diff - chamfer_dist[-1]) < 1e-2: 
+        if diff > chamfer_dist[-1]: 
+            # drop the learning rate. 
+            if lr*decay_rate > min_lr:
+                lr = lr*decay_rate # half this.
+            else:
+                lr = 1. 
+            
+            print(iii, diff, 'changing lr: ', lr)
+        
+        print(iii, diff)
+        
+        # this should be a new copy.
+        mesh_wrap_out = mesh_wrap.copy()
+        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+        
+        # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
+        # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
+        
+        chamfer_dist.append(diff)
+        euler_numbers_iter.append(mesh_wrap.euler_number)
+        mesh_iter.append(mesh_wrap_out)
+
+        
+    # mesh_genus0.vertices = mesh_genus0.vertices - extra_pad # reverse the geometrical transformations. 
+    # mesh_wrap_out_final = mesh_iter[np.argmin(chamfer_dist)]
+    mesh_wrap_out_final = mesh_iter[-1].copy() # always take the last one. 
+    
+    return mesh_wrap_out_final, mesh_watertight, mesh_genus0, (chamfer_dist, euler_numbers_iter, mesh_iter)
+
 
 
 def measure_props_trimesh(mesh, main_component=True, clean=True):
@@ -637,7 +3426,6 @@ def PCA_rotate_mesh(binary, mesh=None, mesh_contour_level=.5):
     """
     import numpy as np 
     from sklearn.decomposition import PCA
-    from skimage.measure import marching_cubes_lewiner
     import igl 
     
     if mesh is not None:
@@ -646,7 +3434,13 @@ def PCA_rotate_mesh(binary, mesh=None, mesh_contour_level=.5):
         f = mesh.faces.copy()
     else:
         # if use_surface:
-        v, f, _, _ = marching_cubes_lewiner(binary, level=mesh_contour_level)
+        try: 
+            from skimage.measure import marching_cubes_lewiner
+            v, f, _, _ = marching_cubes_lewiner(binary, level=mesh_contour_level)
+        except:
+            from skimage.measure import marching_cubes
+            v, f, _, _ = marching_cubes(binary, level=mesh_contour_level, method='lewiner')
+            
     # else:
     #     pts = np.argwhere(binary>0)
     #     pts = np.vstack(pts)
@@ -663,7 +3457,7 @@ def PCA_rotate_mesh(binary, mesh=None, mesh_contour_level=.5):
     return pca_model, mean_pts
 
 
-def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_shape=None, upsample_iters_max=10, pitch=2):
+def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_shape=None, upsample_iters_max=10, pitch=2, tol_pad=5):
     r""" Given a surface mesh, voxelises the mesh to create a closed binary volume to enable for exampled signed distance function comparison and for repairing small holes 
 
     Parameters
@@ -698,6 +3492,7 @@ def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_sha
     
     vv = mesh.vertices.copy()
     ff = mesh.faces.copy()
+    # vv = vv + 0.5 # due to conversion of float to integer. .  ? 
 
     if vol_shape is None:
         # mesh_pts = mesh.vertices.copy() + 1
@@ -711,7 +3506,7 @@ def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_sha
             # print(upsample_iters)
             upsample_iters = np.min([upsample_iters, upsample_iters_max])
             vv, ff = igl.upsample(mesh.vertices, mesh.faces, upsample_iters)
-        mesh_pts = igl.barycenter(vv,ff) + 1
+        mesh_pts = igl.barycenter(vv,ff) #+ .5
         # determine the boundaries. 
         min_x, min_y, min_z = np.min(mesh_pts, axis=0)
         max_x, max_y, max_z = np.max(mesh_pts, axis=0)
@@ -729,18 +3524,29 @@ def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_sha
             upsample_iters = int(np.rint(np.log2(factor)))
             upsample_iters = np.min([upsample_iters, upsample_iters_max])
             vv, ff = igl.upsample(mesh.vertices, mesh.faces, upsample_iters)
-        mesh_pts = igl.barycenter(vv,ff)
+        mesh_pts = igl.barycenter(vv,ff) #+ .5
         smooth_img_binary = np.zeros(vol_shape)
 
-    smooth_img_binary[mesh_pts[:,0].astype(np.int), 
-                      mesh_pts[:,1].astype(np.int), 
-                      mesh_pts[:,2].astype(np.int)] = 1
+    # clip the pts to the boundary 
+    mesh_pts[:,0] = np.clip(mesh_pts[:,0], 0, smooth_img_binary.shape[0]-1)
+    mesh_pts[:,1] = np.clip(mesh_pts[:,1], 0, smooth_img_binary.shape[1]-1)
+    mesh_pts[:,2] = np.clip(mesh_pts[:,2], 0, smooth_img_binary.shape[2]-1)
+    
+    smooth_img_binary = np.pad(smooth_img_binary, pad_width=[[tol_pad,tol_pad], [tol_pad,tol_pad], [tol_pad,tol_pad]])
+    
+    smooth_img_binary[mesh_pts[:,0].astype(np.int32), 
+                      mesh_pts[:,1].astype(np.int32), 
+                      mesh_pts[:,2].astype(np.int32)] = 1
     if dilate_ksize is not None:
         smooth_img_binary = skmorph.binary_dilation(smooth_img_binary, skmorph.ball(dilate_ksize))
     smooth_img_binary = binary_fill_holes(smooth_img_binary) # since we dilated before to create a full mesh. we inturn must erode. 
     
     if erode_ksize is not None:
         smooth_img_binary = skmorph.binary_erosion(smooth_img_binary, skmorph.ball(erode_ksize))
+
+    smooth_img_binary = smooth_img_binary[tol_pad:-tol_pad,
+                                          tol_pad:-tol_pad,
+                                          tol_pad:-tol_pad].copy()
 
     return smooth_img_binary 
 
@@ -902,7 +3708,7 @@ def get_uv_grid_tri_connectivity(grid):
     # compile all the triangles together. 
     triangles_all = np.vstack([squares_main_triangles[:,::-1],
                                triangles_north_pole,
-                               triangles_south_pole]).astype(np.int)
+                               triangles_south_pole]).astype(np.int32)
 
     # can determine the sign orientation using vector area. 
     # implement triangle orientation check to check orientation consistency?
@@ -1074,7 +3880,10 @@ def parametric_mesh_constant_img_flow(mesh, external_img_gradient,
                                         gamma=1, 
                                         alpha=0.2, 
                                         beta=0.1, 
-                                        eps=1e-12):
+                                        eps=1e-12,
+                                        solver='pardiso',
+                                        noprogress=False,
+                                        normalize_grad=True):
 
     r""" This function performs implicit Euler propagation of a 3D mesh with steps of constant ``step_size`` in the direction of an external image gradient specified by ``external_img_gradient``
 
@@ -1106,7 +3915,13 @@ def parametric_mesh_constant_img_flow(mesh, external_img_gradient,
         bending regularization parameters in the active contour 
     eps : scalar
         small constant for numerical stability 
-
+    solver : str
+        either 'pardiso' to use pypardiso and intel mkl for much faster sparse solving or else scipy.sparse
+    noprogress : bool
+        if True, do not print progressbar
+    normalize_grad : bool 
+        if True, always unit normalizes the gradient vectors. 
+        
     Returns
     -------
     Usteps : (n_vertices,3,n_iters+1) array
@@ -1124,6 +3939,15 @@ def parametric_mesh_constant_img_flow(mesh, external_img_gradient,
     import scipy.sparse as spsparse
     from tqdm import tqdm 
     from ..Image_Functions import image as image_fn 
+
+    spsolver = spsparse.linalg
+
+    if solver == 'pardiso':
+        try:
+            import pypardiso
+            spsolver = pypardiso
+        except:
+            spsolver = spsparse.linalg
 
     vol_shape = external_img_gradient.shape[:-1]
     v = np.array(mesh.vertices.copy())
@@ -1147,7 +3971,7 @@ def parametric_mesh_constant_img_flow(mesh, external_img_gradient,
     """
     propagation
     """
-    for ii in tqdm(range(niters)):
+    for ii in tqdm(range(niters), disable=noprogress):
 
         U_prev = U.copy(); # make a copy. 
         # get the next image gradient
@@ -1162,7 +3986,8 @@ def parametric_mesh_constant_img_flow(mesh, external_img_gradient,
             Usteps[...,ii+1] = U.copy()
 
         if method == 'implicit':
-            U_grad = U_grad / (np.linalg.norm(U_grad, axis=-1)[:,None] + eps)
+            if normalize_grad:
+                U_grad = U_grad / (np.linalg.norm(U_grad, axis=-1)[:,None] + eps)
 
             if conformalize:
                 # if ii ==0:
@@ -1179,8 +4004,9 @@ def parametric_mesh_constant_img_flow(mesh, external_img_gradient,
                 S = gamma * spsparse.eye(len(v), len(v)) - alpha * L  + beta * L.dot(L)
                 b = U_prev + U_grad * step_size
             
-            # get the next coordinate by solving 
-            U = spsparse.linalg.spsolve(S,b)
+            # # get the next coordinate by solving 
+            # U = spsparse.linalg.spsolve(S,b)
+            U = spsolver.spsolve(S,b)
             Usteps[...,ii+1] = U.copy()
 
     # return all the intermediate steps. 
@@ -1293,9 +4119,9 @@ def parametric_uv_unwrap_mesh_constant_img_flow(uv_grid,
         mean_dist_unwrap_params_ref = np.linalg.norm(unwrap_params_ref_flat-mean_pt[None,:], axis=-1).max()
         mean_surf_pts_ref = np.linalg.norm(surf_pts_ref-mean_pt[None,:], axis=-1).max() # strictly should do an ellipse fit... 
 
-        niters = np.int(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
+        niters = np.int32(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
         niters = niters + pad_dist # this is in pixels
-        niters = np.int(np.ceil(niters / np.abs(float(step_size)))) # so if we take 1./2 step then we should step 2*
+        niters = np.int32(np.ceil(niters / np.abs(float(step_size)))) # so if we take 1./2 step then we should step 2*
 
         print('auto_infer_prop_distance', niters)
         print('----')
@@ -1332,7 +4158,8 @@ def area_distortion_flow_relax_sphere(mesh,
                                       max_iter=50,
                                       smooth_iters=0,  
                                       delta=0.1, 
-                                      stepsize=.1, 
+                                      stepsize=.1,
+                                      stepsize_N=0.0, 
                                       conformalize=False,
                                       flip_delaunay=False,
                                       robust_L=False,
@@ -1355,6 +4182,8 @@ def area_distortion_flow_relax_sphere(mesh,
         a stiffness constant of the mesh. it used to ensure maintenance of relative topology during advection
     stepsize : scalar
         the stepsize in the direction of steepest descent of area distortion. smaller steps can improve stability and precision but with much slower convergence
+    stepsize_N : scalar
+        stepsize in spherical normal direction. this gives an additive expansion force on the sphere to improve flow for very complex high curvature surfaces whose initial mesh may be close to singularity. Starting with a factor of 1 is good. This term effectively slows advection without changing stiffness which might cause collapse
     conformalize : bool
         if True, uses the initial Laplacian without recomputing the Laplacian. This is a very severe penalty and stops area relaxation flow without reducing ``delta``. In general set this as False since relaxing area is in opposition to minimizing conformal error. 
     flip_delaunay : bool
@@ -1391,6 +4220,13 @@ def area_distortion_flow_relax_sphere(mesh,
     import pylab as plt
     if robust_L:
         import robust_laplacian
+
+
+    try:
+        import pypardiso
+        spsolver = pypardiso
+    except:
+        spsolver = spsparse.linalg
 
     V = mesh.vertices.copy()
     F = mesh.faces.copy()
@@ -1467,13 +4303,30 @@ def area_distortion_flow_relax_sphere(mesh,
             """
             advection step 
             """
+         
+            N = igl.per_vertex_normals(v, f, weighting=1) # compute the spherical normal. 
+            # if not active_contours:
             S = (m - delta*L)
-
-            # if adaptive_step:
-            #     v = spsparse.linalg.spsolve(S, m.dot(v + scale_factor * stepsize * vA_vertex))
-            # else:
-            v = spsparse.linalg.spsolve(S, m.dot(v + stepsize * vA_vertex))
             
+            b = m.dot(v + stepsize * vA_vertex + stepsize_N * N)
+            # else:
+            #     print('hello')
+            #     # construct the active contour version.
+            #     S = gamma * spsparse.eye(len(v), len(v)) - alpha * L  + beta * L.dot(L)
+            #     b = v + stepsize * vA_vertex
+
+            # # if adaptive_step:
+            # #     v = spsparse.linalg.spsolve(S, m.dot(v + scale_factor * stepsize * vA_vertex))
+            # # else:
+            # # v = spsparse.linalg.spsolve(S, m.dot(v + stepsize * vA_vertex))
+            # v = spsolver.spsolve(S, m.dot(v + stepsize * vA_vertex))
+            v = spsolver.spsolve(S,b)
+            # print(v)
+            
+            # else:
+            #     # construct the active contour version.
+            #     S = gamma * spsparse.eye(len(v), len(v)) - alpha * L  + beta * L.dot(L)
+            #     b = U_prev + U_grad * step_size
             """
             rescale and reproject back to normal
             """
@@ -2091,7 +4944,14 @@ def conformalized_mean_line_flow( contour_pts, E=None, close_contour=True, fixed
     return contour_pts_flow
 
 
-def conformalized_mean_curvature_flow(mesh, max_iter=50, delta=5e-4, rescale_output = True, min_diff = 1e-13, conformalize = True, robust_L =False, mollify_factor=1e-5):
+def conformalized_mean_curvature_flow(mesh, max_iter=50, 
+                                        delta=5e-4, 
+                                        rescale_output = True, 
+                                        min_diff = 1e-13, 
+                                        conformalize = True, 
+                                        robust_L =False, 
+                                        mollify_factor=1e-5,
+                                        solver='pardiso'):
     r""" Conformalized mean curvature flow of a mesh of Kazhdan et al. [1]_
 
     Parameters
@@ -2112,7 +4972,9 @@ def conformalized_mean_curvature_flow(mesh, max_iter=50, delta=5e-4, rescale_out
         if True, uses the robust Laplacian construction of Sharpe et al. [2]_. If False, the standard cotan Laplacian is used. The robust Laplacian enables proper handling of degenerate and nonmanifold vertices such as that if using the triangle mesh constructed from a uv image grid. The normal 3D mesh if remeshed does not necessarily need this
     mollify_factor : scalar
         the mollification factor used in the robust Laplacian. see https://github.com/nmwsharp/robust-laplacians-py    
-    
+    solver : str
+        the sparse linear algebra solver used. Either 'pardiso' to use the faster intel MKL library or else defaults to scipy.sparse
+
     Returns
     -------
     Usteps : (n_points,3,niters+1) array
@@ -2153,6 +5015,15 @@ def conformalized_mean_curvature_flow(mesh, max_iter=50, delta=5e-4, rescale_out
     from tqdm import tqdm 
     if robust_L:
         import robust_laplacian
+
+    spsolver = spsparse.linalg
+
+    if solver == 'pardiso':
+        try:
+            import pypardiso
+            spsolver = pypardiso
+        except:
+            spsolver = spsparse.linalg
 
     V = mesh.vertices 
     # V = V - np.mean(V, axis=0) # center this 
@@ -2219,18 +5090,8 @@ def conformalized_mean_curvature_flow(mesh, max_iter=50, delta=5e-4, rescale_out
         b = M.dot(U)
         # b = U.copy()
 
-        # # Solve # compare with spsolve. # best way to solve? ---> S is symmetric therefore we can do splu then solve.---> which should be really fast!.
-        # u1,xx = spsparse.linalg.bicgstab(S, b[:,0]) # not that bad... 
-        # u2,yy = spsparse.linalg.bicgstab(S, b[:,1]) 
-        # u3,zz = spsparse.linalg.bicgstab(S, b[:,2])
-        # u1,xx = spsparse.linalg.cg(S, b[:,0], maxiter=100) # not that bad... 
-        # u2,yy = spsparse.linalg.cg(S, b[:,1], maxiter=100) 
-        # u3,zz = spsparse.linalg.cg(S, b[:,2], maxiter=100)
-        # u1,xx = spsparse.linalg.bicg(S, b[:,0], maxiter=100) # not that bad... 
-        # u2,yy = spsparse.linalg.bicg(S, b[:,1], maxiter=100) 
-        # u3,zz = spsparse.linalg.bicg(S, b[:,2], maxiter=100)
-        # U = np.vstack([u1,u2,u3]).T
-        U = spsparse.linalg.spsolve(S,b)
+        # U = spsparse.linalg.spsolve(S,b)
+        U = spsolver.spsolve(S,b)
 
         if np.sum(np.isnan(U[:,0])) > 0:
             # if we detect nan, no good. 
@@ -3674,9 +6535,9 @@ def _cotangent_laplacian(v,f):
     
     nv = len(v);
     
-    f1 = f[:,0]; 
-    f2 = f[:,1]; 
-    f3 = f[:,2];
+    f1 = f[:,0].copy(); 
+    f2 = f[:,1].copy(); 
+    f3 = f[:,2].copy();
     
     l1 = np.sqrt(np.sum((v[f2] - v[f3])**2,1));
     l2 = np.sqrt(np.sum((v[f3] - v[f1])**2,1));
@@ -3804,6 +6665,12 @@ def linear_beltrami_solver(v,f,mu,landmark,target):
     import numpy as np 
     import scipy.sparse as spsparse
 
+    # try:
+    #     import pypardiso
+    #     spsolver = pypardiso
+    # except:
+    #     spsolver = spsparse.linalg
+
     af = (1-2.*np.real(mu)+np.abs(mu)**2)/(1.0-np.abs(mu)**2);
     bf = -2*np.imag(mu)/(1.0-np.abs(mu)**2);
     gf = (1+2*np.real(mu)+np.abs(mu)**2)/(1.0-np.abs(mu)**2);
@@ -3842,10 +6709,326 @@ def linear_beltrami_solver(v,f,mu,landmark,target):
     A[landmark,:] = 0; A[:,landmark] = 0;
     A = A + spsparse.csr_matrix((np.ones(len(landmark)), (landmark,landmark)), (A.shape[0], A.shape[1])); # size(A,1), size(A,2));
     param = spsparse.linalg.spsolve(A,b)
+    # param = spsolver.spsolve(A,b)
     param = np.vstack([np.real(param), np.imag(param)]).T
-    # map = A\b;
-    # map = [real(map),imag(map)];
+    # param = spsolver.spsolve(A, np.vstack([np.real(b), np.imag(b)]).T)
+    
     return param 
+
+
+def _spherical_tutte_map(v, f, bigtri=1):
+    """
+    function map = spherical_tutte_map(f, bigtri)
+    % Compute the spherical Tutte map using the approach in [1], with the cotangent Laplacian replaced by the Tutte Laplacian.
+    % Invoked only if the harmonic map fails due to very bad triangulations.
+    % 
+    % If you use this code in your own work, please cite the following paper:
+    % [1] P. T. Choi, K. C. Lam, and L. M. Lui, 
+    %     "FLASH: Fast Landmark Aligned Spherical Harmonic Parameterization for Genus-0 Closed Brain Surfaces."
+    %     SIAM Journal on Imaging Sciences, vol. 8, no. 1, pp. 67-94, 2015.
+    %
+    % Copyright (c) 2013-2018, Gary Pui-Tung Choi
+    % https://scholar.harvard.edu/choi
+    """
+    import numpy as np 
+    import scipy.sparse as sparse
+    import scipy.sparse as spsparse
+    import scipy.sparse.linalg as spalg
+    import trimesh
+    import igl
+
+    # # # %% Check whether the input mesh is genus-0
+    # # if len(v)-3*len(f)/2+len(f) != 2:
+    # #     print('The mesh is not a genus-0 closed surface.\n');
+    # #     return []
+    # # else:
+    # print('spherical param')
+    spsolver = spalg
+    
+    nv = np.max(f)+1; 
+    nf = len(f);
+    
+    # % Construct the Tutte Laplacian
+    I = (f.T).reshape((nf*3,), order='F');
+    J = (f[:,[1,2,0]].T).reshape((nf*3,), order='F');
+    V = np.ones((nf*3,))/2.;
+    
+    # W = sparse([I;J],[J;I],[V;V]);
+    W = sparse.csc_matrix((np.hstack([V,V]), 
+                               (np.hstack([I,J]),np.hstack([J,I]))), shape=(nv,nv));
+    print(W.diagonal().shape)
+    print((W.T.sum(axis=1)).shape)
+    print((-W.diagonal()-np.array((W.T).sum(axis=1)).ravel()).shape)
+    
+    # M = W + sparse(1:nv,1:nv,-diag(W)-(sum(W)'), nv, nv);
+    M = W + sparse.csc_matrix((-W.diagonal()-np.array((W.T).sum(axis=1)).ravel(), 
+                               (np.arange(nv),np.arange(nv))), shape=(nv,nv));
+    
+                                       
+    boundary = f[bigtri]
+    # [mrow,mcol,mval] = find(M(boundary,:));
+    # M = M - sparse(boundary(mrow), mcol, mval, nv, nv) + sparse(boundary, boundary, [1,1,1], nv, nv);
+    (mrow, mcol, mval) = spsparse.find(M[boundary])
+
+    # print(mrow,mcol,mval)
+    M = M - sparse.csr_matrix((mval, (boundary[mrow],mcol)),(nv,nv)) + spsparse.csr_matrix((np.ones(3), (boundary,boundary)),(nv,nv));
+    
+    
+    # % set the boundary condition for big triangle
+    b = np.zeros((nv,), dtype=np.complex64);
+    b[boundary] = np.exp(1j*(2*np.pi*np.arange(3)/len(boundary)));
+    
+    # % solve the Laplace equation to obtain a Tutte map
+    z = spsolver.spsolve(M , b);  #z = z[:,0] + 1j*z[:,1]
+    z = z-np.mean(z); # o this.
+
+    # print(np.mean(z))
+    # print('z', z.shape)
+    # % inverse stereographic projection -> 2D to sphere. 
+    S = np.vstack([2.*np.real(z)/(1+np.abs(z)**2), 2*np.imag(z)/(1.+np.abs(z)**2), (-1+np.abs(z)**2)/(1+np.abs(z)**2)]).T
+    
+    # %% Find optimal big triangle size
+    w = S[:,0]/(1.+S[:,2]) + 1j*S[:,1]/(1.+S[:,2])
+
+    # % find the index of the southernmost triangle
+    index = np.argsort(np.abs(z[f[:,0]]) + np.abs(z[f[:,1]]) + np.abs(z[f[:,2]]), kind='stable') # this is absolutely KEY!
+    inner = index[0];
+    if inner == bigtri:
+        inner = index[1]; # select the next one. # this is meant to be the northernmost.... 
+
+    # % Compute the size of the northern most and the southern most triangles 
+    NorthTriSide = (np.abs(z[f[bigtri,0]]-z[f[bigtri,1]]) + np.abs(z[f[bigtri,1]]-z[f[bigtri,2]]) + np.abs(z[f[bigtri,2]]-z[f[bigtri,0]]))/3.; # this is a number. 
+    SouthTriSide = (np.abs(w[f[inner,0]]-w[f[inner,1]]) + np.abs(w[f[inner,1]]-w[f[inner,2]]) + np.abs(w[f[inner,2]]-w[f[inner,0]]))/3.;
+
+    # % rescale to get the best distribution
+    z = z*(np.sqrt(NorthTriSide*SouthTriSide))/(NorthTriSide); 
+
+    # % inverse stereographic projection
+    param = np.vstack([2.*np.real(z)/(1+np.abs(z)**2), 2*np.imag(z)/(1.+np.abs(z)**2), (-1+np.abs(z)**2)/(1+np.abs(z)**2)]).T
+
+
+    # apply procrustes so the spherical parameterization is the same geometrical orientation as the original input. 
+    _, param, _ = trimesh.registration.procrustes(param, v, weights=None, reflection=True, translation=True, scale=True, return_cost=True)
+
+    # rescale and sphere proj
+    param = param - np.nanmean(igl.barycenter(param, f), axis=0)
+    param = param/(np.linalg.norm(param,axis=-1)[:,None] + 1e-20)
+    
+    return param
+
+
+def detect_nonsphere_faces(mesh, deltaL=5e-3, max_iter=25, mollify_factor=1e-5):
+    r""" A fast iterative method for computing a spherical quasi-conformal map of a genus-0 closed surface using uniform Laplacian averaging on the sphere. This method is more stable than the direct map but does not achieve as low a conformality error. It is faster and scales well for large meshes and the end mesh triangles are typically better suited for subsequent area distortion relaxation. 
+
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh
+        the input 3D triangle mesh 
+    deltaL : float
+        stiffness/stepsize parameter, the larger the value, the faster the iteration to convergence but may be less stable
+    max_iter : int 
+        maximum number of iterations
+    mollify_factor : float (1e-3 to 1e-5)
+        mollification factor used in the construction of the robust Laplacian. The Laplacian is not used but the mass matrix is.     
+    
+    Returns
+    -------
+    U : (n_vertices, 3) array 
+        final vertex coordinates of the forced spherical parameterization of the input mesh to the unit sphere. 
+    n_inverted : (max_iter,) array
+        this is the number of inverted faces per iteration. Convergence is assessed by this number hitting 0. Length of array will be the same as the number of iterations this becomes 0.
+    inverted_patches : (max_iter, n_faces) array
+        boolean same size as number of faces, indicating which is 'inverted' per iteration. Those that are inverted could not be mapped to the sphere. A genus-0 mesh will have zero inverted faces given sufficient iterations. 
+    """
+    import numpy as np 
+    import scipy.sparse as spsparse
+    import robust_laplacian
+    import igl
+    
+    # detect if mesh is inverted. 
+    inverted = np.sign(mesh.volume) == -1
+    
+    v = mesh.vertices
+    f = mesh.faces
+
+    pts = v.copy()
+    center = igl.barycenter(v, f)
+    center = igl.doublearea(v,f)[:,None] * center
+    center = np.sum(center/np.sum(igl.doublearea(v,f)), axis=0)
+    
+    pts = (pts - center[None,:])  #/ (np.nansum(igl.doublearea(pts, f)/2.)) # normalize by total area!. 
+    pts = pts / (np.linalg.norm(pts, axis=-1)[:,None] + 1e-20)
+    
+    # initialise the save array. 
+    # Usteps = np.zeros(np.hstack([pts.shape, max_iter+1]))    
+    U = pts.copy()
+    F = mesh.faces.copy()
+
+    # Use the tutte uniform laplacian 
+    a = igl.adjacency_matrix(f)             
+    a_sum = np.sum(a, axis=1)
+    a_diag = spsparse.diags([np.array(a_sum)[:,0]], offsets=[0])
+    L = a - a_diag
+    
+    n_inverted = []
+    inverted_patches = []
+    
+    for ii in range(max_iter):
+    
+        # iterate. 
+        U_prev = U.copy(); # make a copy. 
+        
+        _, M = robust_laplacian.mesh_laplacian(np.array(U), np.array(F), mollify_factor=mollify_factor); 
+        
+        # # implicit solve. 
+        S = (M-deltaL*L) # what happens when we invert? 
+        b = M.dot(U_prev)
+        
+        U = spsparse.linalg.spsolve(S,b)
+    
+        # canonical centering is a must to stabilize -> essentially affects a scaling + translation.  
+        # rescale by the area? # is this a mobius transformation? ( can)
+        area = np.sum(igl.doublearea(U, F)*.5) #total area. 
+        c = np.sum((0.5*igl.doublearea(U,F)/area)[...,None] * igl.barycenter(U,F), axis=0) # this is just weighted centroid
+        U = U - c[None,:] 
+        
+        U = U / (np.linalg.norm(U, axis=-1)[:,None] + 1e-12)
+        
+
+        # highlight the inverted!
+        out_mesh = create_mesh(vertices=U, 
+                               faces=f)
+        
+        f_normals = out_mesh.face_normals.copy()
+        
+        if inverted:
+            f_normals = f_normals*-1
+        centers = igl.barycenter(out_mesh.vertices, out_mesh.faces) # this should indeed test the orientation on the sphere... 
+        
+        # inner _product
+        inner = np.nansum(centers*f_normals, axis=-1)
+        
+        inverted_indicator = inner<0
+        
+        # print('Number of inverted triangles:', (np.sum(inverted_indicator)))
+        
+        n_inverted.append(np.sum(inverted_indicator))
+        inverted_patches.append(inverted_indicator)
+        
+    n_inverted = np.array(n_inverted)
+    inverted_patches = np.array(inverted_patches)
+    
+    return U, n_inverted, inverted_patches 
+
+
+def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, mollify_factor=1e-5):
+    r""" A fast iterative method for computing a spherical quasi-conformal map of a genus-0 closed surface using uniform Laplacian averaging on the sphere. This method is more stable than the direct map but does not achieve as low a conformality error. It is faster and scales well for large meshes and the end mesh triangles are typically better suited for subsequent area distortion relaxation. 
+
+    Parameters
+    ----------
+    v : (n_vertices, 3) array
+        vertex coordinates of a genus-0 triangle mesh
+    f : (n_faces, 3) array
+        triangulations of a genus-0 triangle mesh
+    deltaL : float
+        stiffness/stepsize parameter, the larger the value, the faster the iteration to convergence but may be less stable
+    min_iter : int
+        minimum number of iterations to run. this is to improve the conformality. 
+    max_iter : int 
+        maximum number of iterations
+    mollify_factor : float (1e-3 to 1e-5)
+        mollification factor used in the construction of the robust Laplacian. The Laplacian is not used but the mass matrix is.     
+    
+    Returns
+    -------
+    param : (n_vertices, 3) array 
+        vertex coordinates of the spherical conformal parameterization which maps the input mesh to the unit sphere. 
+    n_inverted : array
+        this is the number of inverted faces per iteration. Convergence is assessed by this number hitting 0. Length of array will be the same as the number of iterations this becomes 0.
+        
+    """
+    
+    import numpy as np 
+    import scipy.sparse as spsparse
+    import igl
+    import robust_laplacian
+    
+    mesh = create_mesh(v,f)
+    # detect if mesh is inverted. 
+    inverted = np.sign(mesh.volume) == -1
+
+
+    pts = v.copy()
+    center = igl.barycenter(v, f)
+    center = igl.doublearea(v,f)[:,None] * center
+    center = np.sum(center/np.sum(igl.doublearea(v,f)), axis=0)
+    
+    # direct project to sphere. 
+    pts = (pts - center[None,:])  #/ (np.nansum(igl.doublearea(pts, f)/2.)) # normalize by total area!. 
+    pts = pts / (np.linalg.norm(pts, axis=-1)[:,None] + 1e-20)
+
+
+    U = pts.copy()
+    F = mesh.faces.copy()
+    
+    """
+    construct the uniform laplcian (Tutte)
+    """
+    a = igl.adjacency_matrix(f)             
+    a_sum = np.sum(a, axis=1)
+    a_diag = spsparse.diags([np.array(a_sum)[:,0]], offsets=[0])
+    L = a - a_diag
+    
+    n_inverted = []
+    # inverted_patches = []
+    
+    for ii in range(max_iter):
+    
+        # iterate. 
+        U_prev = U.copy(); # make a copy. 
+        
+        _, M = robust_laplacian.mesh_laplacian(np.array(U), np.array(F), mollify_factor=mollify_factor); 
+        
+        # # implicit solve. 
+        S = (M-deltaL*L) # what happens when we invert? 
+        b = M.dot(U_prev)
+        
+        U = spsparse.linalg.spsolve(S,b)
+    
+        # canonical centering is a must to stabilize -> essentially affects a scaling + translation.  
+        # rescale by the area? # is this a mobius transformation? ( can)
+        area = np.sum(igl.doublearea(U, F)*.5) #total area. 
+        c = np.sum((0.5*igl.doublearea(U,F)/area)[...,None] * igl.barycenter(U,F), axis=0) # this is just weighted centroid
+        U = U - c[None,:] 
+        
+        U = U / (np.linalg.norm(U, axis=-1)[:,None] + 1e-12)
+        
+   
+        # highlight the inverted!
+        out_mesh = create_mesh(vertices=U, 
+                               faces=f)
+        
+        f_normals = out_mesh.face_normals.copy()
+        
+        if inverted:
+            f_normals = f_normals*-1
+        centers = igl.barycenter(out_mesh.vertices, out_mesh.faces) # this should indeed test the orientation on the sphere... 
+        
+        # inner _product
+        inner = np.nansum(centers*f_normals, axis=-1)
+        
+        inverted_indicator = inner<0
+        
+        n_inverted.append(np.sum(inverted_indicator))
+        # inverted_patches.append(inverted_indicator)
+        
+        if np.sum(inverted_indicator) ==0 and ii>=min_iter:
+            break
+        
+    param = U.copy()
+    
+    return param, n_inverted #, inverted_patches[-1] # return the last. 
+    
 
 
 def direct_spherical_conformal_map(v,f):
@@ -3857,7 +7040,7 @@ def direct_spherical_conformal_map(v,f):
         vertex coordinates of a genus-0 triangle mesh
     f : (n_faces, 3) array
         triangulations of a genus-0 triangle mesh
-    
+        
     Returns
     -------
     param : (n_vertices, 3) array 
@@ -3871,6 +7054,8 @@ def direct_spherical_conformal_map(v,f):
     import numpy as np 
     import scipy.sparse as spsparse
     import scipy.sparse.linalg as spalg
+    import trimesh
+    import igl
 
     # # # %% Check whether the input mesh is genus-0
     # # if len(v)-3*len(f)/2+len(f) != 2:
@@ -3878,6 +7063,7 @@ def direct_spherical_conformal_map(v,f):
     # #     return []
     # # else:
     # print('spherical param')
+    spsolver = spalg
 
     # %% Find the most regular triangle as the "big triangle"
     temp = v[f.ravel()].copy()
@@ -3886,7 +7072,6 @@ def direct_spherical_conformal_map(v,f):
     e3 = np.sqrt(np.sum((temp[0::3] - temp[1::3])**2, axis=-1))
     regularity = np.abs(e1/(e1+e2+e3)-1./3) + np.abs(e2/(e1+e2+e3)-1./3) + np.abs(e3/(e1+e2+e3)-1./3) # this being the most equilateral. 
     bigtri = np.argmin(regularity) 
-
 
     # % In case the spherical parameterization result is not evenly distributed,
     # % try to change bigtri to the id of some other triangles with good quality
@@ -3920,15 +7105,15 @@ def direct_spherical_conformal_map(v,f):
     # % Solve the Laplace equation to obtain a harmonic map
     c = np.zeros(nv); c[p1] = x1; c[p2] = x2; c[p3] = x3;
     d = np.zeros(nv); d[p1] = y1; d[p2] = y2; d[p3] = y3;
-    z = spalg.spsolve(M , c+1j*d);
+    # z = spalg.spsolve(M , c+1j*d);
+    z = spsolver.spsolve(M , np.vstack([c,d]).T); z = z[:,0] + 1j*z[:,1]
     z = z-np.mean(z); # o this.
 
     # print(np.mean(z))
     # print('z', z.shape)
-
-    # % inverse stereographic projection
+    # % inverse stereographic projection -> 2D to sphere. 
     S = np.vstack([2.*np.real(z)/(1+np.abs(z)**2), 2*np.imag(z)/(1.+np.abs(z)**2), (-1+np.abs(z)**2)/(1+np.abs(z)**2)]).T
-
+    
     # %% Find optimal big triangle size
     w = S[:,0]/(1.+S[:,2]) + 1j*S[:,1]/(1.+S[:,2])
 
@@ -3993,6 +7178,13 @@ def direct_spherical_conformal_map(v,f):
     # % inverse south pole stereographic projection
     param = np.vstack([2*np.real(z)/(1.+np.abs(z)**2), 2*np.imag(z)/(1+np.abs(z)**2), -(np.abs(z)**2-1)/(1.+np.abs(z)**2)]).T
     # map = [2*real(z)./(1+abs(z).^2), 2*imag(z)./(1+abs(z).^2), -(abs(z).^2-1)./(1+abs(z).^2)];
+
+    # apply procrustes so the spherical parameterization is the same geometrical orientation as the original input. 
+    _, param, _ = trimesh.registration.procrustes(param, v, weights=None, reflection=True, translation=True, scale=True, return_cost=True)
+
+    # rescale and sphere proj
+    param = param - np.nanmean(igl.barycenter(param, f), axis=0)
+    param = param/(np.linalg.norm(param,axis=-1)[:,None] + 1e-20)
 
     return param 
 
@@ -4427,7 +7619,7 @@ def rectangular_conformal_map(v,f,corner=None, map2square=False, random_state=0,
         # just pick 4 regularly sampled indices on the boundary 
         if random_state is not None:
             np.random.seed(random_state)
-        corner = bdy_index[(np.linspace(0, len(bdy_index)-1, 5)[:4]).astype(np.int)]
+        corner = bdy_index[(np.linspace(0, len(bdy_index)-1, 5)[:4]).astype(np.int32)]
     
     # % rearrange the boundary indices to be correct anticlockwise. 
     id1 = np.arange(len(bdy_index))[bdy_index==corner[0]]
@@ -4462,7 +7654,7 @@ def rectangular_conformal_map(v,f,corner=None, map2square=False, random_state=0,
     bnd_uv = igl.map_vertices_to_circle(v, bdy_index)
 
     # % 1. disk harmonic map
-    disk = igl.harmonic_weights(v.astype(np.float),
+    disk = igl.harmonic_weights(v.astype(np.float32),
                               f, 
                               bdy_index, 
                               bnd_uv, 
@@ -4663,7 +7855,7 @@ def disk_conformal_map(v,f,corner=None, random_state=0, north=5, south=100, thre
         # just pick 4 regularly sampled indices on the boundary 
         if random_state is not None:
             np.random.seed(random_state)
-        corner = bdy_index[(np.linspace(0, len(bdy_index)-1, 5)[:4]).astype(np.int)]
+        corner = bdy_index[(np.linspace(0, len(bdy_index)-1, 5)[:4]).astype(np.int32)]
     
     # % rearrange the boundary indices to be correct anticlockwise. 
     id1 = np.arange(len(bdy_index))[bdy_index==corner[0]]
@@ -4698,7 +7890,7 @@ def disk_conformal_map(v,f,corner=None, random_state=0, north=5, south=100, thre
     bnd_uv = igl.map_vertices_to_circle(v, bdy_index)
 
     # % 1. disk harmonic map
-    disk = igl.harmonic_weights(v.astype(np.float),
+    disk = igl.harmonic_weights(v.astype(np.float32),
                               f, 
                               bdy_index, 
                               bnd_uv, 
@@ -5809,7 +9001,7 @@ def remove_small_mesh_components_labels(v,f,labels,
                                                                    f,
                                                                    mesh.faces_sparse)
 
-        vertex_triangle_labels = labels_clean[vertex_triangle_adj].astype(np.float16) # cast to a float
+        vertex_triangle_labels = labels_clean[vertex_triangle_adj].astype(np.float32) # cast to a float
         vertex_triangle_labels[vertex_triangle_adj==-1] = np.nan # cast to nan. 
         vertex_triangle_labels = np.squeeze(spstats.mode(vertex_triangle_labels, axis=1, nan_policy='omit')[0].astype(np.int32)) # recast to int.
         labels_clean = vertex_triangle_labels.copy()
@@ -5992,7 +9184,7 @@ def labelspreading_mesh(v,f, x, y, W=None, niters=10, alpha_prop=.1, return_prob
 
     # this is the prior - labelled. 
     base_matrix = np.zeros((n_samples, n_classes)); 
-    base_matrix[x.astype(np.int), y.astype(np.int)] = 1; 
+    base_matrix[x.astype(np.int32), y.astype(np.int32)] = 1; 
     base_matrix = (1.-alpha_prop)*base_matrix # this is the moving average.     
     
     if W is None:

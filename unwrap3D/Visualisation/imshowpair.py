@@ -75,8 +75,8 @@ def checkerboard_imgs(im1, im2, grid=(10,10)):
     im = np.zeros((rows, cols, 3))
     
     # create the checkerboard mask.
-    check_rows = np.linspace(0, rows, grid[0]+1).astype(np.int)
-    check_cols = np.linspace(0, cols, grid[1]+1).astype(np.int)
+    check_rows = np.linspace(0, rows, grid[0]+1).astype(np.int32)
+    check_cols = np.linspace(0, cols, grid[1]+1).astype(np.int32)
     checkerboard = np.zeros((rows,cols))
     
     for i in range(grid[0]):
