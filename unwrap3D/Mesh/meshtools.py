@@ -269,7 +269,7 @@ def split_mesh(mesh,
     return meshes, meshes_attributes
 
 
-def decimate_resample_mesh(mesh, remesh_samples, min_comp_size=100, predecimate=True):
+def decimate_resample_mesh(mesh, remesh_samples, min_comp_size=100, predecimate=True, decimate_frac=0.9):
     r""" Downsample (decimate) and optionally resample the mesh to equilateral triangles. 
 
     Parameters
@@ -297,7 +297,7 @@ def decimate_resample_mesh(mesh, remesh_samples, min_comp_size=100, predecimate=
     import numpy as np 
 
     if predecimate:
-        _, V, F, _, _ = igl.decimate(mesh.vertices, mesh.faces, int(.9*len(mesh.faces))) # faces is good ? 
+        _, V, F, _, _ = igl.decimate(mesh.vertices, mesh.faces, int(decimate_frac*len(mesh.faces))) # faces is good ? 
         if len(V) > 0: # have a check in here to prevent break down. 
             mesh = trimesh.Trimesh(V, F, validate=True) # why no good? 
             
@@ -2306,7 +2306,7 @@ def shrinkwrap_genus0(mesh_in,
     Repair input mesh 
     """
     #### we don't have to do this. 
-    remove_offset = 0
+    remove_offset = np.hstack([0,0,0])
     
     if make_manifold: 
         if mesh.is_watertight == False:
@@ -2321,15 +2321,21 @@ def shrinkwrap_genus0(mesh_in,
             mesh_watertight = create_mesh(v_watertight,
                                           f_watertight)
             
-            remove_offset = 20 - np.min(mesh.vertices, axis=0)
-            mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            # do a com alignment. i guess. 
+            c_watertight = np.nansum(igl.barycenter(v_watertight, f_watertight) * (igl.doublearea(v_watertight, f_watertight)/2.)[:,None] / np.nansum(igl.doublearea(v_watertight, f_watertight)/2.), axis=0)
+            c_mesh = np.nansum(igl.barycenter(mesh.vertices, mesh.faces) * (igl.doublearea(mesh.vertices, mesh.faces)/2.)[:,None] / np.nansum(igl.doublearea(mesh.vertices, mesh.faces)/2.), axis=0)
+            
+            # remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            remove_offset = c_mesh - c_watertight
+            # mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 #+ 0.5 # do we need the .5??
+            mesh.vertices = mesh.vertices - remove_offset[None,:]
             
         else:
             mesh_watertight = mesh.copy()
-            remove_offset = 0 
+            remove_offset = np.hstack([0,0,0]) 
     else:
         mesh_watertight = mesh.copy()
-        remove_offset = 0
+        remove_offset = np.hstack([0,0,0])
     print('initial:', mesh.euler_number)
     print('initial_watertight:', mesh_watertight.euler_number)
     
@@ -2427,7 +2433,7 @@ def shrinkwrap_genus0(mesh_in,
     ### preprocess the mesh 
     mesh_wrap = mesh_genus0.copy()    
     # # correct the coordinates of the mesh_genus0 mesh.
-    mesh_genus0.vertices = mesh_genus0.vertices - extra_pad - remove_offset #+ 0.5
+    mesh_genus0.vertices = mesh_genus0.vertices - extra_pad - remove_offset[None,:] #+ 0.5
 
     
     #### make sure there is enough vertices.! 
@@ -2468,7 +2474,7 @@ def shrinkwrap_genus0(mesh_in,
     mesh_ref_v = mesh.vertices
     
     mesh_initial = mesh_wrap.copy(); 
-    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset 
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset[None,:] 
     
     mesh_iter = [mesh_initial] # this first one must not be properly offset. 
     chamfer_dist = [pcu.chamfer_distance(mesh_wrap.vertices, mesh_ref_v)]
@@ -2642,7 +2648,7 @@ def shrinkwrap_genus0(mesh_in,
         
         # this should be a new copy.
         mesh_wrap_out = mesh_wrap.copy()
-        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset[None,:] #+ 0.5# revert back into the original geometric space
         
         # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
         # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
@@ -2731,7 +2737,7 @@ def attract_surface_mesh(mesh_in,
     Repair input mesh 
     """
     #### we don't have to do this. 
-    remove_offset = 0
+    remove_offset = np.hstack([0,0,0])
     
     if make_manifold: 
         if mesh.is_watertight == False:
@@ -2746,17 +2752,26 @@ def attract_surface_mesh(mesh_in,
             mesh_watertight = create_mesh(v_watertight,
                                           f_watertight)
             
-            remove_offset = 20 - np.min(mesh.vertices, axis=0)
-            min_mesh_verts = np.min(mesh.vertices, axis=0)
-            mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
-            mesh_wrap.vertices = mesh_wrap.vertices - min_mesh_verts + 20 + 0.5  # apply the same transformation 
+            # remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            # min_mesh_verts = np.min(mesh.vertices, axis=0)
+            # mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            # mesh_wrap.vertices = mesh_wrap.vertices - min_mesh_verts + 20 + 0.5  # apply the same transformation 
+            
+            # do a com alignment. i guess. 
+            c_watertight = np.nansum(igl.barycenter(v_watertight, f_watertight) * (igl.doublearea(v_watertight, f_watertight)/2.)[:,None] / np.nansum(igl.doublearea(v_watertight, f_watertight)/2.), axis=0)
+            c_mesh = np.nansum(igl.barycenter(mesh.vertices, mesh.faces) * (igl.doublearea(mesh.vertices, mesh.faces)/2.)[:,None] / np.nansum(igl.doublearea(mesh.vertices, mesh.faces)/2.), axis=0)
+            
+            # remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            remove_offset = c_mesh - c_watertight
+            # mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 #+ 0.5 # do we need the .5??
+            mesh.vertices = mesh.vertices - remove_offset[None,:]
             
         else:
             mesh_watertight = mesh.copy()
-            remove_offset = 0 
+            remove_offset = np.hstack([0,0,0])
     else:
         mesh_watertight = mesh.copy()
-        remove_offset = 0
+        remove_offset = np.hstack([0,0,0])
     print('initial:', mesh.euler_number)
     print('initial_watertight:', mesh_watertight.euler_number)
     
@@ -2841,10 +2856,10 @@ def attract_surface_mesh(mesh_in,
     ### preprocess the mesh 
     mesh_initial = mesh_wrap.copy()    
     # # correct the coordinates of the mesh_genus0 mesh.
-    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset #+ 0.5
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset[None,:] #+ 0.5
 
     # correct for the mesh_watertight
-    mesh_watertight.vertices = mesh_watertight.vertices - extra_pad - remove_offset
+    mesh_watertight.vertices = mesh_watertight.vertices - extra_pad - remove_offset[None,:]
     
     
     # #### make sure there is enough vertices.! 
@@ -2880,7 +2895,7 @@ def attract_surface_mesh(mesh_in,
     mesh_ref_v = mesh.vertices
     
     mesh_initial = mesh_wrap.copy(); 
-    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset 
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset[None,:] 
     
     mesh_iter = [mesh_initial] # this first one must not be properly offset. 
     chamfer_dist = [pcu.chamfer_distance(mesh_wrap.vertices, mesh_ref_v)]
@@ -2950,7 +2965,7 @@ def attract_surface_mesh(mesh_in,
         
         # this should be a new copy.
         mesh_wrap_out = mesh_wrap.copy()
-        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset[None,:] #+ 0.5# revert back into the original geometric space
         
         # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
         # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
@@ -3018,7 +3033,7 @@ def shrinkwrap_genus0_basic(mesh_in,
     Repair input mesh 
     """
     #### we don't have to do this. 
-    remove_offset = 0
+    remove_offset = np.hstack([0,0,0])
     
     if make_manifold: 
         if mesh.is_watertight == False:
@@ -3033,15 +3048,23 @@ def shrinkwrap_genus0_basic(mesh_in,
             mesh_watertight = create_mesh(v_watertight,
                                           f_watertight)
             
-            remove_offset = 20 - np.min(mesh.vertices, axis=0)
-            mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            # remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            # mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 + 0.5
+            # do a com alignment. i guess. 
+            c_watertight = np.nansum(igl.barycenter(v_watertight, f_watertight) * (igl.doublearea(v_watertight, f_watertight)/2.)[:,None] / np.nansum(igl.doublearea(v_watertight, f_watertight)/2.), axis=0)
+            c_mesh = np.nansum(igl.barycenter(mesh.vertices, mesh.faces) * (igl.doublearea(mesh.vertices, mesh.faces)/2.)[:,None] / np.nansum(igl.doublearea(mesh.vertices, mesh.faces)/2.), axis=0)
+            
+            # remove_offset = 20 - np.min(mesh.vertices, axis=0)
+            remove_offset = -(c_mesh - c_watertight)
+            # mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 #+ 0.5 # do we need the .5??
+            mesh.vertices = mesh.vertices + remove_offset[None,:]
             
         else:
             mesh_watertight = mesh.copy()
-            remove_offset = 0 
+            remove_offset = np.hstack([0,0,0]) 
     else:
         mesh_watertight = mesh.copy()
-        remove_offset = 0
+        remove_offset = np.hstack([0,0,0])
     print('initial:', mesh.euler_number)
     print('initial_watertight:', mesh_watertight.euler_number)
     
@@ -3142,10 +3165,10 @@ def shrinkwrap_genus0_basic(mesh_in,
     ### preprocess the mesh 
     mesh_wrap = mesh_genus0.copy()    
     # # correct the coordinates of the mesh_genus0 mesh.
-    mesh_genus0.vertices = mesh_genus0.vertices - extra_pad - remove_offset #+ 0.5
+    mesh_genus0.vertices = mesh_genus0.vertices - extra_pad - remove_offset[None,:] #+ 0.5
 
     # correct for the mesh_watertight
-    mesh_watertight.vertices = mesh_watertight.vertices - extra_pad - remove_offset
+    mesh_watertight.vertices = mesh_watertight.vertices - extra_pad - remove_offset[None,:]
     
     #### make sure there is enough vertices.! 
     # upsample - is it because of this ? 
@@ -3181,7 +3204,7 @@ def shrinkwrap_genus0_basic(mesh_in,
     mesh_ref_v = mesh.vertices
     
     mesh_initial = mesh_wrap.copy(); 
-    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset 
+    mesh_initial.vertices = mesh_initial.vertices - extra_pad - remove_offset[None,:] 
     
     mesh_iter = [mesh_initial] # this first one must not be properly offset. 
     chamfer_dist = [pcu.chamfer_distance(mesh_wrap.vertices, mesh_ref_v)]
@@ -3252,7 +3275,7 @@ def shrinkwrap_genus0_basic(mesh_in,
         
         # this should be a new copy.
         mesh_wrap_out = mesh_wrap.copy()
-        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset #+ 0.5# revert back into the original geometric space
+        mesh_wrap_out.vertices = mesh_wrap_out.vertices - extra_pad - remove_offset[None,:] #+ 0.5# revert back into the original geometric space
         
         # mesh_wrap_out_diff = np.nanmean(mesh.vertices, axis=0) - np.nanmean(mesh_wrap_out.vertices, axis=0)
         # mesh_wrap_out.vertices = mesh_wrap_out.vertices + mesh_wrap_out_diff[None,:]
@@ -3506,7 +3529,7 @@ def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_sha
             # print(upsample_iters)
             upsample_iters = np.min([upsample_iters, upsample_iters_max])
             vv, ff = igl.upsample(mesh.vertices, mesh.faces, upsample_iters)
-        mesh_pts = igl.barycenter(vv,ff) #+ .5
+        mesh_pts = igl.barycenter(vv,ff) + .5
         # determine the boundaries. 
         min_x, min_y, min_z = np.min(mesh_pts, axis=0)
         max_x, max_y, max_z = np.max(mesh_pts, axis=0)
@@ -3524,15 +3547,16 @@ def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_sha
             upsample_iters = int(np.rint(np.log2(factor)))
             upsample_iters = np.min([upsample_iters, upsample_iters_max])
             vv, ff = igl.upsample(mesh.vertices, mesh.faces, upsample_iters)
-        mesh_pts = igl.barycenter(vv,ff) #+ .5
+        mesh_pts = igl.barycenter(vv,ff) + .5
         smooth_img_binary = np.zeros(vol_shape)
 
-    # clip the pts to the boundary 
-    mesh_pts[:,0] = np.clip(mesh_pts[:,0], 0, smooth_img_binary.shape[0]-1)
-    mesh_pts[:,1] = np.clip(mesh_pts[:,1], 0, smooth_img_binary.shape[1]-1)
-    mesh_pts[:,2] = np.clip(mesh_pts[:,2], 0, smooth_img_binary.shape[2]-1)
+    # clip the pts to the boundary and add the tol_pad!. 
+    mesh_pts[:,0] = np.clip(mesh_pts[:,0], 0, smooth_img_binary.shape[0]-1) + tol_pad
+    mesh_pts[:,1] = np.clip(mesh_pts[:,1], 0, smooth_img_binary.shape[1]-1) + tol_pad
+    mesh_pts[:,2] = np.clip(mesh_pts[:,2], 0, smooth_img_binary.shape[2]-1) + tol_pad
     
-    smooth_img_binary = np.pad(smooth_img_binary, pad_width=[[tol_pad,tol_pad], [tol_pad,tol_pad], [tol_pad,tol_pad]])
+    smooth_img_binary = np.pad(smooth_img_binary, 
+                               pad_width=[[tol_pad,tol_pad], [tol_pad,tol_pad], [tol_pad,tol_pad]])
     
     smooth_img_binary[mesh_pts[:,0].astype(np.int32), 
                       mesh_pts[:,1].astype(np.int32), 
@@ -3546,7 +3570,7 @@ def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_sha
 
     smooth_img_binary = smooth_img_binary[tol_pad:-tol_pad,
                                           tol_pad:-tol_pad,
-                                          tol_pad:-tol_pad].copy()
+                                          tol_pad:-tol_pad]
 
     return smooth_img_binary 
 
@@ -4087,7 +4111,7 @@ def parametric_uv_unwrap_mesh_constant_img_flow(uv_grid,
     import numpy as np 
     import scipy.sparse as spsparse
     from tqdm import tqdm 
-    from ..Unzipping import unzip_new as uzip 
+    from ..Unzipping import unzip as uzip 
     import trimesh
 
     vol_shape = external_img_gradient.shape[:-1]
@@ -4153,17 +4177,58 @@ def parametric_uv_unwrap_mesh_constant_img_flow(uv_grid,
     return Usteps_out_rec # return the propagated out mesh. 
 
 
+def sphere_lloyd_relax_mesh(v,f, n_iter=10,omega=1):
+    """ Performs lloyd relaxation on the sphere to improve triangle quality
+    """
+    import igl 
+    import numpy as np 
+    
+    surf_sphere = create_mesh(v,f)
+    
+    for iter_ii in np.arange(n_iter):
+        
+        barycenters = igl.barycenter(surf_sphere.vertices, 
+                                     surf_sphere.faces)
+        
+        # get the adjacent face index. 
+        adj_index = surf_sphere.vertex_faces
+        voronoi_pts = barycenters[adj_index]
+        voronoi_pts[adj_index==-1] = np.nan
+        centroids = np.nanmean(voronoi_pts, axis=1)
+        
+        # move this towards 
+        new_pts = surf_sphere.vertices + omega *(centroids - surf_sphere.vertices)
+        new_pts_barycenters =  igl.barycenter(new_pts, 
+                                              surf_sphere.faces)
+        
+        # infer the centroid to recenter. 
+        centroid = np.nansum( ((igl.doublearea(new_pts, surf_sphere.faces)/2.)[:,None] * new_pts_barycenters )/ np.nansum(igl.doublearea(new_pts, surf_sphere.faces)/2.))
+        
+        new_pts = new_pts - centroid# recenter and normalize
+        new_pts = new_pts / (np.linalg.norm(new_pts, axis=-1)[:,None] + 1e-20)
+        
+        surf_sphere.vertices = new_pts.copy()
+    
+    
+    return surf_sphere
+
+
 def area_distortion_flow_relax_sphere(mesh, 
                                       mesh_orig, 
                                       max_iter=50,
                                       smooth_iters=0,  
                                       delta=0.1, 
                                       stepsize=.1,
-                                      stepsize_N=0.0, 
+                                      stepsize_N=0.0,
+                                      scale=1.0,
                                       conformalize=False,
                                       flip_delaunay=False,
                                       robust_L=False,
                                       mollify_factor=1e-5,
+                                      lloyd_relax_bool=False,
+                                      lloyd_every_iter=5,
+                                      lloyd_relax_iters=10,
+                                      lloyd_omega=1.,
                                       eps = 1e-12,
                                       debugviz=False):
     r""" This function relaxes the area distortion of a spherical mesh by advecting vertex coordinates whilst maintaining the spherical geometry. 
@@ -4237,6 +4302,12 @@ def area_distortion_flow_relax_sphere(mesh,
     if robust_L:
         L, M = robust_laplacian.mesh_laplacian(np.array(v), np.array(f), mollify_factor=mollify_factor)
         L = -L # need to invert sign to be same convention as igl. 
+        
+        # a = igl.adjacency_matrix(f)             
+        # a_sum = np.sum(a, axis=1)
+        # a_diag = spsparse.diags([np.array(a_sum)[:,0]], offsets=[0])
+        # L = a - a_diag
+        
     else:
         L = igl.cotmatrix(v,f)
 
@@ -4250,7 +4321,14 @@ def area_distortion_flow_relax_sphere(mesh,
 
             if conformalize == False:
                 if robust_L:
-                    L, m = robust_laplacian.mesh_laplacian(np.array(v), np.array(f),mollify_factor=mollify_factor); L = -L; # this must be computed. # if not... then no growth -> flow must change triangle shape!. 
+                    L, m = robust_laplacian.mesh_laplacian(np.array(v), np.array(f),mollify_factor=mollify_factor); 
+                    L = -L; # this must be computed. # if not... then no growth -> flow must change triangle shape!. 
+                    
+                    # a = igl.adjacency_matrix(f)             
+                    # a_sum = np.sum(a, axis=1)
+                    # a_diag = spsparse.diags([np.array(a_sum)[:,0]], offsets=[0])
+                    # L = a - a_diag
+                
                 else:
                     L = igl.cotmatrix(v,f)
                     m = igl.massmatrix(v,f, igl.MASSMATRIX_TYPE_BARYCENTRIC)
@@ -4291,8 +4369,12 @@ def area_distortion_flow_relax_sphere(mesh,
             gA = g.dot(-np.log(area_distortion_mesh_vertex)).reshape(f.shape, order="F") 
             # scale by the edge length.
             gu_mag = np.linalg.norm(gA, axis=1)
+            # print(np.nanmedian(gu_mag) , np.nanmean(gu_mag), np.nanmin(gu_mag))
             max_size = igl.avg_edge_length(v, f) / np.nanmedian(gu_mag) # if divide by median less good. 
+            # max_size = igl.avg_edge_length(v, f) / np.nanmean(gu_mag)
             
+            # print(max_size, np.nanmedian(gu_mag), igl.avg_edge_length(v, f))
+            # print('======')
             vA = max_size*gA # this is vector. 
             normal = igl.per_vertex_normals(v,f)
             # Vvertex = Vvertex - np.nansum(v*normal, axis=-1)[:,None]*normal # this projection actually makes it highly unstable? 
@@ -4333,22 +4415,30 @@ def area_distortion_flow_relax_sphere(mesh,
             area = np.nansum(igl.doublearea(v,f)*.5) #total area. 
             c = np.nansum((0.5*igl.doublearea(v,f)/area)[...,None] * igl.barycenter(v,f), axis=0) # this is just weighted centroid
             v = v - c[None,:] 
-            # sphericalize 
-            v = v/np.linalg.norm(v, axis=-1)[:,None] # forces sphere.... topology.... relaxation. 
+            # sphericalize, with scale allowing us to handle non-unit sphere.  
+            v = v * scale /np.linalg.norm(v, axis=-1)[:,None] # forces sphere.... topology.... relaxation. 
 
             """
             flip delaunay ? or use optimesh refine? -> to improve triangle quality? 
             """
-            if flip_delaunay:
+            # if flip_delaunay:
 
-                import meshplex
-                # this clears out the overlapping. is this necessary
-                mesh_out = meshplex.MeshTri(v, f)
-                mesh_out.flip_until_delaunay()
+            #     import meshplex
+            #     # this clears out the overlapping. is this necessary
+            #     mesh_out = meshplex.MeshTri(v, f)
+            #     mesh_out.flip_until_delaunay()
             
-                # update v and f!
-                v = mesh_out.points.copy()
-                f = mesh_out.cells('points').copy() 
+            #     # update v and f!
+            #     v = mesh_out.points.copy()
+            #     f = mesh_out.cells('points').copy() 
+            
+            
+            if lloyd_relax_bool and np.mod(ii, lloyd_every_iter)==0:
+                surf_sphere = sphere_lloyd_relax_mesh(v,f, 
+                                                      n_iter=lloyd_relax_iters,
+                                                      omega=lloyd_omega)
+                v = surf_sphere.vertices
+                f = surf_sphere.faces
 
             # update. 
             v_steps.append(v)
@@ -4944,6 +5034,127 @@ def conformalized_mean_line_flow( contour_pts, E=None, close_contour=True, fixed
     return contour_pts_flow
 
 
+def make_manifold_mesh(mesh, watertight_fraction=0.5):
+
+    import point_cloud_utils as pcu
+    
+    v_watertight, f_watertight = pcu.make_mesh_watertight(mesh.vertices, 
+                                                          mesh.faces, 
+                                                          resolution=watertight_fraction*len(mesh.faces))
+    # recenter. 
+    mesh_watertight = create_mesh(v_watertight,
+                                  f_watertight)
+    
+    # do a com alignment. i guess. 
+    c_watertight = barycentric_mesh_centroid(v_watertight,
+                                             f_watertight)
+    c_mesh = barycentric_mesh_centroid(mesh.vertices,
+                                       mesh.faces)
+    # remove_offset = 20 - np.min(mesh.vertices, axis=0)
+    remove_offset = c_mesh - c_watertight
+    # mesh.vertices = mesh.vertices - np.min(mesh.vertices, axis=0) + 20 #+ 0.5 # do we need the .5??
+    mesh_watertight.vertices = mesh_watertight.vertices + remove_offset[None,:]
+    
+    return mesh_watertight
+
+
+def barycentric_mesh_centroid(v,f):
+    
+    import igl
+    
+    barycenters = igl.barycenter(v,f)
+    areas = igl.doublearea(v,f)/2.
+    
+    centroid = np.nansum(barycenters * areas[:,None] / np.nansum(areas), axis = 0 )
+    
+    return centroid
+
+
+def spectral_decomposition_mesh(mesh, n_components=100, maxiter=None, laplacian_matrix='cotan', mollify_factor=1e-5):
+    
+    """ spectral decomposition of an input mesh using the laplacian cotangent matrix 
+    
+    """
+    import igl 
+    import scipy.sparse as spsparse
+    if laplacian_matrix=='robust_L':
+        import robust_laplacian
+        
+    if laplacian_matrix == 'cotan':
+        W = igl.cotmatrix(mesh.vertices,
+                          mesh.faces)
+    elif laplacian_matrix=='robust_L':
+        W, M = robust_laplacian.mesh_laplacian(np.array(mesh.vertices), 
+                                               np.array(mesh.faces), 
+                                               mollify_factor=mollify_factor); 
+        W = -W 
+    else:
+        W = igl.cotmatrix(mesh.vertices,
+                          mesh.faces)
+        
+        
+    if maxiter is not None:
+        U, V = spsparse.linalg.eigsh(W, k=n_components, which='SM', maxiter=maxiter) # extract the frequencies. 
+    else:
+        U, V = spsparse.linalg.eigsh(W, k=n_components, which='SM')
+        
+    order= np.argsort(U)[::-1] # sort by largest. 
+    
+    U = U[order]
+    V = V[:,order]
+    
+    return U, V 
+
+def project_onto_spectral_bases(mesh, basis):
+    
+    import numpy as np     
+    
+    # centroid = barycentric_mesh_centroid(mesh.vertices, mesh.faces)
+    P =  np.matmul(mesh.vertices.T, basis)
+    
+    return P 
+
+def reconstruct_from_spectral_coeffs(coeffs, basis):
+    
+    import numpy as np 
+    
+    verts = (np.matmul(coeffs, basis.T)).T 
+
+    return verts
+
+
+def spectral_search_mesh(mesh, n_components=100, laplacian_matrix='cotan', mollify_factor=1e-5):
+    """ use spectral decomposition ofthe mesh 
+    """
+    
+    import numpy as np
+    
+    U, V = spectral_decomposition_mesh(mesh, 
+                                       n_components=n_components,
+                                       laplacian_matrix=laplacian_matrix, 
+                                       mollify_factor=mollify_factor)
+    
+    P = project_onto_spectral_bases(mesh, V)
+    
+    # perform the reconstructions, eval error and find key indices. 
+    errs = []
+    all_verts = []
+    
+    for ii in np.arange(V.shape[1]):
+        
+        verts_ii = reconstruct_from_spectral_coeffs(P[:,:ii+1], V[:,:ii+1])
+        err = np.nanmean(np.linalg.norm(verts_ii - mesh.vertices, axis=-1), axis=0)
+        
+        errs.append(err)
+        all_verts.append(verts_ii)
+        
+    errs = np.hstack(errs)
+    all_verts = np.array(all_verts).transpose(1,2,0) # to keep the same structure 
+    # do a search. 
+    
+    return all_verts, errs
+    
+
 def conformalized_mean_curvature_flow(mesh, max_iter=50, 
                                         delta=5e-4, 
                                         rescale_output = True, 
@@ -5102,7 +5313,9 @@ def conformalized_mean_curvature_flow(mesh, max_iter=50,
             # rescale by the area? # is this a mobius transformation? ( can)
             area = np.sum(igl.doublearea(U,SF)*.5) #total area. 
             c = np.sum((0.5*igl.doublearea(U,SF)/area)[...,None] * igl.barycenter(U,F), axis=0) # this is just weighted centroid
+            
             U = U - c[None,:] 
+            
             U = U/(np.sqrt(area)) # avoid zero area
             d = ((((U-U_prev).T).dot(M.dot(U-U_prev)))**2).diagonal().sum() # assessment of convergence. 
 
@@ -5893,6 +6106,62 @@ def find_curvature_cutoff_index(values, thresh=None, absval=True):
         ind = np.nan # couldn't find one -> means more runs of flow is required. 
 
     return ind 
+
+
+def _ma_mean(curve, winsize=3, avg_func=np.nanmean):
+    
+    curve_pad = np.pad(curve, [winsize//2,winsize//2], mode='reflect')
+    
+    curve_filt = []
+    
+    for ii in np.arange(len(curve)):
+        
+        data = curve_pad[ii:ii+winsize]
+        curve_filt.append(avg_func(data))
+        
+    curve_filt = np.hstack(curve_filt)
+    
+    return curve_filt
+
+
+def find_all_curvature_cutoff_index(values, avg_fnc=np.nanmean, absval=True, winsize=9, min_peak_height=1e-7, min_peak_distance=5):
+    r""" For a given array of values, find all indexes where the absolute difference of the given curve is greater than the moving average mean baseline curve by a minimum threshold.  
+    This function can be used to find all possible stopping iteration number for conformalized mean curvature smoothing based on the decrease in absolute Gaussian curvature. If no such index can be found then returns empty list
+
+    Parameters
+    ----------
+    values : (N,) array
+        1d array of values 
+    absval : bool 
+        determine whether the cut-off is on the absolute differences in value or differences in value 
+    winsize : int
+        window size of moving average
+    avg_fnc : python function
+        function used to compute average, default is numpy mean
+    min_peak_height : scalar
+        the min absolute difference from the moving average baseline
+    min_peak_distance : int
+        minimum spacing between successive peaks
+    
+    Returns
+    -------
+    inds : list
+        list of all found indices. If none found, returns empty list.
+    """
+    import numpy as np 
+    import scipy
+
+    if absval:
+        curve = np.abs(np.hstack(values))
+    else:
+        curve = np.hstack(values)
+        
+    baseline = _ma_mean(values, winsize=winsize, avg_func=avg_fnc)
+    
+    inds, _ = scipy.signal.find_peaks(np.abs(curve - baseline), height=min_peak_height, distance=min_peak_distance)
+
+    return inds 
+
 
 def average_onto_barycenter(v,f,vals, return_barycenter=True):
     r""" Convert vertex values to face values by barycentric averaging of multi-dimensional vertex-associated values. This function does not work for segmentation labels.
@@ -6921,7 +7190,7 @@ def detect_nonsphere_faces(mesh, deltaL=5e-3, max_iter=25, mollify_factor=1e-5):
     return U, n_inverted, inverted_patches 
 
 
-def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, mollify_factor=1e-5):
+def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, mollify_factor=1e-5, scale=1.):
     r""" A fast iterative method for computing a spherical quasi-conformal map of a genus-0 closed surface using uniform Laplacian averaging on the sphere. This method is more stable than the direct map but does not achieve as low a conformality error. It is faster and scales well for large meshes and the end mesh triangles are typically better suited for subsequent area distortion relaxation. 
 
     Parameters
@@ -6965,7 +7234,7 @@ def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, 
     
     # direct project to sphere. 
     pts = (pts - center[None,:])  #/ (np.nansum(igl.doublearea(pts, f)/2.)) # normalize by total area!. 
-    pts = pts / (np.linalg.norm(pts, axis=-1)[:,None] + 1e-20)
+    pts = pts * scale / (np.linalg.norm(pts, axis=-1)[:,None] + 1e-20)
 
 
     U = pts.copy()
@@ -6980,6 +7249,7 @@ def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, 
     L = a - a_diag
     
     n_inverted = []
+    min_tri_areas = [] 
     # inverted_patches = []
     
     for ii in range(max_iter):
@@ -7001,7 +7271,7 @@ def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, 
         c = np.sum((0.5*igl.doublearea(U,F)/area)[...,None] * igl.barycenter(U,F), axis=0) # this is just weighted centroid
         U = U - c[None,:] 
         
-        U = U / (np.linalg.norm(U, axis=-1)[:,None] + 1e-12)
+        U = U * scale / (np.linalg.norm(U, axis=-1)[:,None] + 1e-12)
         
    
         # highlight the inverted!
@@ -7021,6 +7291,8 @@ def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, 
         
         n_inverted.append(np.sum(inverted_indicator))
         # inverted_patches.append(inverted_indicator)
+        
+        min_tri_areas.append(np.min(igl.doublearea(U, F)*.5))
         
         if np.sum(inverted_indicator) ==0 and ii>=min_iter:
             break
@@ -7179,8 +7451,24 @@ def direct_spherical_conformal_map(v,f):
     param = np.vstack([2*np.real(z)/(1.+np.abs(z)**2), 2*np.imag(z)/(1+np.abs(z)**2), -(np.abs(z)**2-1)/(1.+np.abs(z)**2)]).T
     # map = [2*real(z)./(1+abs(z).^2), 2*imag(z)./(1+abs(z).^2), -(abs(z).^2-1)./(1+abs(z).^2)];
 
+    
     # apply procrustes so the spherical parameterization is the same geometrical orientation as the original input. 
-    _, param, _ = trimesh.registration.procrustes(param, v, weights=None, reflection=True, translation=True, scale=True, return_cost=True)
+    # 2023-09-20: the procrustes doesn't fix all the problems actually.... we need a more robust way.  
+    # # area_normalize_mesh(mesh, map_color=False, centroid='area')
+    area_weights_v = (igl.doublearea(v,f)/2.)[:,None] 
+    c = np.nansum(igl.barycenter(v,f)*area_weights_v / np.nansum(area_weights_v), axis=0)
+    # v_mean = np.nansum( area_weights_v/float(np.nansum(area_weights_v)) * igl.barycenter(v,f), axis=0)
+
+    # v_out = v - v_mean[None,:]
+    # v_out_scale = float(np.sqrt(np.sum(igl.doublearea(v,f))/2.))
+    # v_out = v_out / v_out_scale
+    # v_sphere = (v - c) 
+    # v_sphere = v_sphere / (np.linalg.norm(v_sphere, axis=-1)[:,None] + 1e-20)
+    
+    _, param, _ = trimesh.registration.procrustes(param, v, weights=None, 
+                                                  reflection=False, # set this false. should this reflect? 
+                                                  translation=True, 
+                                                  scale=True, return_cost=True)
 
     # rescale and sphere proj
     param = param - np.nanmean(igl.barycenter(param, f), axis=0)

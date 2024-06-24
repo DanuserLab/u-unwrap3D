@@ -91,6 +91,163 @@ def largest_component_vol_labels(vol_labels, connectivity=1, bg_label=0):
     
     return vol_labels_new
 
+def _distance_to_heat_affinity_matrix(Dmatrix, gamma=None):
+    r""" Convert any distance matrix to an affinity matrix by applying a heat kernel.
+
+    .. math:: 
+        A = \exp^{\left(\frac{-D^2}{2\sigma^2}\right)}
+
+    where :math:`sigma` is set as the mean distance of :math:`D` or :math:`\gamma` if provided.
+    
+    Parameters
+    ----------
+    Dmatrix : (N,N) sparse array
+        a scipy.sparse input distance matrix
+    gamma : scalar
+        the normalisation scale factor of distances
+
+    Returns 
+    -------
+    A : (N,N) sparse array
+        a scipy.sparse output affinity distance matrix
+
+    """
+    import numpy as np 
+    # import igl
+    import scipy.sparse as spsparse
+
+    l = Dmatrix.shape[0]
+    A = Dmatrix.copy()
+    if gamma is None:
+        sigma_D = np.mean(A.data)
+    else:
+        sigma_D = gamma
+    den_D = 2 * (sigma_D ** 2)
+    np.exp( -A.data**2/den_D, out=A.data )
+    A = A + spsparse.diags(np.ones(l), 0)  # diagonal is 1 by definition. 
+
+    return A.tocsr() # this should give faster? 
+
+
+def _distance_to_laplace_affinity_matrix(Dmatrix, gamma=None):
+    r""" Convert any distance matrix to an affinity matrix by applying a heat kernel.
+
+    .. math:: 
+        A = \exp^{\left(\frac{-|D|}{\sigma}\right)}
+
+    where :math:`sigma` is set as the mean distance of :math:`D` or :math:`\gamma` if provided.
+    
+    Parameters
+    ----------
+    Dmatrix : (N,N) sparse array
+        a scipy.sparse input distance matrix
+    gamma : scalar
+        the normalisation scale factor of distances
+
+    Returns 
+    -------
+    A : (N,N) sparse array
+        a scipy.sparse output affinity distance matrix
+
+    """
+    import numpy as np 
+    # import igl
+    import scipy.sparse as spsparse
+
+    l = Dmatrix.shape[0]
+    A = Dmatrix.copy()
+    if gamma is None:
+        sigma_D = np.mean(A.data)
+    else:
+        sigma_D = gamma
+    den_D = sigma_D 
+    np.exp( -np.abs(A.data)/den_D, out=A.data )
+    A = A + spsparse.diags(np.ones(l), 0)  # diagonal is 1 by definition. 
+
+    return A.tocsr() # this should give faster? 
+
+
+def diffuse_labels3D(labels_in, guide, clamp=0.99, n_iter=10, noprogress=True, alpha=0.8, affinity_type='heat'):
+    """ 
+    
+    Parameters
+    ----------
+    labels_in : TYPE
+        DESCRIPTION.
+    guide : TYPE
+        DESCRIPTION.
+    clamp : TYPE, optional
+        DESCRIPTION. The default is 0.99.
+    n_iter : TYPE, optional
+        DESCRIPTION. The default is 10.
+    noprogress : TYPE, optional
+        DESCRIPTION. The default is True.
+    alpha : TYPE, optional
+        DESCRIPTION. The default is 0.8.
+
+    Returns
+    -------
+    z_label : TYPE
+        DESCRIPTION.
+
+    """
+    # we need to test this function ! the original was infact wrong? 
+    from sklearn.feature_extraction.image import img_to_graph, grid_to_graph
+    from tqdm import tqdm
+    import skimage.segmentation as sksegmentation 
+    
+    # relabel labels_in 
+    labels_in_relabel, fwd, bwd = sksegmentation.relabel_sequential(labels_in) # fwd, original -> new, bwd, new->original
+    
+    graph = img_to_graph(guide) # use gradients
+    if affinity_type=='heat':
+        affinity = _distance_to_heat_affinity_matrix(graph, gamma=None)
+    elif affinity_type =='laplace':
+        affinity = _distance_to_laplace_affinity_matrix(graph, gamma=None)
+    else:
+        print('not valid')
+    # normalize this.... 
+
+    graph_laplacian=grid_to_graph(guide.shape[0], guide.shape[1], guide.shape[2])
+    if affinity_type=='heat':
+        affinity_laplacian = _distance_to_heat_affinity_matrix(graph_laplacian*1., gamma=None)
+    elif affinity_type =='laplace':
+        affinity_laplacian = _distance_to_laplace_affinity_matrix(graph_laplacian*1., gamma=None)
+    else:
+        print('not valid')
+    
+    affinity = alpha * affinity + (1.-alpha) * affinity_laplacian # take an average. 
+    
+    n_labels = np.max(labels_in_relabel)+1 # include background!. 
+    
+    labels = np.zeros((np.prod(labels_in_relabel.shape[:3]), n_labels), 
+                          dtype=np.float32)    
+
+    labels[np.arange(len(labels_in_relabel.ravel())), labels_in_relabel.ravel()] = 1 # set all the labels 
+    
+    # # diffuse on this.... with label propagation.
+    # alpha_prop = clamp
+    # base_matrix = (1.-alpha_prop)*labels
+    # # above looks wrong... 
+    # alpha_prop = 1.-clamp
+    # base_matrix = (1.-alpha_prop)*labels
+    
+    init_matrix = np.zeros_like(labels) # let this be the new. 
+    
+    for ii in tqdm(np.arange(n_iter), disable=noprogress):
+        # init_matrix = affinity.dot(init_matrix) + base_matrix
+        init_matrix = (1.-clamp)*affinity.dot(init_matrix) + clamp*labels # this is the correct equation.
+        
+    z = np.nansum(init_matrix, axis=1)
+    z[z==0] += 1 # Avoid division by 0
+    z = ((init_matrix.T)/z).T
+    z_label = np.argmax(z, axis=1)
+    z_label = z_label.reshape(labels_in_relabel.shape)
+    
+    # map back. 
+    z_label = bwd[z_label]
+    return z_label
+
 
 def get_bbox_binary_2D(mask, feature_img=None, prop_nan=True):
     r""" Given a 2D binary image, return the largest bounding box described in terms of its top left and bottom right coordinate positions. If given the corresponding feature_img, compute the average feature vector describing the contents inside the bounding box and concatenate this with the bounding box coordinates for downstream applications.
@@ -253,6 +410,86 @@ def crop_box_3D(im, thresh=None, pad=50):
     bbox = np.hstack([min_zz, min_yy, min_xx, max_zz, max_yy, max_xx])
     
     return bbox
+
+def crop_box_3D_aniso(im, thresh=None, pad=[50,50,50]):
+    
+    import numpy as np 
+    from scipy.ndimage.morphology import binary_fill_holes
+    
+    l,m,n = im.shape
+
+    if thresh is not None:
+        binary = im>=thresh
+    else:
+        binary = im.copy() # the input is already binarised. 
+    binary = largest_component_vol(binary) # ok so we normally assume the largest component is the main celll. 
+    
+    # min_zz, min_yy, min_xx, max_zz, max_yy, max_xx = bounding_box(binary)
+    ZZ, YY, XX = np.indices(binary.shape)
+    
+    min_zz = np.min(ZZ[binary])
+    max_zz = np.max(ZZ[binary])
+    min_yy = np.min(YY[binary])
+    max_yy = np.max(YY[binary])
+    min_xx = np.min(XX[binary])
+    max_xx = np.max(XX[binary])
+    
+    min_zz = np.clip(min_zz - pad[0], 0, l-1)
+    max_zz = np.clip(max_zz + pad[0], 0, l-1)
+    min_yy = np.clip(min_yy - pad[1], 0, m-1)
+    max_yy = np.clip(max_yy + pad[1], 0, m-1)
+    min_xx = np.clip(min_xx - pad[2], 0, n-1)
+    max_xx = np.clip(max_xx + pad[2], 0, n-1)
+    
+    return min_zz, min_yy, min_xx, max_zz, max_yy, max_xx
+
+def crop_box_3D_aniso_central(im, thresh=None, pad=[50,50,50], min_size_comp=1000):
+    
+    import numpy as np 
+    from scipy.ndimage.morphology import binary_fill_holes
+    import skimage.morphology as skmorph
+    import skimage.measure as skmeasure
+    
+    l,m,n = im.shape
+
+    if thresh is not None:
+        binary = im>=thresh
+    else:
+        binary = im.copy() # the input is already binarised. 
+    
+    binary = skmorph.remove_small_objects(binary, min_size=min_size_comp, connectivity=2)
+    # then instead of this we need the most central component. 
+    centroid_im = np.hstack(im.shape)/2.
+    
+    labelled = skmeasure.label(binary, connectivity=2)
+    labelledprops = skmeasure.regionprops(labelled)
+    
+    centroids = np.vstack([reg.centroid for reg in labelledprops])
+    centroid_labels = np.setdiff1d(np.unique(labelled),0)
+    
+    centroids_dist = np.linalg.norm(centroids - centroid_im[None,:], axis=-1)
+    binary = labelled == centroid_labels[np.argmin(centroids_dist)]
+    # binary = largest_component_vol(binary) # ok so we normally assume the largest component is the main celll. 
+    
+    # min_zz, min_yy, min_xx, max_zz, max_yy, max_xx = bounding_box(binary)
+    ZZ, YY, XX = np.indices(binary.shape)
+    
+    min_zz = np.min(ZZ[binary])
+    max_zz = np.max(ZZ[binary])
+    min_yy = np.min(YY[binary])
+    max_yy = np.max(YY[binary])
+    min_xx = np.min(XX[binary])
+    max_xx = np.max(XX[binary])
+    
+    min_zz = np.clip(min_zz - pad[0], 0, l-1)
+    max_zz = np.clip(max_zz + pad[0], 0, l-1)
+    min_yy = np.clip(min_yy - pad[1], 0, m-1)
+    max_yy = np.clip(max_yy + pad[1], 0, m-1)
+    min_xx = np.clip(min_xx - pad[2], 0, n-1)
+    max_xx = np.clip(max_xx + pad[2], 0, n-1)
+    
+    return min_zz, min_yy, min_xx, max_zz, max_yy, max_xx
+
 
 def segment_vol_thresh( vol, thresh=None, postprocess=True, post_ksize=3):
     r""" Basic image segmentation based on automatic binary Otsu thresholding or a specified constant threshold with simple morphological postprocessing
@@ -905,7 +1142,8 @@ def gradient_watershed3D_binary(binary,
         return cell_seg_connected_original    
 
 
-def surf_normal_sdf(binary, smooth_gradient=None, eps=1e-12, norm_vectors=True):
+def surf_normal_sdf(binary, smooth_gradient=None, eps=1e-12, norm_vectors=True,
+                    use_GVF=False, GVF_mu=0.01, GVF_iterations=10):
     r""" Given an input binary compute the signed distance function with positive distances for the shape interior and the gradient vector field of the signed distance function. The gradient vector field passes through the boundaries of the binary at normal angles.
 
     Parameters
@@ -918,6 +1156,12 @@ def surf_normal_sdf(binary, smooth_gradient=None, eps=1e-12, norm_vectors=True):
         small value for numerical stabilty
     norm_vectors : bool
         if True, normalise the gradient vector field such that all vectors have unit magnitude
+    use_GVF : bool
+        if True, applies gradient vector field smoothing to the resultant vector field
+    GVF_mu : float
+        regularization parameter of gradient vector field smoothing. the higher the mu, the greater the spatial smoothing / diffusion
+    GVF_iterations : int 
+        number of iterations to run gradient vector field smoothing, 15 is a good start. 
 
     Returns
     -------
@@ -945,16 +1189,136 @@ def surf_normal_sdf(binary, smooth_gradient=None, eps=1e-12, norm_vectors=True):
 
     if norm_vectors:
         sdf_vol_normal = sdf_vol_normal / (np.linalg.norm(sdf_vol_normal, axis=0)[None,:]+eps)
+        
+        if use_GVF:
+            # apply GVF smoothing to sdf_vol_vector prior to assembly. 
+            sdf_vol_normal = GVF_diffuse3D(sdf_vol_normal, 
+                                           mu=GVF_mu, 
+                                           iterations=GVF_iterations, 
+                                           normalize=norm_vectors)
 
     return sdf_vol_normal, sdf_vol
 
+
+def _EnforceMirrorBoundary3D(f):
+    """
+    % This function enforces the mirror boundary conditions
+    % on the 3D input image f. The values of all voxels at 
+    % the boundary is set to the values of the voxels 2 steps 
+    % inward
+    """
+    
+    [N, M, O] = np.shape(f);
+
+    xi = np.arange(1, M-2);
+    yi = np.arange(1, N-2);
+    zi = np.arange(1, O-2);
+
+    # Corners
+    f[[0, N-1], [0, M-1], [0, O-1]] = f[[2, N-3], [2, M-3], [2, O-3]]
+
+    # Edges
+    f[np.ix_([0, N-1], [0, M-1], zi)] = \
+        f[np.ix_([2, N-3], [2, M-3], zi)]
+        
+    f[np.ix_(yi, [0, M-1], [0, O-1])] = \
+        f[np.ix_(yi, [2, M-3], [2, O-3])]
+    f[np.ix_([0, N-1], xi, [0, O-1])] = \
+        f[np.ix_([2, N-3], xi, [2, O-3])]
+
+    # Faces
+    f[np.ix_([0, N-1], xi, zi)] = \
+        f[np.ix_([2, N-3], xi, zi)];
+    f[np.ix_(yi, [0, M-1], zi)] = \
+        f[np.ix_(yi, [2, M-3], zi)];
+    f[np.ix_(yi, xi, [0, O-1])] = \
+        f[np.ix_(yi, xi, [2, O-3])];   
+    
+    return f 
+
+
+
+def GVF_diffuse3D(vector_field, mu=0.01, iterations=10, normalize=True):
+    
+    r""" Conducts gradient vector field like smoothing of Xu and Prince (1997) to a given vector field
+    
+    Parameters
+    ----------
+    vector_field : (3 x M x N x L) array
+        input 3-dimensional vector field image
+    mu : float
+        The regularization parameter. Adjust it to the amount of noise in the image. More noise higher mu. Higher the mu, the faster the smoothing.
+    iterations : int
+        The number of iterations of smoothing 
+    normalize : bool
+        if True, unit normalize the input vector field and at every iteration of smoothing. 
+
+    Returns
+    -------
+    vector_field_new : (3 x M x N x L) array
+        output 3-dimensional vector field image
+    
+    """
+    
+    from scipy.ndimage import laplace as del2
+
+    vector_field_ = vector_field.copy()
+        
+    if normalize:
+        vector_field_ = vector_field_ / (np.linalg.norm(vector_field_, axis=0)[None,...] + 1e-20)
+    else:
+        vector_field_ = vector_field.copy()
+        
+    [Fx, Fy, Fz] = vector_field_
+    magSquared = Fx*Fx + Fy*Fy + Fz*Fz;
+    
+    # Set up the initial vector field
+    u = Fx.copy();
+    v = Fy.copy();
+    w = Fz.copy();
+    
+    for i in range(iterations):
+
+        print('\rGVF iter: ' + str(i+1) + '/' + str(iterations),
+              end='', flush=True)
+
+        # Enforce the mirror conditions on the boundary
+        u = _EnforceMirrorBoundary3D(u);
+        v = _EnforceMirrorBoundary3D(v);
+        w = _EnforceMirrorBoundary3D(w);
+
+        # Update the vector field
+        u = u + mu*6*del2(u) - (u-Fx)*magSquared;
+        v = v + mu*6*del2(v) - (v-Fy)*magSquared;
+        w = w + mu*6*del2(w) - (w-Fz)*magSquared;
+        
+        
+        if normalize:
+            mag = np.sqrt(u**2+v**2+w**2)
+            u = u/(mag+1e-12)
+            v = v/(mag+1e-12)
+            w = w/(mag+1e-12)
+    
+        # reinitialize 
+        Fx = u.copy()
+        Fy = v.copy()
+        Fz = w.copy()
+        magSquared = Fx*Fx + Fy*Fy + Fz*Fz;
+    
+    vector_field_new = np.array([u,v,w])
+    
+    return vector_field_new
+    
 
 def edge_attract_gradient_vector(binary, 
                                  return_sdf=True, 
                                  smooth_gradient=None, 
                                  eps=1e-12, 
                                  norm_vectors=True,
-                                 rev_sign=False):
+                                 rev_sign=False,
+                                 use_GVF=False,
+                                 GVF_mu=0.01,
+                                 GVF_iterations=10):
     r""" Given an input binary compute an edge aware signed distance function which pulls all points in the volume towards the boundary edge of the binary. The construction is based on computing the signed distance function. 
 
     Parameters
@@ -971,6 +1335,12 @@ def edge_attract_gradient_vector(binary,
         if True, normalise the gradient vector field such that all vectors have unit magnitude
     rev_sign : bool
         if True, create the opposite edge repelling field 
+    use_GVF : bool
+        if True, applies gradient vector field smoothing to the resultant vector field
+    GVF_mu : float
+        regularization parameter of gradient vector field smoothing. the higher the mu, the greater the spatial smoothing / diffusion
+    GVF_iterations : int 
+        number of iterations to run gradient vector field smoothing, 15 is a good start. 
 
     Returns
     -------
@@ -995,6 +1365,13 @@ def edge_attract_gradient_vector(binary,
                                             smooth_gradient=smooth_gradient, 
                                             eps=eps, 
                                             norm_vectors=norm_vectors)
+    
+    if use_GVF:
+        # apply GVF smoothing to sdf_vol_vector prior to assembly. 
+        sdf_vol_vector = GVF_diffuse3D(sdf_vol_vector, 
+                                       mu=GVF_mu, 
+                                       iterations=GVF_iterations, 
+                                       normalize=norm_vectors)
 
     # now we can invert the vectors.... 
     sdf_vol_vector = (-sdf_vol_vector) * pos_binary[None,...] + (sdf_vol_vector) * neg_binary[None,...]
@@ -1094,6 +1471,192 @@ def mean_curvature_binary(binary, smooth=3, mask=True, smooth_gradient=None, eps
         H_normal[mask_binary==0] = np.nan
 
     return H_normal, sdf_vol_normal, sdf_vol
+
+
+def fmm_source3D(binary_mask, source_mask, shape, norm=False, eps=1e-20):
+    """
+    This is a much better solver of the diffusion
+    """
+    
+    import skfmm
+    import numpy as np
+    import skimage.morphology as skmorph
+    import scipy.ndimage as ndimage 
+    
+    # construct the binary 
+    binary = binary_mask>0
+    
+    # construct the masked out region!. 
+    mask = np.logical_not(binary).copy()
+    # mask2 = np.logical_not(skmorph.binary_dilation(binary, skmorph.disk(1)))
+    mask2 = mask.copy()
+    
+    m = np.ones_like(binary)
+    # m[int(centroid[0]),int(centroid[1]),int(centroid[2])] = 0 # define the point source!. 
+    m[source_mask>0] = 0
+    m = np.ma.masked_array(m, mask2)
+
+    dist_image = skfmm.distance(m)  # this is the answer!!!     
+    dist_image = dist_image.max()-dist_image # invert the image!. # many ways to do this. 
+    
+    # fix up the boundary differentiation. 
+    dist_outer = (skfmm.distance(mask)*-1) # can we make it smoother? # best
+    dist_image[mask>0] = dist_outer[mask>0] # this seems to work! (it gives a little normal push. ) 
+    # dist_image = dist_image/dist_image.max() # retain this. 
+    
+    dist_gradient = np.array(np.gradient(dist_image))
+    
+    # dy = dist_gradient[0, coords[:,0], coords[:,1]].copy()
+    # dx = dist_gradient[1, coords[:,0], coords[:,1]].copy()
+    
+    if norm:
+        dist_gradient /= (eps + (dist_gradient**2).sum(axis=0)**0.5) # ok this looks good.
+        
+    # return dist_image[coords[:,0], coords[:,1]], np.stack((dy,dx))
+    return dist_image, dist_gradient
+
+
+def poisson_dist_tform_3D(binary, pts=None):
+    """
+    Computation for a single binary image. 
+    """
+    import scipy.sparse
+    from scipy.sparse.linalg import spsolve # this is faster? 
+    import numpy as np 
+    # from cupyx.scipy.sparse.linalg import spsolve
+    # import cupyx.scipy.sparse as cupysparse
+    # import cupy
+    import pypardiso # # pypardiso will be faster.... 
+    import time 
+    
+    mask = np.pad(binary, [[1,1],[1,1],[1,1]], mode='constant', constant_values=1) # pad with ones.  # ones need for connectivity....
+    
+    t1 = time.time()
+    # mat_A = _laplacian_matrix(mask.shape[0], mask.shape[1], mask=mask) # This would need to be faster... but this has the boundary conditions... 
+    mat_A = laplacian_3D_kron(mask.shape, mask=mask)  # build the laplacian with boundary conditions. 
+    print('laplacian 3D construction...', time.time()-t1)
+
+    if pts is not None:
+        ### for specifying sources 
+        mask = np.zeros_like(mask)
+        # mask[pt[0], pt[1]] = 1
+        mask[pts[:,0], pts[:,1], pts[:,2]] = 1
+        
+        mask_flat = mask.flatten()    
+        mat_b = np.zeros(len(mask_flat))
+        mat_b[mask_flat == 1] = 1
+        
+    else:
+        # now we need to zero the padding
+        mask[0,:,:] = 0
+        mask[:,0,:] = 0
+        mask[-1,:,:] = 0
+        mask[:,-1,:] = 0
+        mask[:,:,0] = 0
+        mask[:,:,-1] = 0
+        
+        # solve within the mask!    
+        mask_flat = mask.flatten()    
+        # inside the mask:
+        # \Delta f = div v = \Delta g       
+        mat_b = np.ones(len(mask_flat)) # does this matter -> the amount... 
+        mat_b[mask_flat == 0] = 0
+        
+    # why is this failed? 
+    x = pypardiso.spsolve(mat_A, mat_b) # so this is definitely faster... (for 3d may need an iterative solver)
+    # x = spsolve(mat_A, mat_b)
+    # x = spsolve(mat_A, mat_b)
+    x = x.reshape(mask.shape)
+    x = x[1:-1,1:-1,1:-1].copy() # remove the padding 
+    x = x - x.min() # solution is only positive!. enforce positivity 
+    return x 
+
+
+def laplacian_3D_kron(shape, mask=None):
+    """
+    https://www.mathworks.com/matlabcentral/fileexchange/27279-laplacian-in-1d-2d-or-3d
+    
+    in order to be consistent with the numpy.ravel() and .reshape() operations need to parse in reverse order of image axes.
+    """
+    import numpy as np 
+    import scipy.sparse as spsparse
+    
+    m,n,l = shape[:3]
+    
+    # % Set the component matrices. SPDIAGS converts int8 into double anyway.
+    e1 = np.ones(l); #%e1 = ones(u(1),1,'int8');
+    # if dim > 1
+    e2 = np.ones(n);
+    # end
+    # if dim > 2
+    e3 = np.ones(m);
+    
+    
+    # set up the 1d diffusion operators. 
+    D1x = spsparse.spdiags(np.array([-e1, 2*e1, -e1]), 
+                           diags=np.array([-1,0,1]), m=l, n=l)
+    
+    D1y = spsparse.spdiags(np.array([-e2, 2*e2, -e2]), 
+                           diags=np.array([-1,0,1]), m=n, n=n)
+    
+    D1z = spsparse.spdiags(np.array([-e3, 2*e3, -e3]), 
+                           diags=np.array([-1,0,1]), m=m, n=m)
+    
+    # % Form A using tensor products of lower dimensional Laplacians
+    Ix = spsparse.eye(l);
+    Iy = spsparse.eye(n);
+    Iz = spsparse.eye(m);
+    
+    A = spsparse.kron(Iy,D1x) + spsparse.kron(D1y,Ix);
+    A = spsparse.kron(Iz, spsparse.kron(Iy, D1x)) + spsparse.kron(Iz, spsparse.kron(D1y, Ix)) + spsparse.kron(spsparse.kron(D1z,Iy),Ix);
+    
+    if mask is not None:
+        
+        A = A.tolil() # convert to lil_matrix for faster modification
+        
+        z_range = mask.shape[0]
+        y_range = mask.shape[1]
+        x_range = mask.shape[2]
+        
+        # find the masked i.e. zeros
+        zeros = np.argwhere(mask==0) # in (y,x)    
+        # k = zeros[:,2] + zeros[:,1] * x_range + zeros[:,0] * x_range * y_range
+        k = zeros[:,2] + zeros[:,1] * x_range + zeros[:,0] *x_range * y_range 
+        # test_ind[2] + test_ind[1] *test_mat.shape[2] + test_ind[0] * test_mat.shape[1] * test_mat.shape[2]
+        # k = np.ravel_multi_index(zeros, mask.shape[:3]) # converting to 
+        # if mask[y, x] == 0:
+        #     k = x + y * x_range
+        A[k,k] = 1 # no contribution from neighbors. 
+        A[k, k + 1] = 0 # zero propagation to neighbors. 
+        A[k, k - 1] = 0
+        A[k, k + x_range] = 0
+        A[k, k - x_range] = 0
+        A[k, k + x_range*y_range] = 0
+        A[k, k - x_range*y_range] = 0
+        
+        A = A.tocsc()
+    else:
+        A = A.tocsc()
+    
+    return A 
+
+
+
+def skeleton3D_binary(binary, iters=2, smooth_sigma=5, thresh=0.5):
+    r""" extract a more smooth binary
+    """
+    import skimage.morphology as skmorph
+    import scipy.ndimage as ndimage
+    
+    skel = skmorph.skeletonize(binary)
+    
+    if iters > 0: 
+        for iter_ii in np.arange(2):
+            skel = ndimage.gaussian_filter(skel*255.,sigma=smooth_sigma)
+            skel = skel / np.max(skel)
+            skel = skmorph.skeletonize(skel>thresh) # maybe don't need to expand. 
+        
+    return skel
 
 
 def extract_2D_contours_img_and_curvature(binary, presmooth=None, k=4, error=0.1):

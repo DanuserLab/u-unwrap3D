@@ -18,3 +18,4 @@ transforms3d
 robust-laplacian
 pygeodesic
 potpourri3d
+scikit-fmm

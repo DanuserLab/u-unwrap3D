@@ -74,14 +74,19 @@ def prop_ref_surface(unwrap_params_ref,
                          vol_size,  
                          preupsample=3, 
                          vol_binary=None,
+                         binary_vol_grad = None, 
                          ksize=1, 
                          smooth_sigma=None, 
                          d_step=1, 
                          n_dist=None, 
                          surf_pts_ref=None,
                          pad_dist=5, 
+                         norm_vectors=False,
+                         use_GVF=False, 
+                         GVF_mu=0.01, 
+                         GVF_iterations=15,
                          smoothgradient=100, 
-                         smoothrobust=True,
+                         smoothrobust=False,
                          smooth_method='uniform', 
                          smooth_win=15,
                          invertorder=False,
@@ -143,52 +148,62 @@ def prop_ref_surface(unwrap_params_ref,
     from ..Segmentation.segmentation import surf_normal_sdf
     from ..Image_Functions.image import map_intensity_interp3
 
-    if vol_binary is None:
-        # construct a binary of the input mesh/points. # todo change to the better voxelizer.... 
-        vol_binary = voxelize_unwrap_params(unwrap_params_ref, 
-                                             vol_shape=vol_size, 
-                                             preupsample=preupsample, 
-                                             ksize=ksize, 
-                                             smooth_sigma=smooth_sigma)
-        
-        # print(np.sum(vol_binary))
-        # plt.figure()
-        # plt.imshow(vol_binary[vol_binary.shape[0]//2])
-        # plt.show()
-        
-        # get the surface normal gradient outwards.  
-        # binary_vol_grad = vol_gradient(vol_binary, smooth_sigma=smooth_sigma, normalize=True, invert=True, squarenorm=squarenorm) # always outwards. # i see. # we should get the sdf !.
-        # binary_sdf_vol = sdf_distance_transform(binary, rev_sign=True, method='edt')
-        binary_vol_grad, binary_vol_sdf = surf_normal_sdf(vol_binary, 
-                                                          smooth_gradient=smooth_sigma, 
-                                                          eps=1e-12, 
-                                                          norm_vectors=False)
-        binary_vol_grad = -1*binary_vol_grad.transpose(1,2,3,0)
     
-        # print(binary_vol_grad.shape)
-        # print(np.min(binary_vol_sdf), np.max(binary_vol_sdf))
-        # plt.figure()
-        # plt.imshow(binary_vol_grad[vol_binary.shape[0]//2,...,0])
-        # plt.show()
+    # if gradient is not supplied ... 
+    if binary_vol_grad is None:
         
-        # plt.figure()
-        # plt.imshow(binary_vol_sdf[vol_binary.shape[0]//2])
-        # plt.show()
+        if vol_binary is None:
+            # construct a binary of the input mesh/points. # todo change to the better voxelizer.... 
+            vol_binary = voxelize_unwrap_params(unwrap_params_ref, 
+                                                 vol_shape=vol_size, 
+                                                 preupsample=preupsample, 
+                                                 ksize=ksize, 
+                                                 smooth_sigma=smooth_sigma)
+            
+            # print(np.sum(vol_binary))
+            # plt.figure()
+            # plt.imshow(vol_binary[vol_binary.shape[0]//2])
+            # plt.show()
+            
+            # get the surface normal gradient outwards.  
+            # binary_vol_grad = vol_gradient(vol_binary, smooth_sigma=smooth_sigma, normalize=True, invert=True, squarenorm=squarenorm) # always outwards. # i see. # we should get the sdf !.
+            # binary_sdf_vol = sdf_distance_transform(binary, rev_sign=True, method='edt')
+            binary_vol_grad, binary_vol_sdf = surf_normal_sdf(vol_binary, 
+                                                              smooth_gradient=smooth_sigma, 
+                                                              eps=1e-12, 
+                                                              norm_vectors=norm_vectors, 
+                                                              use_GVF=use_GVF, 
+                                                              GVF_mu=GVF_mu, 
+                                                              GVF_iterations=GVF_iterations)
+            binary_vol_grad = -1*binary_vol_grad.transpose(1,2,3,0)
         
-    else:
-        # print(np.sum(vol_binary))
-        # plt.figure()
-        # plt.imshow(vol_binary[vol_binary.shape[0]//2])
-        # plt.show()
-        
-        # get the surface normal gradient outwards.  
-        # binary_vol_grad = vol_gradient(vol_binary, smooth_sigma=smooth_sigma, normalize=True, invert=True, squarenorm=squarenorm) # always outwards. # i see. # we should get the sdf !.
-        # binary_sdf_vol = sdf_distance_transform(binary, rev_sign=True, method='edt')
-        binary_vol_grad, binary_vol_sdf = surf_normal_sdf(vol_binary, 
-                                                          smooth_gradient=smooth_sigma, 
-                                                          eps=1e-12, 
-                                                          norm_vectors=False)
-        binary_vol_grad = -1*binary_vol_grad.transpose(1,2,3,0)
+            # print(binary_vol_grad.shape)
+            # print(np.min(binary_vol_sdf), np.max(binary_vol_sdf))
+            # plt.figure()
+            # plt.imshow(binary_vol_grad[vol_binary.shape[0]//2,...,0])
+            # plt.show()
+            
+            # plt.figure()
+            # plt.imshow(binary_vol_sdf[vol_binary.shape[0]//2])
+            # plt.show()
+            
+        else:
+            # print(np.sum(vol_binary))
+            # plt.figure()
+            # plt.imshow(vol_binary[vol_binary.shape[0]//2])
+            # plt.show()
+            
+            # get the surface normal gradient outwards.  
+            # binary_vol_grad = vol_gradient(vol_binary, smooth_sigma=smooth_sigma, normalize=True, invert=True, squarenorm=squarenorm) # always outwards. # i see. # we should get the sdf !.
+            # binary_sdf_vol = sdf_distance_transform(binary, rev_sign=True, method='edt')
+            binary_vol_grad, binary_vol_sdf = surf_normal_sdf(vol_binary, 
+                                                              smooth_gradient=smooth_sigma, 
+                                                              eps=1e-12, 
+                                                              norm_vectors=norm_vectors, # set to True? 
+                                                              use_GVF=use_GVF, 
+                                                              GVF_mu=GVF_mu, 
+                                                              GVF_iterations=GVF_iterations)
+            binary_vol_grad = -1*binary_vol_grad.transpose(1,2,3,0)
     
         # print(binary_vol_grad.shape)
         # print(np.min(binary_vol_sdf), np.max(binary_vol_sdf))
@@ -531,6 +546,7 @@ def smooth_unwrap_params_3D_spherical(unwrap_xyz,
     """
     from scipy.ndimage.filters import convolve1d
     from skimage.filters import gaussian
+    import scipy.ndimage as ndimage
 
     def baseline_als(y, lam, p, niter=10):
         from scipy import sparse
@@ -549,6 +565,11 @@ def smooth_unwrap_params_3D_spherical(unwrap_xyz,
         # assume uniform
         filter_func = np.ones(2*sigma_window+1); 
         filter_func = filter_func/float(np.sum(filter_func)) # normalize
+        # # # assume default is gaussian
+        # filter_func = np.zeros(2*sigma_window+1);filter_func[sigma_window] = 1.
+        # filter_func = ndimage.gaussian_filter1d(filter_func, sigma=sigma_window/np.sqrt(2))
+        # filter_func = filter_func/float(np.sum(filter_func)) # normalize
+        
 
     unwrap_xyz_pad = pad_unwrap_params_3D_spherical(unwrap_xyz, pad=3*sigma_window) # we need to pad this more... to prevent edge effects...  
     
