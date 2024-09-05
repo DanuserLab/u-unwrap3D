@@ -420,7 +420,7 @@ def marching_cubes_mesh_binary(vol,
                                 remesh=False, 
                                 remesh_method='pyacvd', 
                                 remesh_samples=.5, 
-                                remesh_params=None, 
+                                # remesh_params=None, 
                                 predecimate=True, 
                                 min_mesh_size=40000, 
                                 keep_largest_only=True, 
@@ -439,17 +439,17 @@ def marching_cubes_mesh_binary(vol,
     contourlevel : 
         isolevel to extract the Marching cubes mesh
     remesh_method : str
-        one of 'pyacvd' or 'optimesh'. 
+        one of 'pyacvd' or 'CGAL'. 
 
         'pyacvd' : str
             pyacvd uses voronoidal clustering i.e. kmeans clustering to produce a uniformly remeshing, see https://github.com/pyvista/pyacvd 
-        'optimesh' : str
-            if selected, this method aims to relax the mesh vertices to a more uniform state, see https://github.com/meshpro/optimesh. This doesn't change the number of vertices and so effect of this is limited and there is some changing of the input shape
+        'CGAL' : str
+            if selected, this method uses Botsch's algorithm in CGAL to remesh to average edge length of input * 1./remesh_samples. This is more reliable than pyacvd and doesn't need predecimation and is fast. May fail on meshes with non-manifold edges - this will be flagged.
 
     remesh_samples : 0-1
         fraction of the number of vertex points to target in size of the output mesh
     remesh_params : dict
-        only for remesh_method='optimesh'. See :func:`unwrap3D.Parameters.params.optimesh_relaxation_config` for template of parameter settings
+        only for remesh_method='optimesh'. See :func:`unwrap3D.Parameters.params.optimesh_relaxation_config` for template of parameter settings [deprecated due to optimesh licensing]
     predecimate : bool
         if True, collapse the small edges in the Marching Cubes output before remeshing
     min_mesh_size : int
@@ -516,13 +516,14 @@ def marching_cubes_mesh_binary(vol,
         if remesh_method == 'pyacvd':
             mesh = decimate_resample_mesh(mesh, remesh_samples, predecimate=predecimate)
             # other remesh is optimesh which allows us to reshift the vertices (change the connections)
-        if remesh_method == 'optimesh':
+        if remesh_method == 'CGAL':
             if predecimate:
                 _, V, F, _, _ = igl.decimate(mesh.vertices,mesh.faces, int(.9*len(mesh.faces))) # decimates up to the desired amount of faces? 
                 mesh = trimesh.Trimesh(V, F, validate=True)
-            mesh, _, mean_quality = relax_mesh( mesh, relax_method=remesh_params['relax_method'], tol=remesh_params['tol'], n_iters=remesh_params['n_iters']) # don't need the quality parameters. 
+            # mesh, _, mean_quality = relax_mesh( mesh, relax_method=remesh_params['relax_method'], tol=remesh_params['tol'], n_iters=remesh_params['n_iters']) # don't need the quality parameters. 
             # print('mean mesh quality: ', mean_quality)
-
+            target_edge_length = igl.avg_edge_length(mesh.vertices, mesh.faces) / float(remesh_samples) # increasing the edge length is the same as sampling down.
+            mesh = incremental_isotropic_remesh(mesh, target_edge_length=target_edge_length, n_iters=5)
 
     if min_mesh_size is not None:
         """
@@ -547,7 +548,52 @@ def marching_cubes_mesh_binary(vol,
     
     return mesh
 
+def vertices_faces_triangle_to_CGAL_mesh(v,f):
+    r""" Convert vertices, faces numpy array meshes to CGAL polyhedron object to take advantage of mesh processing functions in CGAL. Note, after conversion and reparsing, the vertex ordering and face indexing will change.
+    
+    Parameters
+    ----------
+    v : (n_vertices, 3) array
+        vertices of mesh
+    f : (faces, 3) array
+        faces of mesh, given by vertex indexing
+    
+    Returns
+    -------
+    P : CGAL Polyhedron_3 object
+        a CGAL Polyhedron_3 object specification of the same mesh. 
+    faces : (M,3) numpy array
+        numpy array of triangle face indices
 
+    """
+    from CGAL.CGAL_Polyhedron_3 import Polyhedron_modifier
+    from CGAL.CGAL_Polyhedron_3 import Polyhedron_3
+    from CGAL.CGAL_Polyhedron_3 import ABSOLUTE_INDEXING
+    from CGAL.CGAL_Kernel import Point_3
+    
+    # define the polyhedron
+    P = Polyhedron_3()
+    
+    # declare a modifier interfacing the incremental_builder
+    m = Polyhedron_modifier()
+    # # define a triangle
+    m.begin_surface(len(v), len(f),h=0,mode=ABSOLUTE_INDEXING)
+    # m.begin_surface(len(vertices), len(faces),h=0)
+    for ii in np.arange(len(v)):
+        m.add_vertex(Point_3(v[ii,0], v[ii,1], v[ii,2]))
+        
+    for f_ii in np.arange(len(f)):
+        face_ii = f[f_ii]
+        m.begin_facet()
+        m.add_vertex_to_facet(int(face_ii[0]))
+        m.add_vertex_to_facet(int(face_ii[1]))
+        m.add_vertex_to_facet(int(face_ii[2]))
+        m.end_facet()
+        
+    P.delegate(m)
+    # print("(v,f,e) = ", P.size_of_vertices(), P.size_of_facets(),
+    #       divmod(P.size_of_halfedges(), 2)[0])
+    return P
 
 
 def cgal_vertices_faces_triangle_mesh(Q: Polyhedron_3):
@@ -586,6 +632,46 @@ def cgal_vertices_faces_triangle_mesh(Q: Polyhedron_3):
             he = he.next()
             
     return vertices, faces
+
+
+def incremental_isotropic_remesh(mesh, target_edge_length=None, n_iters=5):
+    r""" Remesh a triangular mesh to have a desired edge length isotropically using CGAL, https://doc.cgal.org/latest/Polygon_mesh_processing/index.html
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh 
+        input mesh to remesh
+    target_edge_length : float
+        this is the desired edge length of the mesh. If None, remeshes to the average edge length of input mesh.
+    n_iters : int
+        the number of iterations to run the Botsch algorithm. See algorithm described by Botsch and Kobbelt's "A Remeshing Approach to Multiresolution Modeling". The larger the number, the more the output approaches the target length. 
+    
+    Returns
+    -------
+    mesh_remesh : trimesh.Trimesh 
+        output mesh which has been isotropically remeshed
+
+    """
+    import igl
+    from CGAL import CGAL_Polygon_mesh_processing
+
+    if target_edge_length is None:
+        # take the average edge length. 
+        target_edge_length = igl.avg_edge_length(mesh.vertices, mesh.faces)
+    # convert mesh to CGAL
+    P = vertices_faces_triangle_to_CGAL_mesh(mesh.vertices, mesh.faces)
+    # build the faces to remesh
+    flist = []
+    for fh in P.facets():
+        flist.append(fh)
+    CGAL_Polygon_mesh_processing.isotropic_remeshing(flist, target_edge_length, P, n_iters)
+
+    # reparse P to get the output. 
+    v, f = cgal_vertices_faces_triangle_mesh(P)
+
+    mesh_remesh = create_mesh(vertices=v,
+                              faces=f)
+    return mesh_remesh
 
 
 def alpha_wrap(points: npt.ArrayLike, alpha: float = 20.0, offset = 0.001):
@@ -848,11 +934,18 @@ def patch_hole_verts_harmonic(mesh, v_inds, subdivisions=3):
     #     boundary_mesh_up_f = stitch_tri.copy()
     
     # solve the laplacian with fixed boundaries! to make a smooth patch. adjusting internal nodes.
-    z_harmonic = igl.harmonic_weights(boundary_mesh_up_v, 
-                                      boundary_mesh_up_f, 
-                                      igl.boundary_loop(boundary_mesh_up_f), 
-                                      boundary_mesh_up_v[igl.boundary_loop(boundary_mesh_up_f)], 
-                                      1)
+    try:
+        z_harmonic = igl.harmonic_weights(boundary_mesh_up_v, 
+                                          boundary_mesh_up_f, 
+                                          igl.boundary_loop(boundary_mesh_up_f), 
+                                          boundary_mesh_up_v[igl.boundary_loop(boundary_mesh_up_f)], 
+                                          1)
+    except:
+        z_harmonic = igl.harmonic(boundary_mesh_up_v, 
+                                boundary_mesh_up_f, 
+                                igl.boundary_loop(boundary_mesh_up_f), 
+                                boundary_mesh_up_v[igl.boundary_loop(boundary_mesh_up_f)], 
+                                1)
     
     offset = len(mesh.vertices) - len(v_inds)
     boundary_mesh_up_f_reindex = boundary_mesh_up_f + offset
@@ -3427,6 +3520,128 @@ def measure_triangle_props(mesh_, clean=True):
     
     return props
 
+
+def count_negative_residuals_geometric_flow(ref_mesh, vertices_stack):
+ 
+    import numpy as np 
+
+    F = ref_mesh.faces
+    n_negative_signs = []
+
+    for iii in np.arange(vertices_stack.shape[-1]): # the first is 0.
+        
+        mesh_iii_normal = create_mesh(vertices_stack[...,iii],F).vertex_normals
+        dist_vector = ref_mesh.vertices - vertices_stack[...,iii]
+        sign = np.sign(np.nansum(mesh_iii_normal*dist_vector, axis=-1)) 
+        
+        n_negative_signs.append(np.sum(sign<0))
+    
+    n_negative_signs = np.hstack(n_negative_signs)
+
+    return n_negative_signs 
+
+
+def compute_average_nearest_neighbor_dists_geometric_flow(ref_mesh, vertices_stack, avg_fnc=np.nanmedian):
+
+    import point_cloud_utils as pcu
+    import numpy as np 
+
+    dists = []
+
+    for iii in np.arange(vertices_stack.shape[-1]): 
+        dists_a_to_b, corrs_a_to_b = pcu.k_nearest_neighbors(query_points=vertices_stack[...,iii], 
+                                                             dataset_points=ref_mesh.vertices, k=1)
+        dists.append(avg_fnc(dists_a_to_b))
+        
+    dists = np.hstack(dists)
+    
+    return dists
+
+
+def compute_mean_curvature(mesh, radius=5):
+    r""" Compute mean curvature based on first finding the principal curvatures by quadric plane fitting. Wraps the function in libigl for convenience. 
+    
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh
+        input mesh
+    radius : int 
+        the number of k-ring neighbors away to consider. default is 5 which works well for most cases. 
+
+    Returns 
+    -------
+    H : (n_vertices,) array
+        the mean curvature values
+    
+    """
+    import igl
+    
+    mesh_ = mesh.copy()
+    
+    # check the faces are correct.
+    if np.sign(mesh_.volume) < 0:
+        mesh_.faces= mesh.faces[:,::-1]
+    
+    _,_,k1,k2 = igl.principal_curvature(mesh_.vertices,
+                                        mesh_.faces)
+    H = .5*(k1+k2) 
+    
+    return H
+
+def compute_mean_curvature_from_binary(mesh, 
+                                        binary, 
+                                       smooth_gradient=3, 
+                                       eps=1e-12,
+                                       invert_H=True,
+                                       return_H_img=True):
+    r""" use the binary image to compute the mean curvature, then sample this onto the mesh points. If the mesh can be voxelized into a proper volume binary, then this is often more accurate and robust than computing curvature from mesh.
+    This function provides a convenience function 
+
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh
+        input surface mesh 
+    binary : array
+        corresponding binary image of the mesh. i.e. binary\[mesh.vertices\[:,0\], mesh.vertices\[:,1\], mesh.vertices\[:,2\]\] correspond to surface.     
+    smooth_gradient : scalar
+        if not None, Gaussian smoothes the gradient vector field with the provided sigma value before computing mean curvature
+    eps : scalar
+        small number for numerics
+    invert_H : bool
+        the way the signed distance function is constructed, the value of H is opposite to that of mesh. i.e. round blebs would have negative curvature. If using for quantifcation, and visualization, should set this True, if using the output H however to do active contours / mesh deformation, you should not invert H, or else remember to invert later, outside of this function 
+    return_H_img : bool
+        if True, return the intermediate outputs of computing the mean curvature image. 
+
+    Returns
+    -------
+    H : (n_vertices,) array
+        the mean curvature values sampled at the mesh vertex points
+    (H_normal, sdf_vol_normal, sdf_vol) : list of arrays
+        the mean curvature image, normal vector field and signed distance function for a binary volume. see :func:`unwrap3D.Segmentation.segmentation.mean_curvature_binary` for full definition. 
+    
+    """
+    from ..Segmentation import segmentation as unwrap3D_segmentation
+    from ..Image_Functions import image as unwrap3D_image_fn
+
+    # get the sdf and curvature
+    H_normal, sdf_vol_normal, sdf_vol = unwrap3D_segmentation.mean_curvature_binary(binary>0, 
+                                                                            smooth=1., 
+                                                                            mask=False, 
+                                                                            smooth_gradient=smooth_gradient, 
+                                                                            eps=eps)
+    H = unwrap3D_image_fn.map_intensity_interp3(mesh.vertices, 
+                                        grid_shape=H_normal.shape, 
+                                        I_ref=H_normal)
+    
+    if invert_H:
+        H = -1*H
+
+    if return_H_img:
+        return H, (H_normal, sdf_vol_normal, sdf_vol)
+    else:
+        return H
+
+
 def PCA_rotate_mesh(binary, mesh=None, mesh_contour_level=.5):
     r""" Compute principal components of a given binary through extracting the surface mesh or a used specified surface mesh 
 
@@ -3575,6 +3790,58 @@ def voxelize_image_mesh_pts(mesh, pad=50, dilate_ksize=3, erode_ksize=1, vol_sha
     return smooth_img_binary 
 
 
+def transfer_mesh_measurements(source_mesh, 
+                                target_mesh_vertices, 
+                                source_mesh_vertex_scalars=None,
+                                source_mesh_vertex_labels=None):
+    r""" Matches source mesh to target mesh to transfer associated vertex measurements
+    
+    Parameters
+    ----------
+    source_mesh : trimesh.Trimesh
+        mesh whose measurements we wish to transfer to target mesh
+    target_mesh : trimesh.Trimesh
+        the mesh we would like to get measurements for from the source mesh
+    source_mesh_vertex_scalars : (n_vertices_source, D) array
+        multidimensional measurements. If querying single dimension quantities such as curvature, you need to reshape to a (n_vertices_source,1) array 
+    source_mesh_vertex_labels : (n_vertices_source, D) array
+        multidimensional labels. If querying single dimension quantities without stacking such as segmentation, you need to reshape to a (n_vertices_source,1) array 
+    Returns 
+    -------
+    match_params : [(N_target_v,) array, (N_target,3) array] list
+        first array gives the face index on the source each target vertex matches to. second array gives the barycentric weights for interpolating scalar measurements.
+    
+    target_mesh_vertex_measurements : (n_vertices_target, D) array
+        multidimensional measurements from source now transferred to the target
+    """
+    import scipy.stats as spstats
+
+    # also match the curvature of the original 
+    match_params = match_and_interpolate_uv_surface_to_mesh(target_mesh_vertices, 
+                                                            source_mesh, 
+                                                            match_method='cross')
+
+    target_mesh_vertex_scalars = []
+    target_mesh_vertex_labels = []
+
+    if source_mesh_vertex_scalars is not None:
+        target_mesh_vertex_scalars = mesh_vertex_interpolate_scalar(source_mesh, 
+                                                                        match_params[0], 
+                                                                        match_params[1], 
+                                                                        source_mesh_vertex_scalars)
+    if source_mesh_vertex_labels is not None:
+        target_mesh_vertex_labels = []
+
+        for ii in np.arange(source_mesh_vertex_labels.shape[-1]):
+            label = source_mesh_vertex_labels[...,ii].copy()
+            label_out = spstats.mode(label[source_mesh.faces[match_params[0]]], axis=-1)[0]
+            label_out = np.squeeze(label_out)
+            target_mesh_vertex_labels.append(label_out)
+        
+        target_mesh_vertex_labels = np.array(target_mesh_vertex_labels).T
+
+    return match_params, target_mesh_vertex_scalars, target_mesh_vertex_labels    
+    
 def area_normalize_mesh(mesh, map_color=False, centroid='area'):
     r""" Normalize the mesh vertices by subtracting the centroid and dividing by the square root of the total surface area. 
 
@@ -4134,19 +4401,27 @@ def parametric_uv_unwrap_mesh_constant_img_flow(uv_grid,
     """
     # infer the number of dists to step for from the reference if not prespecified. 
     if niters is None :
+        from hausdorff import hausdorff_distance
+        
         unwrap_params_ref_flat = uv_grid.reshape(-1, uv_grid.shape[-1])
-        # infer the maximum step size so as to cover the initial otsu surface.
-        mean_pt = np.nanmean(unwrap_params_ref_flat, axis=0)
-        # # more robust to do an ellipse fit. ? => doesn't seem so... seems best to take the extremal point -> since we should have a self-similar shape. 
-        # unwrap_params_fit_major_len = np.max(np.linalg.eigvalsh(np.cov((unwrap_params_ref_flat-mean_pt[None,:]).T))); unwrap_params_fit_major_len=np.sqrt(unwrap_params_fit_major_len)
-        # surf_ref_major_len = np.max(np.linalg.eigvalsh(np.cov((surf_pts_ref-mean_pt[None,:]).T))); surf_ref_major_len = np.sqrt(surf_ref_major_len)
-        mean_dist_unwrap_params_ref = np.linalg.norm(unwrap_params_ref_flat-mean_pt[None,:], axis=-1).max()
-        mean_surf_pts_ref = np.linalg.norm(surf_pts_ref-mean_pt[None,:], axis=-1).max() # strictly should do an ellipse fit... 
+        # # infer the maximum step size so as to cover the initial otsu surface.
+        # mean_pt = np.nanmean(unwrap_params_ref_flat, axis=0)
+        # # # more robust to do an ellipse fit. ? => doesn't seem so... seems best to take the extremal point -> since we should have a self-similar shape. 
+        # # unwrap_params_fit_major_len = np.max(np.linalg.eigvalsh(np.cov((unwrap_params_ref_flat-mean_pt[None,:]).T))); unwrap_params_fit_major_len=np.sqrt(unwrap_params_fit_major_len)
+        # # surf_ref_major_len = np.max(np.linalg.eigvalsh(np.cov((surf_pts_ref-mean_pt[None,:]).T))); surf_ref_major_len = np.sqrt(surf_ref_major_len)
+        # mean_dist_unwrap_params_ref = np.linalg.norm(unwrap_params_ref_flat-mean_pt[None,:], axis=-1).max()
+        # mean_surf_pts_ref = np.linalg.norm(surf_pts_ref-mean_pt[None,:], axis=-1).max() # strictly should do an ellipse fit... 
 
-        niters = np.int32(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
-        niters = niters + pad_dist # this is in pixels
-        niters = np.int32(np.ceil(niters / np.abs(float(step_size)))) # so if we take 1./2 step then we should step 2*
+        # niters = np.int32(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
+        # niters = niters + pad_dist # this is in pixels
+        # niters = np.int32(np.ceil(niters / np.abs(float(step_size)))) # so if we take 1./2 step then we should step 2*
+        
+        # unwrap_params_ref_flat = unwrap_params_ref.reshape(-1, unwrap_params_ref.shape[-1])
 
+        # hausdorff_dist = pcu.hausdorff_distance(unwrap_params_ref, surf_pts_ref)
+        hausdorff_dist = hausdorff_distance(unwrap_params_ref_flat, surf_pts_ref) # much faster. 
+        niters = np.int64(np.ceil(hausdorff_dist / np.abs(float(step_size)))+pad_dist) # convert to discrete number of steps
+                
         print('auto_infer_prop_distance', niters)
         print('----')
 
@@ -4459,12 +4734,12 @@ def area_distortion_flow_relax_disk(mesh, mesh_orig,
                                     delta_h_bound=0.5, 
                                     stepsize=.1, 
                                     flip_delaunay=True, # do this in order to dramatically improve flow!. 
-                                    robust_L=False, # use the robust laplacian instead of cotmatrix - slows flow. 
+                                    robust_L=True, # use the robust laplacian instead of cotmatrix - slows flow. 
                                     mollify_factor=1e-5,
-                                    eps = 1e-8,
+                                    eps = 1e-2,
                                     lam = 1e-4, 
                                     debugviz=False,
-                                    debugviz_tri=True):
+                                    debugviz_tri=False):
     
     r""" This function relaxes the area distortion of a mesh with disk topology i.e. a disk, square or rectangle mesh by advecting inner vertex coordinates to minimise area distortion. 
     
@@ -4476,6 +4751,8 @@ def area_distortion_flow_relax_disk(mesh, mesh_orig,
         the input disk, square or rectangle mesh to relax. The first coordinate of all the vertices, i.e. mesh.vertices[:,0] should be uniformly set to a constant e.g. 0 to specify a 2D mesh
     mesh_orig : trimesh.Trimesh 
         the input original geometric mesh whose vertices correspond 1 to 1 with vertices of the input mesh. This is used to compute the area distortion per iteration    
+    max_iter : int
+        maximum number of iterations to run relaxation
     delta_h_bound : scalar
         the maximum value of the absolute area difference between original and the relaxing mesh. This constrains the maximum gradient difference, avoiding updating local areas too fast which will then destroy local topology. 
     stepsize : scalar
@@ -4487,7 +4764,7 @@ def area_distortion_flow_relax_disk(mesh, mesh_orig,
     mollify_factor : scalar
         the mollification factor used in the robust Laplacian. see https://github.com/nmwsharp/robust-laplacians-py
     eps : scalar
-        small constant for numerical stability 
+        constant for numerical stability, has a regularization effect, can be increased to get better relaxation. 
     debugviz : bool
         if True, a histogram of the area distortion is plotted per iteration to check if the flow is working properly. The area distortion is plotted as log(distortion) and so should move towards a peak of 0
     debugvis_tri : bool
@@ -4523,7 +4800,10 @@ def area_distortion_flow_relax_disk(mesh, mesh_orig,
     v = mesh.vertices.copy()
     f = mesh.faces.copy()
     
-    f = igl.intrinsic_delaunay_triangulation(igl.edge_lengths(v,f), f)[1]
+    try:
+        f = igl.intrinsic_delaunay_triangulation(igl.edge_lengths(v,f), f)[1]
+    except:
+        pass
 
     if robust_L:
         L, M = robust_laplacian.mesh_laplacian(np.array(v), np.array(f), mollify_factor=mollify_factor)
@@ -4536,134 +4816,140 @@ def area_distortion_flow_relax_disk(mesh, mesh_orig,
 
     for ii in tqdm(range(max_iter)):
         
-        # try:
-
-        # if conformalize == False:
-        if robust_L:
-            L, m = robust_laplacian.mesh_laplacian(np.array(v), np.array(f),mollify_factor=mollify_factor); # this must be computed. # if not... then no growth -> flow must change triangle shape!. 
-        else:
-            L = -igl.cotmatrix(v,f)
-
-        v_bound = igl.boundary_loop(f)
-                
-        # # compute the area distortion of the face -> having normalized for surface area. -> this is because the sphere minimise the surface area. -> guaranteeing positive. 
-        A2 = igl.doublearea(mesh_orig.vertices/np.sqrt(np.nansum(igl.doublearea(mesh_orig.vertices,f)*.5)), f)
-        A1 = igl.doublearea(v/np.sqrt(np.nansum(igl.doublearea(v,f)*.5)), f)
-        
-        # B = np.log10(A1/(A2)) # - 1
-        B = (A1+eps)/(A2+eps) - 1 # adding regularizer to top and bottom is better!. 
-
-        area_distortion_mesh = (A2/(A1+eps)) # this is face measure!. and the connectivity is allowed to change! during evolution !. 
-        area_distortion_mesh_vertex = igl.average_onto_vertices(v, 
-                                                                f, 
-                                                                np.vstack([area_distortion_mesh,area_distortion_mesh,area_distortion_mesh]).T)[:,0]
-
-        # smooth ... 
-        if debugviz:
-            plt.figure()
-            plt.hist(np.log10(area_distortion_mesh_vertex)) # why no change? 
-            plt.show()
-
-        # if smooth_iters > 0:
-        #     smooth_area_distortion_mesh_vertex = np.vstack([area_distortion_mesh_vertex,area_distortion_mesh_vertex,area_distortion_mesh_vertex]).T # smooth this instead of the gradient. 
-
-        #     for iter_ii in range(smooth_iters):
-        #         smooth_area_distortion_mesh_vertex = igl.per_vertex_attribute_smoothing(smooth_area_distortion_mesh_vertex, f) # seems to work.
-        #     area_distortion_mesh_vertex = smooth_area_distortion_mesh_vertex[:,0]
-
-        B = np.clip(B, -delta_h_bound, delta_h_bound) # bound above and below. 
-        # B_vertex = igl.average_onto_vertices(v, 
-        #                                       f, 
-        #                                       np.vstack([B,B,B]).T)[:,0] # more accurate? 
-        B_vertex = f2v(v,f).dot(B)
-
-        # from scipy.sparse.linalg import lsqr ---- this sometimes fails!... 
-        I = spsparse.spdiags(lam*np.ones(len(v)), [0], len(v), len(v)) # tikholov regulariser. 
-        g = spsparse.linalg.spsolve((L.T).dot(L) + I, (L.T).dot(B_vertex)) # solve for a smooth potential field.  # this is the least means square. 
-        # g = spsparse.linalg.lsqr(L.T.dot(L), L.dot(B_vertex), iter_lim=100)[0] # is there a better way to solve this quadratic? 
-
-        face_vertex = v[f].copy()
-        face_normals = np.cross(face_vertex[:,1]-face_vertex[:,0], 
-                                face_vertex[:,2]-face_vertex[:,0], axis=-1)
-        face_normals = face_normals / (np.linalg.norm(face_normals, axis=-1)[:,None] + eps)
-        # face_normals = np.vstack([np.ones(len(face_vertex)), 
-        #                           np.zeros(len(face_vertex)),
-        #                           np.zeros(len(face_vertex))]).T # should this be something else? 
-        face_g = g[f].copy()
-        
-        # vertex_normals = igl.per_vertex_normals(v,f)
-
-        # i,j,k = 1,2,3
-        face_vertex_lhs = np.concatenate([(face_vertex[:,1]-face_vertex[:,0])[:,None,:],
-                                          (face_vertex[:,2]-face_vertex[:,1])[:,None,:],
-                                          face_normals[:,None,:]], axis=1) 
-        face_g_rhs = np.vstack([(face_g[:,1]-face_g[:,0]),
-                                (face_g[:,2]-face_g[:,1]),
-                                 np.zeros(len(face_g))]).T
-
-
-        # solve a simultaneous set of 3x3 problems
-        dg_face = np.linalg.solve( face_vertex_lhs, face_g_rhs)
-
-        gu_mag = np.linalg.norm(dg_face, axis=1) 
-        max_size = igl.avg_edge_length(v, f) / np.nanmax(gu_mag) # stable if divide by nanmax # must be nanmax!. 
-        
-        # dg_face = stepsize*max_size*dg_face # this is vector. and is scaled by step size 
-        # dg_face = max_size*dg_face
-        
-        # average onto the vertex. 
-        dg_vertex = igl.average_onto_vertices(v, 
-                                              f, 
-                                              dg_face)
-        dg_vertex = dg_vertex * max_size
-        # dg_vertex = dg_vertex - np.nansum(dg_vertex*vertex_normals,axis=-1)[:,None]*vertex_normals
-        
-        # correct the flow at the boundary!. # this is good? ---> this is good for an explicit euler. 
-        normal_vect = L.dot(v)
-        normal_vect = normal_vect / (np.linalg.norm(normal_vect, axis=-1)[:,None] + 1e-8)
-
-        # dg_vertex[v_bound] = dg_vertex[v_bound] - np.nansum(dg_vertex[v_bound] * v[v_bound], axis=-1)[:,None]*v[v_bound]
-
-        """
-        this is the gradient at the vertex. 
-        """
-        dg_vertex[v_bound] = dg_vertex[v_bound] - np.nansum(dg_vertex[v_bound] * normal_vect[v_bound], axis=-1)[:,None]*normal_vect[v_bound]
-        # disps.append(dg_vertex)
-        
-        # print('no_adaptive')
-        scale_factor=stepsize
-        # print('scale_factor, ', scale_factor)
-        """
-        advection step 
-        """
-        # v = V[:,1:] + np.array(disps).sum(axis=0)[:,1:] # how to make this step stable? 
-        v = v_steps[-1][:,1:] + scale_factor*dg_vertex[:,1:] # last one. 
-        v = np.hstack([np.zeros(len(v))[:,None], v])
-        
-        if flip_delaunay: # we have to flip!. 
-            # import meshplex
-            # # this clears out the overlapping. is this necessary
-            # mesh_out = meshplex.MeshTri(v, f)
-            # mesh_out.flip_until_delaunay()
-        
-            # # update v and f!
-            # v = mesh_out.points.copy()
-            # f = mesh_out.cells('points').copy() 
-            f = igl.intrinsic_delaunay_triangulation(igl.edge_lengths(v,f), f)[1]
-
-        if debugviz_tri:
-            plt.figure(figsize=(5,5))
-            plt.triplot(v[:,1],
-                        v[:,2], f, 'g-', lw=.1)
-            plt.show()
+        try:
+            # if conformalize == False:
+            if robust_L:
+                L, m = robust_laplacian.mesh_laplacian(np.array(v), np.array(f),mollify_factor=mollify_factor); # this must be computed. # if not... then no growth -> flow must change triangle shape!. 
+            else:
+                L = -igl.cotmatrix(v,f)
+    
+            v_bound = igl.boundary_loop(f)
             
-        v_steps.append(v)
-        f_steps.append(f)
-        area_distortion_iter.append(area_distortion_mesh) # append this. 
 
-        # except:
-        #     # if error then break
-        #     return v_steps, f_steps, area_distortion_iter
+            # # # compute the area distortion of the face -> having normalized for surface area. -> this is because the sphere minimise the surface area. -> guaranteeing positive. 
+            A2 = igl.doublearea(mesh_orig.vertices/np.sqrt(np.nansum(igl.doublearea(mesh_orig.vertices,f)*.5)), f)
+            A1 = igl.doublearea(v/np.sqrt(np.nansum(igl.doublearea(v,f)*.5)), f)
+            
+            A2 = np.abs(A2)
+            A1 = np.abs(A1)
+
+            # B = np.log10(A1/(A2)) # - 1
+            B = (A1+eps)/(A2+eps) - 1 # adding regularizer to top and bottom is better!. 
+    
+            area_distortion_mesh = (A1+eps)/(A2+eps) - 1.
+            area_distortion_mesh_vertex = igl.average_onto_vertices(v, 
+                                                                    f, 
+                                                                    np.vstack([area_distortion_mesh,area_distortion_mesh,area_distortion_mesh]).T)[:,0]
+    
+            # smooth ... 
+            if debugviz:
+                plt.figure()
+                plt.hist(np.log10(area_distortion_mesh_vertex)) # why no change? 
+                plt.show()
+    
+            # if smooth_iters > 0:
+            #     smooth_area_distortion_mesh_vertex = np.vstack([area_distortion_mesh_vertex,area_distortion_mesh_vertex,area_distortion_mesh_vertex]).T # smooth this instead of the gradient. 
+    
+            #     for iter_ii in range(smooth_iters):
+            #         smooth_area_distortion_mesh_vertex = igl.per_vertex_attribute_smoothing(smooth_area_distortion_mesh_vertex, f) # seems to work.
+            #     area_distortion_mesh_vertex = smooth_area_distortion_mesh_vertex[:,0]
+    
+            B = np.clip(B, -delta_h_bound, delta_h_bound) # bound above and below. 
+            # B_vertex = igl.average_onto_vertices(v, 
+            #                                       f, 
+            #                                       np.vstack([B,B,B]).T)[:,0] # more accurate? 
+            B_vertex = f2v(v,f).dot(B)
+    
+            # from scipy.sparse.linalg import lsqr ---- this sometimes fails!... 
+            I = spsparse.spdiags(lam*np.ones(len(v)), [0], len(v), len(v)) # tikholov regulariser. 
+            g = spsparse.linalg.spsolve((L.T).dot(L) + I, (L.T).dot(B_vertex)) # solve for a smooth potential field.  # this is the least means square. 
+            # g = spsparse.linalg.lsqr(L.T.dot(L), L.dot(B_vertex), iter_lim=100)[0] # is there a better way to solve this quadratic? 
+    
+            face_vertex = v[f].copy()
+            face_normals = np.cross(face_vertex[:,1]-face_vertex[:,0], 
+                                    face_vertex[:,2]-face_vertex[:,0], axis=-1)
+            face_normals = face_normals / (np.linalg.norm(face_normals, axis=-1)[:,None] + eps)
+            # face_normals = np.vstack([np.ones(len(face_vertex)), 
+            #                           np.zeros(len(face_vertex)),
+            #                           np.zeros(len(face_vertex))]).T # should this be something else? 
+            face_g = g[f].copy()
+            
+            # vertex_normals = igl.per_vertex_normals(v,f)
+    
+            # i,j,k = 1,2,3
+            face_vertex_lhs = np.concatenate([(face_vertex[:,1]-face_vertex[:,0])[:,None,:],
+                                              (face_vertex[:,2]-face_vertex[:,1])[:,None,:],
+                                              face_normals[:,None,:]], axis=1) 
+            face_g_rhs = np.vstack([(face_g[:,1]-face_g[:,0]),
+                                    (face_g[:,2]-face_g[:,1]),
+                                     np.zeros(len(face_g))]).T
+    
+    
+            # solve a simultaneous set of 3x3 problems
+            dg_face = np.linalg.solve( face_vertex_lhs, face_g_rhs)
+    
+            gu_mag = np.linalg.norm(dg_face, axis=1) 
+            max_size = igl.avg_edge_length(v, f) / np.nanmax(gu_mag) # stable if divide by nanmax # must be nanmax!. 
+            
+            # dg_face = stepsize*max_size*dg_face # this is vector. and is scaled by step size 
+            # dg_face = max_size*dg_face
+            
+            # average onto the vertex. 
+            dg_vertex = igl.average_onto_vertices(v, 
+                                                  f, 
+                                                  dg_face)
+            dg_vertex = dg_vertex * max_size
+            # dg_vertex = dg_vertex - np.nansum(dg_vertex*vertex_normals,axis=-1)[:,None]*vertex_normals
+            
+            # correct the flow at the boundary!. # this is good? ---> this is good for an explicit euler. 
+            normal_vect = L.dot(v)
+            normal_vect = normal_vect / (np.linalg.norm(normal_vect, axis=-1)[:,None] + 1e-8)
+    
+            # dg_vertex[v_bound] = dg_vertex[v_bound] - np.nansum(dg_vertex[v_bound] * v[v_bound], axis=-1)[:,None]*v[v_bound]
+    
+            """
+            this is the gradient at the vertex. 
+            """
+            dg_vertex[v_bound] = dg_vertex[v_bound] - np.nansum(dg_vertex[v_bound] * normal_vect[v_bound], axis=-1)[:,None]*normal_vect[v_bound]
+            # disps.append(dg_vertex)
+            
+            # print('no_adaptive')
+            scale_factor=stepsize
+            # print('scale_factor, ', scale_factor)
+            """
+            advection step 
+            """
+            # v = V[:,1:] + np.array(disps).sum(axis=0)[:,1:] # how to make this step stable? 
+            v = v_steps[-1][:,1:] + scale_factor*dg_vertex[:,1:] # last one. 
+            v = np.hstack([np.zeros(len(v))[:,None], v])
+            
+            if flip_delaunay: # we have to flip!. 
+                # import meshplex
+                # # this clears out the overlapping. is this necessary
+                # mesh_out = meshplex.MeshTri(v, f)
+                # mesh_out.flip_until_delaunay()
+            
+                # # update v and f!
+                # v = mesh_out.points.copy()
+                # f = mesh_out.cells('points').copy() 
+                f = igl.intrinsic_delaunay_triangulation(igl.edge_lengths(v,f), f)[1]
+                
+                if np.sum(np.isnan(f)) > 0:
+                    break
+    
+            if debugviz_tri:
+                plt.figure(figsize=(5,5))
+                plt.triplot(v[:,1],
+                            v[:,2], f, 'g-', lw=.1)
+                plt.show()
+                
+            v_steps.append(v)
+            f_steps.append(f)
+            area_distortion_iter.append(area_distortion_mesh) # append this. 
+
+        except:
+            # if error then break
+            return v_steps, f_steps, area_distortion_iter
 
     return v_steps, f_steps, area_distortion_iter
 
@@ -6317,7 +6603,7 @@ def find_principal_axes_surface_heterogeneity_mesh(v, f, v_weights=None, map_to_
         # phi = np.arccos(pts_demean[:,2] / r)
 
         # construct a new version with 0 magnitude? 
-        pts_demean = pts_demean / (np.linalg.norm(pts_demean, axis=-1)[:,None] + 1e-8)
+        pts_demean = pts_demean / (np.linalg.norm(pts_demean, axis=-1)[:,None] + 1e-12)
 
     # unweighted version. 
     v_weights_barycenter = igl.average_onto_faces(f, v_weights[:,None])
@@ -6336,6 +6622,125 @@ def find_principal_axes_surface_heterogeneity_mesh(v, f, v_weights=None, map_to_
     v = v[:,w_sort]
 
     return w, v 
+
+
+def optimize_sphere_rotation_from_weights(sphere_mesh, 
+                                         weights, 
+                                         signed_weights_to_orient):
+    r""" Optimizes the alignment of the sphere parameterization based on provided weights and signed alignment weights
+
+    Parameters
+    ----------
+    sphere_mesh : trimesh.Trimesh
+        input mesh
+    weights : (n_vertices,) array
+        vertex weights, could be anything summarizing the feature of interest such as mean curvature, protrusions binary etc.
+    signed_weights_to_orient : (n_vertices,) array
+        this should be signed where large and positive represents the most desired feature. It used to decide whether additional rotation is required after optimizing rotation.
+
+    Returns
+    -------
+    rotation_matrix : (4,4) array
+        3D rotation matrix in homogeneous coordinates format. 
+    extra_rotate_bool : bool
+        whether to apply extra rotation after rotation to have the main feature in the center of uv-map
+    
+    """
+    from ..Geometry import geometry as unwrap3D_geom
+
+    weights_float = weights * 1. # cast to float, if input is binary. 
+    weights_proj_float = signed_weights_to_orient*1. 
+
+    """
+    Weighted PCA to solve for the optimal rotation 
+    """
+    w_axis, v_axis = find_principal_axes_surface_heterogeneity_mesh(sphere_mesh.vertices, 
+                                                                          sphere_mesh.faces,
+                                                                          weights_float)
+    # PCA solution yields orthonormal matrices with determinants of +/-1, only +1 is a proper rotations
+    v_axis = unwrap3D_geom.fix_improper_rot_matrix_3D(v_axis) # make the outcome a proper rotation
+    v_axis = v_axis[:,::-1].copy() # flipping so that the smallest eigenvector corresponds to the sphere's North-South axis i.e. z-coordinate in our system.
+
+
+    # construct optimal rotation matrix. 
+    """
+    Optimal rotation matrix is given by the matrix inverse (which is the transpose for orthonormal matrices) of the eigenvector matrix. 
+    """
+    rot_matrix = unwrap3D_geom.rotmatrix3D_to_4D(v_axis).T  #### not quite... -> we need to map to -1,0,0!
+
+    equiareal_sphere_mesh_rot = sphere_mesh.copy()
+    equiareal_sphere_mesh_rot.vertices = unwrap3D_geom.rot_pts_xyz(sphere_mesh.vertices, 
+                                                            rot_matrix, 
+                                                            mean_pts=np.hstack([0,0,0]), # supply a rotation center, which is just the origin 
+                                                            demean_pts=True)
+    
+    """
+    correct so principal axis is aligned... 
+    """
+    v_coords = np.ones((4,3)); v_coords[:3,:3] = v_axis
+    new_pos = rot_matrix.dot(v_coords)[:3]
+
+    proj_weights =  np.nansum(weights_proj_float[:,None] * equiareal_sphere_mesh_rot.vertices * new_pos[:,0][None,:], axis=-1)
+    sum_proj_weights = np.nansum(proj_weights)
+
+    extra_rotate_bool = False
+    if sum_proj_weights < 0: # this is correct - only correct if negative. 
+        # rotate 180 in z.
+        extra_rotate_bool = True
+        # new_pos = unwrap3D_geom.rot_pts_z(new_pos, np.pi, mean_pts=np.hstack([0,0,0]), demean_pts=False)
+        # equiareal_sphere_mesh_rot.vertices = unwrap3D_geom.rot_pts_z(equiareal_sphere_mesh_rot.vertices, 
+        #                                                         np.pi-np.pi/2 , 
+        #                                                         mean_pts=np.hstack([0,0,0]), demean_pts=False)
+    else:
+        extra_rotate_bool = False
+        # new_pos = unwrap3D_geom.rot_pts_z(new_pos, 0, mean_pts=np.hstack([0,0,0]), demean_pts=False)
+        # equiareal_sphere_mesh_rot.vertices = unwrap3D_geom.rot_pts_z(equiareal_sphere_mesh_rot.vertices, 
+        #                                                         0-np.pi/2, # do the 90 degree correction.
+        #                                                         mean_pts=np.hstack([0,0,0]), demean_pts=False)
+
+    return rot_matrix, extra_rotate_bool
+
+
+def apply_optimized_sphere_rotation_from_weights(sphere_mesh, 
+                                                rot_matrix, 
+                                                extra_rotate_bool,
+                                                additional_rotation_angle_degrees=0):
+    r""" applies the optimal rotation matrix, and extra rotation learnt for visualizing the features of interest using weights 
+
+    Parameters
+    ----------
+    sphere_mesh : trimesh.Trimesh
+        input sphere mesh
+    rot_matrix : (4,4) array
+        rotation matrix in homogeneous coordinates
+    extra_rotate_bool : bool
+        whether to perform additional 180 degrees rotation after applying the rotation matrix.
+    additional_rotation_angle_degrees : float
+        whether to customize and add additional rotation on top of rot_matrix and extra_rotate_bool. Angle should be given in degrees - can be position or negative  
+
+    Returns
+    -------
+    sphere_mesh_rot : trimesh.Trimesh
+        rotated input sphere mesh with vertices updated
+    
+    """
+    from ..Geometry import geometry as unwrap3D_geom
+
+    sphere_mesh_rot = sphere_mesh.copy()
+    sphere_mesh_rot.vertices = unwrap3D_geom.rot_pts_xyz(sphere_mesh.vertices, 
+                                                      rot_matrix, 
+                                                      mean_pts=np.hstack([0,0,0]), # supply a rotation center, which is just the origin 
+                                                      demean_pts=True)
+    if extra_rotate_bool:
+        sphere_mesh_rot.vertices = unwrap3D_geom.rot_pts_z(sphere_mesh_rot.vertices, 
+                                                                np.pi-np.pi/2 + additional_rotation_angle_degrees/180*np.pi, 
+                                                                mean_pts=np.hstack([0,0,0]), demean_pts=False)
+    else:
+        sphere_mesh_rot.vertices = unwrap3D_geom.rot_pts_z(sphere_mesh_rot.vertices, 
+                                                                0-np.pi/2 + additional_rotation_angle_degrees/180*np.pi, # do the 90 degree correction.
+                                                                mean_pts=np.hstack([0,0,0]), demean_pts=False)
+
+    return sphere_mesh_rot
 
 
 def rescale_mesh_points_to_grid_size(rect_mesh, grid=None, grid_shape=None):
@@ -7303,7 +7708,7 @@ def iterative_tutte_spherical_map(v,f, deltaL = 5e-3, min_iter=10, max_iter=25, 
     
 
 
-def direct_spherical_conformal_map(v,f):
+def direct_spherical_conformal_map(v,f, apply_mobius_correction=True):
     r""" A linear method for computing spherical conformal map of a genus-0 closed surface using quasiconformal mapping
 
     Parameters
@@ -7312,6 +7717,8 @@ def direct_spherical_conformal_map(v,f):
         vertex coordinates of a genus-0 triangle mesh
     f : (n_faces, 3) array
         triangulations of a genus-0 triangle mesh
+    apply_mobius_correction : bool
+        apply mobius correction to correct for the mesh concentration on sphere. 
         
     Returns
     -------
@@ -7465,6 +7872,13 @@ def direct_spherical_conformal_map(v,f):
     # v_sphere = (v - c) 
     # v_sphere = v_sphere / (np.linalg.norm(v_sphere, axis=-1)[:,None] + 1e-20)
     
+
+    if apply_mobius_correction:
+        param = mobius_area_correction_spherical(v,
+                                                f,
+                                                param)
+
+    # perform correction (should be the same now)
     _, param, _ = trimesh.registration.procrustes(param, v, weights=None, 
                                                   reflection=False, # set this false. should this reflect? 
                                                   translation=True, 
@@ -7475,6 +7889,56 @@ def direct_spherical_conformal_map(v,f):
     param = param/(np.linalg.norm(param,axis=-1)[:,None] + 1e-20)
 
     return param 
+
+
+def align_spherical_map_with_mesh(sphere_mesh, ref_mesh):
+    
+    import igl 
+    import trimesh
+    v = ref_mesh.vertices
+    # f = ref_mesh.faces
+    
+    # # check with direct spherical projection and switch signs....
+    # direct_spherical_proj = v - np.nanmean(igl.barycenter(v, f), axis=0)
+    # direct_spherical_proj = direct_spherical_proj/(np.linalg.norm(direct_spherical_proj,axis=-1)[:,None] + 1e-20)
+
+    # sign_proj = np.nansum(sphere_mesh.vertices*direct_spherical_proj, axis=-1)
+    # print(np.mean(sign_proj))
+    _, param, _ = trimesh.registration.procrustes(sphere_mesh.vertices, v, weights=None, 
+                                                  reflection=False, # set this false. should this reflect? 
+                                                  translation=True, 
+                                                  scale=True, return_cost=True)
+
+    # rescale and sphere proj
+    param = param - np.nanmean(igl.barycenter(param, sphere_mesh.faces), axis=0)
+    param = param/(np.linalg.norm(param,axis=-1)[:,None] + 1e-20)
+    
+    return param
+    
+
+def align_mesh_vertex_stack_with_reference_mesh(vertex_stack, ref_mesh, 
+                                                params={'weights':None, 'reflection':False,'translation':True,'scale':True}):
+
+    import igl 
+    import trimesh
+    import numpy as np 
+
+    vertex_stack_registered = []
+    ref_vertices = ref_mesh.vertices.copy()
+
+    for ii in np.arange(vertex_stack.shape[-1]):
+        vertices = vertex_stack[...,ii].copy()
+        _, vertices_out, _ = trimesh.registration.procrustes(vertices, 
+                                                        ref_vertices, 
+                                                        weights=params['weights'], 
+                                                        reflection=params['reflection'], # set this false. should this reflect? 
+                                                        translation=params['translation'], 
+                                                        scale=params['scale'], return_cost=True)
+        vertex_stack_registered.append(vertices_out)
+    vertex_stack_registered = np.array(vertex_stack_registered).transpose(1,2,0) # to keep in order.
+
+    return vertex_stack_registered
+
 
 
 # implementation of extension functions to improve conformal mapping. 
@@ -7942,11 +8406,18 @@ def rectangular_conformal_map(v,f,corner=None, map2square=False, random_state=0,
     bnd_uv = igl.map_vertices_to_circle(v, bdy_index)
 
     # % 1. disk harmonic map
-    disk = igl.harmonic_weights(v.astype(np.float32),
-                              f, 
-                              bdy_index, 
-                              bnd_uv, 
-                              1); # if 2 then biharmonic  
+    try:
+        disk = igl.harmonic_weights(v.astype(np.float32),
+                                  f, 
+                                  bdy_index, 
+                                  bnd_uv.astype(np.float32), 
+                                  1); # if 2 then biharmonic  
+    except:
+        disk = igl.harmonic(v.astype(np.float32),
+                                  f, 
+                                  bdy_index, 
+                                  bnd_uv.astype(np.float32), 
+                                  1); # if 2 then biharmonic  
 
     if map2square:
         # then do conformal mapping to square
@@ -8178,11 +8649,18 @@ def disk_conformal_map(v,f,corner=None, random_state=0, north=5, south=100, thre
     bnd_uv = igl.map_vertices_to_circle(v, bdy_index)
 
     # % 1. disk harmonic map
-    disk = igl.harmonic_weights(v.astype(np.float32),
-                              f, 
-                              bdy_index, 
-                              bnd_uv, 
-                              1); # if 2 then biharmonic  
+    try:
+        disk = igl.harmonic_weights(v.astype(np.float32),
+                                  f, 
+                                  bdy_index, 
+                                  bnd_uv.astype(np.float32), 
+                                  1); # if 2 then biharmonic
+    except:
+        disk = igl.harmonic(v.astype(np.float32),
+                                  f, 
+                                  bdy_index, 
+                                  bnd_uv.astype(np.float32), 
+                                  1); # if 2 then biharmonic
 
     z = disk[:,0]+disk[:,1]*1j
     ### the remainder is optimization. 

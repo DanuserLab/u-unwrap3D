@@ -95,6 +95,7 @@ def read_demons_matlab_tform( tform_file, volshape, keys=['u', 'v', 'w']):
     """   
     import scipy.io as spio
     import skimage.transform as sktform 
+    import numpy as np 
     
     tform_obj = spio.loadmat(tform_file) # this assumes matlab v5.4 format
 
@@ -134,7 +135,41 @@ def save_array_to_nifti(data, savefile):
 
     return []
 
+
+def read_pickle(filename):
+    r""" read python3 pickled .pkl files
+
+    Parameters
+    ----------
+    filename : filepath
+        absolute path of the file to read
+   
+    """   
+    import pickle
     
+    with open(filename, 'rb') as output:
+        return pickle.load(output)
+
+
+def write_pickle(savepicklefile, savedict):
+    r""" write python3 pickled .pkl files - use this for objects > 4GB 
+
+    Parameters
+    ----------
+    savepicklefile : filepath
+        absolute path of the file to write to
+    savedict : dictionary
+        dictionary of variables to write 
+   
+    """   
+
+    import pickle
+
+    with open(savepicklefile, 'wb') as handle:
+        pickle.dump(savedict, 
+                    handle)
+        
+    return []
     
     
     

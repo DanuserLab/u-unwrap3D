@@ -59,10 +59,12 @@ More optional / certain functions:
 - [potpourri3d](https://github.com/nmwsharp/potpourri3d) - `pip install potpourri3d` : for using heat method to compute approximate geodesic distance on triangle meshes with multiple sources
 
 ## Installation
-The above dependencies and library should be installable by git cloning the repository and running pip in the cloned folder with python>=3.8
+The above dependencies and library should be installable by git cloning the repository and running pip in the cloned folder with python>=3.8. We currently recommend 3.9, 3.10, 3.11.
 ```
 pip install .
 ```
+potential issues:
+scikit-fmm currently does not have wheels in pip, and you may have compilation errors. Please remove this from requirements.txt or install through conda-forge into your environment, `conda install -c conda-forge scikit-fmm`.
 
 ## New functionality
 New tools will be added to improve useability and applicability. In particular we plan to introduce mesh repair and surgery techniques to guarantee the creation of a surrogate genus-0 surfaces of any input genus-X surface.

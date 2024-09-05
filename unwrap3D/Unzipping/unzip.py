@@ -70,6 +70,200 @@ def voxelize_unwrap_params(unwrap_params,
     return surf_unwrap_vol
 
 
+def build_topography_space_from_Suv(Sref_uv, 
+                                    Sref_binary,
+                                    external_gradient_field = None, # build if none. 
+                                    pad_size=50, 
+                                    alpha_step=None,
+                                    outer_surf_pts = None,
+                                    outer_n_dists = None,
+                                    outer_pad_dist=20,
+                                    # outer_sdf_method = 'edt', always use edt. (for speed)
+                                    outer_method='forward_euler',
+                                    outer_smooth_win_factor=16,
+                                    # inner_d_step=None,
+                                    inner_n_dists = 10,
+                                    inner_sdf_method = 'harmonic',
+                                    inner_source_mask = None, 
+                                    inner_harmonic_ds = 4., # 4x downsample by default. 
+                                    inner_method='active_contours'): # convenience function for the standard way we put together these functions. -> options for gradient_outer, gradient_inner. 
+    
+
+    r""" Provides a convenience api for building topography space with an input reference mesh, with options to customize sdf specification.
+
+    propagate surface outwards using forward euler + smoothing regularization. 
+    propagate surface inwards using active contours 
+    
+    """
+    import numpy as np 
+    from ..Segmentation.segmentation import sdf_distance_transform, poisson_dist_tform_3D
+    import scipy.ndimage as ndimage 
+    
+    vol_lims = Sref_binary.shape[:3]
+    
+    
+    if alpha_step is None:
+        
+        # infer this and set the propagation step. 
+        delta_xx = np.diff(Sref_uv, axis=1) # column-wise difference in (x,y,z)
+        delta_yy = np.diff(Sref_uv, axis=0) # row-wise difference in (x,y,z)
+        # convert the difference to magnitude. 
+        delta_xx_abs = np.linalg.norm(delta_xx, axis=-1)
+        delta_yy_abs = np.linalg.norm(delta_yy, axis=-1)
+        # take the mean of the x-, y- direction magnitude 
+        alpha_step = .5*(np.mean(delta_xx_abs) + np.mean(delta_yy_abs)) 
+        
+    ####
+    #   0. Check and construct the distance transform. 
+    ####  
+    # create a pad. 
+    
+    outer_surf_pts_bound = None
+
+    if external_gradient_field is None:
+        Sref_binary_pad = np.pad(Sref_binary, pad_width=[[pad_size,pad_size], 
+                                                         [pad_size,pad_size],
+                                                         [pad_size,pad_size]])
+        Sref_uv_pad = Sref_uv + pad_size # offset. 
+        EDT_sdf = sdf_distance_transform(Sref_binary_pad>0)
+        external_gradient_field = np.array(np.gradient(EDT_sdf))
+        external_gradient_field = external_gradient_field/(np.linalg.norm(external_gradient_field, axis=0)[None,...] + 1e-20).astype(np.float32)
+        
+        # smooth
+        external_gradient_field = np.array([ndimage.gaussian_filter(grad, sigma=1) for grad in external_gradient_field])
+        external_gradient_field = external_gradient_field/(np.linalg.norm(external_gradient_field,axis=0)[None,...]+1e-20)
+        
+        if outer_surf_pts is not None:
+            outer_surf_pts_bound = outer_surf_pts + pad_size
+    else:
+        Sref_binary_pad = Sref_binary.copy()
+        Sref_uv_pad = Sref_uv.copy()
+        if outer_surf_pts is not None:
+            outer_surf_pts_bound = outer_surf_pts.copy()
+        
+    ####
+    #   1. Perform the outer propagation. 
+    ####           
+    
+    if outer_method == 'forward_euler':
+        smooth_winsize = np.min(Sref_uv.shape[:2]) // int(outer_smooth_win_factor)
+
+        uv_unwrap_params_depth_out = prop_ref_surface(Sref_uv_pad, 
+                                                      vol_binary = Sref_binary_pad,
+                                                      binary_vol_grad = external_gradient_field.transpose(1,2,3,0),
+                                                      vol_size=Sref_binary_pad.shape,
+                                                      d_step=-1*alpha_step, # .5 pixel intervals.  ? 
+                                                      n_dist=outer_n_dists, 
+                                                      surf_pts_ref=outer_surf_pts_bound,
+                                                      pad_dist=outer_pad_dist/float(alpha_step), # on top of the inference add some padding. 
+                                                      smooth_method='uniform', 
+                                                      smooth_win=smooth_winsize)
+        
+    if outer_method == 'active_contours':
+        # determine the max bound if n_dist not specified. 
+        from ..Mesh.meshtools import parametric_uv_unwrap_mesh_constant_img_flow
+        uv_unwrap_params_depth_out = parametric_uv_unwrap_mesh_constant_img_flow(Sref_uv_pad, 
+                                                                external_img_gradient=external_gradient_field.transpose(1,2,3,0),  
+                                                                niters = outer_n_dists,
+                                                                deltaL=5e-2, 
+                                                                surf_pts_ref=outer_surf_pts_bound, 
+                                                                step_size= -1*alpha_step,
+                                                                pad_dist=outer_pad_dist/float(alpha_step),
+                                                                method='implicit', 
+                                                                robust_L=True, 
+                                                                mollify_factor=1e-5,
+                                                                conformalize=False, # not so good .  
+                                                                gamma=1, 
+                                                                alpha=0.1, 
+                                                                beta=0.5, 
+                                                                eps=1e-20)
+        uv_unwrap_params_depth_out = uv_unwrap_params_depth_out.transpose(3,0,1,2)
+        
+        inner_sdf_method = 'harmonic',
+        inner_harmonic_ds = 4., # 4x downsample by default. 
+        inner_method='active_contours'
+        
+    if inner_sdf_method == 'harmonic':
+        # we need to compute the poisson distance transform and switch this out. 
+        import skimage.transform as sktform
+        ds = float(inner_harmonic_ds)
+        
+        Sref_binary_pad_ds = ndimage.zoom(Sref_binary_pad*255., 
+                                            zoom =[1./ds, 1./ds, 1./ds],
+                                            order=1)/255. > 0.5 # perform linear down. 
+        if inner_source_mask is not None:
+            inner_source_mask_pad = np.pad(inner_source_mask, pad_width=[[pad_size,pad_size], [pad_size, pad_size], [pad_size, pad_size]])
+            inner_source_mask_pad_ds = ndimage.zoom( inner_source_mask_pad*255., 
+                                                    zoom =[1./ds, 1./ds, 1./ds],
+                                                    order=1)/255. > 0.5 # perform linear down. 
+            poisson_dtform = poisson_dist_tform_3D(Sref_binary_pad_ds,
+                                                   pts = np.argwhere(inner_source_mask_pad_ds>0)) # with source points. 
+        else:
+            poisson_dtform = poisson_dist_tform_3D(Sref_binary_pad_ds,
+                                                   pts = None) # no source points. 
+            
+        poisson_dtform = sktform.resize(poisson_dtform, 
+                                        Sref_binary_pad.shape,
+                                        order=1, preserve_range=True)
+                                                      
+        external_gradient_field = np.array(np.gradient(poisson_dtform))
+        external_gradient_field = external_gradient_field/(np.linalg.norm(external_gradient_field,axis=0)[None,...]+1e-20).astype(np.float32)
+
+        external_gradient_field = np.array([ndimage.gaussian_filter(external_gradient_field[iii], sigma=3) for iii in np.arange(3)])
+        external_gradient_field = external_gradient_field/(np.linalg.norm(external_gradient_field,axis=0)[None,...]+1e-20)
+
+
+    if inner_method == 'forward_euler':
+        smooth_winsize = np.minimum(Sref_uv.shape[:2]) // int(outer_smooth_win_factor)
+        
+        uv_unwrap_params_depth_in = prop_ref_surface(Sref_uv_pad, 
+                                                      vol_binary = None,
+                                                      binary_vol_grad = external_gradient_field.transpose(1,2,3,0),
+                                                      vol_size=Sref_binary_pad.shape,
+                                                      d_step=-1*alpha_step, # .5 pixel intervals.  ? 
+                                                      n_dist=inner_n_dists, 
+                                                      surf_pts_ref=None, # to do include this too ( we can do this by distance transform and voxelization)
+                                                      pad_dist=0, # on top of the inference add some padding. 
+                                                      smooth_method='uniform', 
+                                                      smooth_win=smooth_winsize)
+        
+    if inner_method == 'active_contours':
+        # determine the max bound if n_dist not specified. 
+        from ..Mesh.meshtools import parametric_uv_unwrap_mesh_constant_img_flow
+        
+        uv_unwrap_params_depth_in = parametric_uv_unwrap_mesh_constant_img_flow(Sref_uv_pad, 
+                                                                        external_img_gradient=external_gradient_field.transpose(1,2,3,0),  
+                                                                        niters = inner_n_dists,
+                                                                        deltaL=5e-2, 
+                                                                        surf_pts_ref=None, 
+                                                                        step_size= alpha_step,
+                                                                        pad_dist=0,
+                                                                        method='implicit', 
+                                                                        robust_L=True, # must be switched on for this. 
+                                                                        mollify_factor=1e-5,
+                                                                        conformalize=False, # not so good .  
+                                                                        gamma=1, 
+                                                                        alpha=0.1, 
+                                                                        beta=0.5, 
+                                                                        eps=1e-20)
+        uv_unwrap_params_depth_in = uv_unwrap_params_depth_in.transpose(3,0,1,2)
+
+
+    # combine both.
+    N_out = len(uv_unwrap_params_depth_in) - 1
+    N_in = len(uv_unwrap_params_depth_out) - 1 
+    
+    
+    uv_unwrap_params_depth_all = np.vstack([uv_unwrap_params_depth_in[::-1], 
+                                            uv_unwrap_params_depth_out[1:]])
+    
+    # reverse the pad_size.
+    uv_unwrap_params_depth_all = uv_unwrap_params_depth_all - pad_size
+    uv_unwrap_params_depth_all[...,0] = np.clip(uv_unwrap_params_depth_all[...,0], 0, vol_lims[0]-1)
+    uv_unwrap_params_depth_all[...,1] = np.clip(uv_unwrap_params_depth_all[...,1], 0, vol_lims[1]-1)
+    uv_unwrap_params_depth_all[...,2] = np.clip(uv_unwrap_params_depth_all[...,2], 0, vol_lims[2]-1)
+    
+    return uv_unwrap_params_depth_all, (N_in, N_out)
 def prop_ref_surface(unwrap_params_ref, 
                          vol_size,  
                          preupsample=3, 
@@ -127,7 +321,7 @@ def prop_ref_surface(unwrap_params_ref,
         'smoothN' : str
             applies a spline-based smoothing of `Garcia <https://www.biomecardio.com/matlab/smoothn_doc.html>`_. This algorithm can be pretty slow. See :func:`unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical_SmoothN`
         'uniform' : str
-            treats the spacing of mesh points as uniform and applies fast separable 1D Gaussian smoothing along each axis of the 2D parameterization. See :func:`unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical`
+            treats the spacing of mesh points as uniform and applies fast separable 1D uniform filter smoothing along each axis of the 2D parameterization. See :func:`unwrap3D.Unzipping.unzip.smooth_unwrap_params_3D_spherical`
 
     smooth_win : int
         the smoothing window to smooth the advected points used in the uniform method. 
@@ -144,6 +338,8 @@ def prop_ref_surface(unwrap_params_ref,
     """
     import numpy as np 
     from tqdm import tqdm 
+    from hausdorff import hausdorff_distance
+    # import point_cloud_utils as pcu
     # import pylab as plt 
     from ..Segmentation.segmentation import surf_normal_sdf
     from ..Image_Functions.image import map_intensity_interp3
@@ -217,19 +413,26 @@ def prop_ref_surface(unwrap_params_ref,
         
     # infer the number of dists to step for from the reference if not prespecified. 
     if n_dist is None :
+
         unwrap_params_ref_flat = unwrap_params_ref.reshape(-1, unwrap_params_ref.shape[-1])
-        # infer the maximum step size so as to cover the initial otsu surface.
-        mean_pt = np.nanmean(unwrap_params_ref_flat, axis=0)
-        # # more robust to do an ellipse fit. ? => doesn't seem so... seems best to take the extremal point -> since we should have a self-similar shape. 
-        # unwrap_params_fit_major_len = np.max(np.linalg.eigvalsh(np.cov((unwrap_params_ref_flat-mean_pt[None,:]).T))); unwrap_params_fit_major_len=np.sqrt(unwrap_params_fit_major_len)
-        # surf_ref_major_len = np.max(np.linalg.eigvalsh(np.cov((surf_pts_ref-mean_pt[None,:]).T))); surf_ref_major_len = np.sqrt(surf_ref_major_len)
+        # hausdorff_dist = pcu.hausdorff_distance(unwrap_params_ref, surf_pts_ref)
+        hausdorff_dist = hausdorff_distance(unwrap_params_ref_flat, surf_pts_ref) # much faster. 
+        n_dist = np.int64(np.ceil(hausdorff_dist / np.abs(float(d_step))) + pad_dist) # convert to discrete number of steps
 
-        mean_dist_unwrap_params_ref = np.linalg.norm(unwrap_params_ref_flat-mean_pt[None,:], axis=-1).max()
-        mean_surf_pts_ref = np.linalg.norm(surf_pts_ref-mean_pt[None,:], axis=-1).max() # strictly should do an ellipse fit... 
+        # # Following is deprecated. 
+        # unwrap_params_ref_flat = unwrap_params_ref.reshape(-1, unwrap_params_ref.shape[-1])
+        # # infer the maximum step size so as to cover the initial otsu surface.
+        # mean_pt = np.nanmean(unwrap_params_ref_flat, axis=0)
+        # # # more robust to do an ellipse fit. ? => doesn't seem so... seems best to take the extremal point -> since we should have a self-similar shape. 
+        # # unwrap_params_fit_major_len = np.max(np.linalg.eigvalsh(np.cov((unwrap_params_ref_flat-mean_pt[None,:]).T))); unwrap_params_fit_major_len=np.sqrt(unwrap_params_fit_major_len)
+        # # surf_ref_major_len = np.max(np.linalg.eigvalsh(np.cov((surf_pts_ref-mean_pt[None,:]).T))); surf_ref_major_len = np.sqrt(surf_ref_major_len)
 
-        n_dist = np.int64(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
-        n_dist = n_dist + pad_dist # this is in pixels
-        n_dist = np.int64(np.ceil(n_dist / float(d_step))) # so if we take 1./2 step then we should step 2*
+        # mean_dist_unwrap_params_ref = np.linalg.norm(unwrap_params_ref_flat-mean_pt[None,:], axis=-1).max()
+        # mean_surf_pts_ref = np.linalg.norm(surf_pts_ref-mean_pt[None,:], axis=-1).max() # strictly should do an ellipse fit... 
+
+        # n_dist = np.int64(np.ceil(mean_surf_pts_ref-mean_dist_unwrap_params_ref))
+        # n_dist = n_dist + pad_dist # this is in pixels
+        # n_dist = np.int64(np.ceil(n_dist / float(d_step))) # so if we take 1./2 step then we should step 2*
 
         # print(n_dist)
         # print('----')
@@ -298,10 +501,13 @@ def prop_ref_surface(unwrap_params_ref,
         # get the next point and clip.
         pts_next_ = unwrapped_coord_depth[-1] + d_step * grad_next
 
-        # clip the pts to the range of the image. 
-        pts_next_[...,0] = np.clip(pts_next_[...,0], 0, vol_binary.shape[0]-1)
-        pts_next_[...,1] = np.clip(pts_next_[...,1], 0, vol_binary.shape[1]-1)
-        pts_next_[...,2] = np.clip(pts_next_[...,2], 0, vol_binary.shape[2]-1)
+        ## clip the pts to the range of the image. 
+        #pts_next_[...,0] = np.clip(pts_next_[...,0], 0, vol_binary.shape[0]-1)
+        #pts_next_[...,1] = np.clip(pts_next_[...,1], 0, vol_binary.shape[1]-1)
+        #pts_next_[...,2] = np.clip(pts_next_[...,2], 0, vol_binary.shape[2]-1)
+        pts_next_[...,0] = np.clip(pts_next_[...,0], 0, vol_size[0]-1)
+        pts_next_[...,1] = np.clip(pts_next_[...,1], 0, vol_size[1]-1)
+        pts_next_[...,2] = np.clip(pts_next_[...,2], 0, vol_size[2]-1)
 
         unwrapped_coord_depth.append(pts_next_)
 
@@ -771,6 +977,141 @@ def find_principal_axes_uv_surface(uv_coords, pts_weights, map_to_sphere=True, s
         return w, v 
 
 
+
+def uv_map_sphere_surface_parameterization(sphere_mesh, 
+                                           surface_mesh,
+                                           surface_measurements_scalars=None,
+                                           surface_measurements_labels=None,
+                                           uv_grid_size = 256, 
+                                           optimize_aspect_ratio=True, 
+                                           aspect_ratio_method='beltrami',
+                                           length_ratio_avg_fn=np.nanmean,
+                                           h_opt=None):
+    
+    r""" Given a (u,v) parametrization of an (x,y,z) surface. This function derives the corresponding (u,v) parametrization for an arbitrary rotation of the (x,y,z) surface by rotating the spherical parametrization and interpolating without needing to completely do a new spherical parametrization. 
+   
+    Parameters 
+    ----------
+    sphere_mesh : trimesh.Trimesh
+        spherical parameterization of surface_mesh. Must have same number of vertices and faces. 
+    surface_mesh : trimesh.Trimesh
+        corresponding surface_mesh. Must have same number of vertices and faces as the sphere mesh.  
+    surface_measurements_scalars : (n_vertices, D) array
+        D number of real-valued scalar measurements such as curvature which is desired to be resampled onto (u,v) grid
+    surface_measurements_labels : (n_vertices, D) array
+        D number of integer discrete labels which to be mapped into (u,v) space using statistical mode and not to be interpolated. e.g. protrusion segmentation.
+    uv_grid_size : int
+        vertical height of (u,v) grid, i.e. the height of the image. This is fixed. The width may be optimized if  optimize_aspect_ratio=True. Otherwise the width is double the height.
+    optimize_aspect_ratio : bool
+        if True, optimize the width of the image to minimize metric distortion, based on the chosen method. 
+    aspect_ratio_method : str 
+        optimization method for aspect ratio. Either 'length_ratio', see :func:`unwrap3D.Unzipping.unzip.length_ratio_uv_opt` or 'Beltrami' to use the Beltrami coefficient, see :func:`unwrap3D.Unzipping.unzip.beltrami_coeff_uv_opt` 
+    length_ratio_avg_fn : numpy function
+        function used to compute an average length for u and v separately to determine h_opt when 'length_ratio' method is specified. Default is mean: np.nanmean. However, you might find np.nanmedian to get better looking results due to mode-seeking behavior of median vs mean. 
+    h_opt : float
+        a user set ratio for uv image width. uv image size will be (uv_grid_size, 2*((int(h_opt*M)+1)//2))
+    
+
+    Returns 
+    -------
+    S_uv : (M,N,3) array
+        the uv parameterized (x,y,z) surface coordinates 
+    match_params : [(UxV,) array, (UxV,3) array]
+        list of the triangle on sphere each (u,v) pixel is matched to and second array gives the barycentric weight of sphere vertices.
+    h_opt : scalar
+        the optimal aspect ratio found. The output S_uv has shape: M = grid_size and N = 2*((int(h_opt*M)+1)//2)
+    uv_surface_measurements_scalars : (M,N,D) array
+        empty list if no input, otherwise the remapped D scalar measurements into (u,v) space
+    uv_surface_measurements_labels : (M,N,D) array
+        empty list if no input, otherwise the remapped D label measurements into (u,v) space. Labels unlike scalars are not interpolated but mapped by mode.
+    """
+    
+    from ..Geometry import geometry as unwrap3D_geom
+    from ..Mesh import meshtools as unwrap3D_meshtools
+    import scipy.stats as spstats
+    
+    if h_opt is None:
+        v_uv_grid_size = uv_grid_size
+        h_uv_grid_size = 2*uv_grid_size
+        ang_grid = unwrap3D_geom.img_2_angles(v_uv_grid_size, h_uv_grid_size)  
+    else:
+        # make this even!. 
+        v_uv_grid_size = uv_grid_size
+        h_uv_grid_size = 2*((int(h_opt*uv_grid_size)+1)//2) # guarantee a multiple of 2.
+        ang_grid = unwrap3D_geom.img_2_angles(uv_grid_size, h_uv_grid_size)  
+    
+    unit_sphere_xyz = unwrap3D_geom.sphere_from_img_angles(ang_grid.reshape(-1,ang_grid.shape[-1]))
+    unit_sphere_xyz = unit_sphere_xyz.reshape((v_uv_grid_size,h_uv_grid_size,3))
+
+    match_params = unwrap3D_meshtools.match_and_interpolate_uv_surface_to_mesh(unit_sphere_xyz.reshape(-1,3), 
+                                                                                     sphere_mesh, 
+                                                                                     match_method='cross')
+
+    # Barycentric interpolation to pull down S_ref with matching equiareal
+    S_uv = unwrap3D_meshtools.mesh_vertex_interpolate_scalar(sphere_mesh, 
+                                                    match_params[0], 
+                                                    match_params[1], 
+                                                    surface_mesh.vertices)
+    S_uv = S_uv.reshape((v_uv_grid_size,h_uv_grid_size,-1)) 
+    
+    
+    # optimize aspect ratio. 
+    if optimize_aspect_ratio and h_opt is None:
+        
+        if aspect_ratio_method=='beltrami':
+            h_opt = beltrami_coeff_uv_opt(S_uv, 
+                                          eps=1e-12, 
+                                          apply_opt=False)
+        elif aspect_ratio_method == 'length_ratio':
+            h_opt = length_ratio_uv_opt(S_uv, 
+                                        avg_fn=np.nanmedian,
+                                        eps=1e-12, 
+                                        apply_opt=False)
+        else:
+            print('invalid method')
+            
+        # recreate the unwrap params with this new and rematch. 
+        v_uv_grid_size = uv_grid_size
+        h_uv_grid_size = 2*((int(h_opt*uv_grid_size)+1)//2) # guarantee a multiple of 2.
+        ang_grid = unwrap3D_geom.img_2_angles(uv_grid_size, h_uv_grid_size)  
+    
+        unit_sphere_xyz = unwrap3D_geom.sphere_from_img_angles(ang_grid.reshape(-1,ang_grid.shape[-1]))
+        unit_sphere_xyz = unit_sphere_xyz.reshape((v_uv_grid_size,h_uv_grid_size,3))
+    
+        match_params = unwrap3D_meshtools.match_and_interpolate_uv_surface_to_mesh(unit_sphere_xyz.reshape(-1,3), 
+                                                                                         sphere_mesh, 
+                                                                                         match_method='cross')
+    
+        # Barycentric interpolation to pull down S_ref with matching equiareal
+        S_uv = unwrap3D_meshtools.mesh_vertex_interpolate_scalar(sphere_mesh, 
+                                                        match_params[0], 
+                                                        match_params[1], 
+                                                        surface_mesh.vertices)
+        S_uv = S_uv.reshape((v_uv_grid_size,h_uv_grid_size,-1)) 
+    
+    uv_surface_measurements_scalars=[]
+    uv_surface_measurements_labels=[]
+    
+    # if measurements is supplied, simulatenously map these too. 
+    if surface_measurements_scalars is not None:
+        uv_surface_measurements_scalars = unwrap3D_meshtools.mesh_vertex_interpolate_scalar(sphere_mesh, 
+                                                                                            match_params[0], 
+                                                                                            match_params[1], 
+                                                                                            surface_measurements_scalars)
+        uv_surface_measurements_scalars = uv_surface_measurements_scalars.reshape((v_uv_grid_size, h_uv_grid_size, -1))
+    if surface_measurements_labels is not None:
+        uv_surface_measurements_labels = []
+        for label_ii in np.arange(surface_measurements_labels.shape[-1]):
+            surf_label = surface_measurements_labels[...,label_ii].copy()
+            
+            out_labels = spstats.mode(surf_label[sphere_mesh.faces[match_params[0]]], axis=-1)[0]
+            uv_surface_measurements_labels.append(np.squeeze(out_labels))
+        uv_surface_measurements_labels = np.array(uv_surface_measurements_labels).T
+        uv_surface_measurements_labels = uv_surface_measurements_labels.reshape((v_uv_grid_size, h_uv_grid_size, -1))
+            
+    return S_uv, match_params, h_opt, uv_surface_measurements_scalars, uv_surface_measurements_labels
+        
+
 ##### unwrap_params_rotate, integrating the beltrami coefficient optimization. 
 def unwrap_params_rotate_coords(unwrap_params, 
                                 rot_matrix, 
@@ -868,6 +1209,50 @@ def unwrap_params_rotate_coords(unwrap_params,
     else:
         return xy_rot, unwrap_params_new
 
+
+def length_ratio_uv_opt(surface_uv_params, avg_fn=np.nanmean, eps=1e-12, apply_opt=True):
+    r""" Find the optimal image aspect ratio to minimise the l_u / l_v where l_u is the mean length of traversing in u-direction in xyz, and l_v is the mean distance traversing in v-direction 
+
+    This is based on generalizing uv-map which chooses aspect ratio to preserve arc lengths of sphere equator i.e. (M x 2*M). The result now is (M x h*M) 
+    
+    Parameters
+    ----------
+    surface_uv_params : (UxVx3) array
+        the input image specifying the uv unwrapped (x,y,z) surface 
+    avg_fn : numpy function
+        the average function to average computed xyz space across all u- and v- lines.      
+    eps : scalar
+        small number for numerical stability 
+    apply_opt : bool
+        if True, additionally return the resized surface as a second output
+
+    Returns
+    -------
+    h_opt : scalar
+        the optimal scaling factor within the specified h_range
+    surface_uv_params_resize_opt : (U x W x 3)
+        if apply_opt=True, the found aspect ratio is applied to the input image where the new width W is int(h_opt)*V. 
+    """
+    import numpy as np 
+    import skimage.transform as sktform
+    
+    mean_length_rows = avg_fn(np.nansum(np.linalg.norm(np.diff(surface_uv_params, axis=0), axis=-1), axis=0))
+    mean_length_cols = avg_fn(np.nansum(np.linalg.norm(np.diff(surface_uv_params, axis=1), axis=-1), axis=1))
+
+    h_opt = mean_length_cols/mean_length_rows
+
+    m, n = surface_uv_params.shape[:2]
+
+    if apply_opt:
+
+        surface_uv_params_resize_opt = np.array([sktform.resize(surface_uv_params[...,ch], (m, int(h_opt*m)), preserve_range=True) for ch in range(surface_uv_params.shape[-1])])
+        surface_uv_params_resize_opt = surface_uv_params_resize_opt.transpose(1,2,0)
+
+        return h_opt, surface_uv_params_resize_opt
+    else:
+        return h_opt 
+    
+    
 
 def beltrami_coeff_uv_opt(surface_uv_params, h_range=[0.1,5], eps=1e-12, apply_opt=True):
     r""" Find the optimal image aspect ratio to minimise the Beltrami coefficient which is a measure of metric distortion for a (u,v) parametrized (x,y,z) surface 
@@ -1077,7 +1462,8 @@ def conformality_error_uv(surface_uv_params, eps=1e-12, pad=False):
     # compute the overall distortion factor, mean conformality error 
     areas3D = np.linalg.norm(np.cross(dS_du, 
                                       dS_dv), axis=-1)# # use the cross product
-    mean_stretch_factor = np.nansum(areas3D*stretch_factor / (float(np.nansum(areas3D))))
+    stretch_factor_no_inf = stretch_factor.copy(); stretch_factor_no_inf[np.isinf(stretch_factor_no_inf)] = np.nan
+    mean_stretch_factor = np.nansum(areas3D*stretch_factor_no_inf / (float(np.nansum(areas3D))))
 
     return stretch_factor, mean_stretch_factor
 

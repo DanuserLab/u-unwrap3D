@@ -4,4 +4,5 @@ __pycache__/
 *.egg
 *build/
 *.DS_Store
+*.bak
 *.ipynb_checkpoints/
