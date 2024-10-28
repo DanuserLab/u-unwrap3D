@@ -1,8 +1,33 @@
-# u-unwrap3D
+# u-Unwrap3D
 ## Library for 3D Surface-guided computing
 <p align="center">
   <img src="imgs/u_unwrap3D_overview.png" width="800"/>
 </p>
+
+<!-- TOC start -->
+   * [Library Features](#library-features)
+   * [Getting Started](#getting-started)
+   * [Dependencies](#dependencies)
+   * [Installation](#installation)
+   * [New functionality](#new-functionality)
+   * [Questions and Issues](#questions-and-issues)
+   * [Danuser Lab Links](#danuser-lab-links)
+<!-- TOC end -->
+
+#### :star2: v1 (Oct 2024) :star2:
+
+major updates to code and functionality, preprint to come, now u-Unwrap3D works for any mesh :D, including:
+- **new docs:** [work-in-progress book](https://fyz11.github.io/u-Unwrap3D_notebooks/intro.html) for theory understanding and easy reading of code examples e.g. protrusion segmentation. This will also serve to showcase the interesting things you can do with u-Unwrap3D
+- **harmonic distance transform** for full interior mapping of cells with high-curvature protrusions
+- **genus-0 shrinkwrap** of arbitrary meshes to guarantee spherical parameterization
+- **new changepoint detection** method of gaussian curvature for finding tighter reference surface shapes
+- **aspect ratio optimization** of uv-map dimensions to best represent $S_\text{ref}(x,y,z)$ i.e. not just (1:2) but (1:h) height-to-width ratio
+- **Botsch remeshing** from CGAL for more robust and faster isotropic remeshing, replacing pyacvd
+- **transfer scalar and label measurements** between two surface meshes with one function
+- **one-function** for rotation optimization, uv-map, build topography space
+- **one-function** for curvature measurement
+- **updated notebooks** to illustrate new functions
+ 
 
 #### April 10, 2023
 u-unwrap3D is a Python library of functions designed to map 3D surface and volume data into different representations which are more optimal for the desired computing task. For example it is far easier to track surface features on the 3D sphere or 2D plane. Similarly the 3D reference surface enables comparison of global shape across cells and the topography surface specifically highlight surface protrusions. We pay particular attention to minimize conformal and equiareal distortion errors and avoid surface-cutting and restitching. The representations were chosen to preserve the full surface and simplify downstream quantitative characterization of surface features with particular attention to single cell biology.
@@ -35,13 +60,16 @@ u-unwrap3D is a library motivated by scipy / numpy / opencv that provides re-usa
 |Visualisation            | Functions for plotting e.g. colormapping numpy arrays, forcing equal aspect ratio for matplotlib 3D plotting |
 
 ## Getting Started
-The simplest way to get started is to check out the included notebooks which walks through the steps described in the paper for obtaining all representation starting from step0: the extraction of surface from a binary cell segmentation.
+The simplest way to get started is to check out the included notebooks in this repository which walks through the steps described in the paper for obtaining all representation starting from step0: the extraction of surface from a binary cell segmentation. 
+
+Alternatively, you may prefer to read the tutorials from the [u-Unwrap3D jupyter-book](https://fyz11.github.io/u-Unwrap3D_notebooks/03_basic_workflow/readme.html) which can be navigated more easily. 
 
 ## Dependencies
 u-unwrap3D relies on the following packages for various functionalities. All can be readily installed using conda or pip. Not all needs to be installed. Feel free to install as needed / when an error is thrown. The key ones are below:
-- [libigl](https://libigl.github.io/libigl-python-bindings/tut-chapter0/) - `conda install -c conda-forge igl` : for mesh processing
+- [libigl](https://libigl.github.io/libigl-python-bindings/tut-chapter0/) - `pip install libigl` : for mesh processing
+- [point-cloud-utils](https://github.com/fwilliams/point-cloud-utils) - `pip install point-cloud-utils` : for computing point cloud metrics
 - [trimesh](https://trimsh.org/) - `pip install trimesh` : for mesh io and processing
-- [pyacvd](https://pypi.org/project/pyacvd/) - `pip install pyacvd` : for isotropic remeshing
+- [CGAL](https://pypi.org/project/pyacvd/) - `pip install cgal` : for isotropic remeshing, alpha wrap
 - [transforms3d](https://pypi.org/project/transforms3d/) - `pip install transforms3d` : for 3D coordinate transforms 
 - [numpy](https://numpy.org/) - `pip install numpy` : for general computing
 - [scipy](https://www.scipy.org/) - `pip install scipy` : for image filtering, transformations and sparse linear algebra
@@ -52,22 +80,27 @@ u-unwrap3D relies on the following packages for various functionalities. All can
 
 More optional / certain functions:
 - [SimpleITK](https://simpleitk.org/) - `pip install SimpleITK` : for optional volumetric registration
-- [point-cloud-utils](https://github.com/fwilliams/point-cloud-utils) - `pip install point-cloud-utils` : for computing point cloud metrics
-- [optimesh](https://pypi.org/project/optimesh/) - `pip install optimesh` : for delaunay triangle flipping, remeshing for relaxing area-distortion on 2D disks
 - [robust-laplacian](https://pypi.org/project/robust-laplacian/) - `pip install robust-laplacian` : for using the robust laplacian of Sharpe et al. instead of cotangent Laplacian 
 - [pygeodesic](https://pypi.org/project/pygeodesic/) - `pip install pygeodesic` : for fast Djikstras algorithm for computing exact geodesic distance on triangle meshes
 - [potpourri3d](https://github.com/nmwsharp/potpourri3d) - `pip install potpourri3d` : for using heat method to compute approximate geodesic distance on triangle meshes with multiple sources
 
 ## Installation
-The above dependencies and library should be installable by git cloning the repository and running pip in the cloned folder with python>=3.8. We currently recommend 3.9, 3.10, 3.11.
+The above dependencies and library can be installed by git cloning the repository and running pip in the cloned folder with python>=3.8. We have tested and recommend 3.9, 3.10, 3.11.
 ```
 pip install .
 ```
-potential issues:
-scikit-fmm currently does not have wheels in pip, and you may have compilation errors. Please remove this from requirements.txt or install through conda-forge into your environment, `conda install -c conda-forge scikit-fmm`.
+You can also install directly from the github without cloning:
+```
+pip install u-unwrap3D@git+https://github.com/DanuserLab/u-unwrap3D.git
+```
+
+**encountered installation errors**:
+
+`scikit-fmm` does not have precompiled wheels in pip, therefore you may get compilation errors, particularly in Windows. Either remove `scikit-fmm` from requirements.txt or install first before pip through conda-forge into your environment, `conda install -c conda-forge scikit-fmm`.
+
 
 ## New functionality
-New tools will be added to improve useability and applicability. In particular we plan to introduce mesh repair and surgery techniques to guarantee the creation of a surrogate genus-0 surfaces of any input genus-X surface.
+New tools will be constantly added to improve useability and applicability. You can help by opening a GitHub issue.  
 
 ## Questions and Issues
 Feel free to open a GitHub issue or email me at felixzhou1@gmail.com.

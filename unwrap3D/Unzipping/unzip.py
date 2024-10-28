@@ -852,6 +852,198 @@ def smooth_unwrap_params_3D_spherical_SmoothN(unwrap_xyz,
     return mesh_smooth
 
 
+def _check_border_uv_label_overlaps(uv_labels, 
+                                    labels1, 
+                                    labels2, 
+                                    dilate_ksize=1,
+                                    min_size=10,
+                                    S_uv=None,
+                                    use_real_size=False):
+    
+    import skimage.morphology as skmorph
+    import numpy as np 
+    
+    if (use_real_size == True) and (S_uv is not None):
+        dA = surface_area_uv(S_uv, eps=1e-12, pad=True) # compute per pixel area. 
+        dA[np.isinf(dA)>0] = 0 # replace infs. 
+        
+    pairings = []
+    
+    for lab_ii in np.arange(len(labels1)):
+        lab = labels1[lab_ii]
+        mask_label = uv_labels == lab
+        mask_label = skmorph.binary_dilation(mask_label, skmorph.disk(dilate_ksize)) 
+        
+        # what does expanded cover. 
+        covered_ids = uv_labels[mask_label>0]
+        # valid exclude bg,itself and any other labels in labels1 i.e. must intersect labels2
+        valid_covered_ids = np.intersect1d(np.setdiff1d(covered_ids, [0]+list(labels1)), labels2)
+    
+        if len(valid_covered_ids)>0:
+            
+            # check for the pixel coverage. in valid ids. 
+            if (use_real_size == True) and (S_uv is not None):
+                covered_number = np.hstack([np.nansum((covered_ids==idd)*1.*dA) for idd in valid_covered_ids]) # weight by the differential area.
+            else:
+                covered_number = np.hstack([np.sum(covered_ids==idd) for idd in valid_covered_ids]) # just raw pixel number
+            
+            # size check 
+            select = covered_number>=min_size
+            
+            if np.sum(select)>0:
+                valid_covered_ids = valid_covered_ids[select] 
+                covered_number = covered_number[select]
+        
+                pairing = np.hstack([lab, valid_covered_ids]) # these should be joined as one item
+                pairings.append(pairing)
+    
+    return pairings
+        
+    
+def correct_border_uv_segmentations(uv_labels, 
+                                    border_size=10,
+                                    dilate_ksize=1, 
+                                    min_size=10, 
+                                    S_uv=None, 
+                                    use_real_size=False):
+    r""" Given a label 2D image, this function implements assumes this is from a spherical unwrap and checks the four borders to see if any labels should be merged. Return is a new label image.
+    
+    Parameters
+    ----------
+    uv_labels : (UxV) array 
+        the input label image where 0 is background, each unique positive integer is an instance segmentation
+    border_size : int
+        the border size to consider. Segmentations within uv_labels[border_size:-border_size,border_size:-border_size] are not considered as merging candidates
+    dilate_ksize : int
+        the label dilation amount to test for overlap with labels to merge   
+    min_size : int
+        the minimum size of overlap with another label for merging to occur. If S_uv is provided and use_real_size is True, then the overlap is measured in terms of the 3D surface area. If not, it is the number of shared pixels in the image.
+    S_uv : (UxVx3) array
+        The mapping giving the corresponding 3D xyz coordinates (last channel) in correspondence with each pixel. Used to compute the 3D surface area each pixel corresponds to 
+    use_real_size: bool
+        If True, interpret min_size as the minimum surface area of overlap between two segmentations for a merge. 
+
+    Returns
+    -------
+    uv_labels_corrected : (UxV) array
+        the corrected label image with possibly the labels at the boundaries corrected to refer to the same 3D object, instead of being split into multiple due to the unwrapping.
+    """
+    import numpy as np 
+    
+    V, U = uv_labels.shape[:2]
+    uv_labels_pad = pad_unwrap_params_3D_spherical(uv_labels, pad=border_size) 
+    
+    if S_uv is not None:
+        S_uv_pad = pad_unwrap_params_3D_spherical(S_uv, pad=border_size) 
+    else:
+        S_uv_pad = None # set as None
+    
+    """
+    Construct the border points to check
+    """
+    fg_points = np.argwhere(uv_labels>0) # this is shared. 
+    all_pairs = []
+    
+    """
+    # 1a. check left or right (for periodic)
+    """
+    # check left-border with u-coordinate
+    border_left_pts=fg_points[fg_points[:,1]<=border_size]
+    border_left_labels = np.setdiff1d(np.unique(uv_labels[border_left_pts[:,0], border_left_pts[:,1]]),0)
+    
+    # find border_right_labels because they must choose from here
+    border_right_pts=fg_points[fg_points[:,1]>=U-border_size]
+    border_right_labels = np.setdiff1d(np.unique(uv_labels[border_right_pts[:,0], border_right_pts[:,1]]),0)
+    
+    # try pairing
+    pairings_left_right = _check_border_uv_label_overlaps(uv_labels_pad,
+                                                          border_left_labels,
+                                                          border_right_labels,
+                                                          dilate_ksize=dilate_ksize,
+                                                          min_size=min_size,
+                                                          S_uv=S_uv_pad,
+                                                          use_real_size=use_real_size)
+    all_pairs+=pairings_left_right
+    
+    """
+    # 1b. top left / right 
+    """
+    ### check top and further divide into halves.
+    border_top_pts_left=fg_points[np.logical_and(fg_points[:,0]<=border_size, fg_points[:,1]<=U//2)]
+    border_top_pts_right=fg_points[np.logical_and(fg_points[:,0]<=border_size, fg_points[:,1]>U//2)]
+    
+    border_top_labels_left = np.setdiff1d(np.unique(uv_labels[border_top_pts_left[:,0], border_top_pts_left[:,0]]),0)
+    border_top_labels_right = np.setdiff1d(np.unique(uv_labels[border_top_pts_right[:,0], border_top_pts_right[:,0]]),[0]+list(border_top_labels_left))
+    
+    # try pairing
+    pairings_top_left_right = _check_border_uv_label_overlaps(uv_labels_pad,
+                                                                border_top_labels_left,
+                                                                border_top_labels_right,
+                                                                dilate_ksize=dilate_ksize,
+                                                                min_size=min_size,
+                                                                S_uv=S_uv,
+                                                                use_real_size=use_real_size)
+    all_pairs+=pairings_top_left_right
+    
+    """
+    # 1c. bottom left / right 
+    """
+    ### check bottom and further divide into halves.
+    border_bottom_pts_left=fg_points[np.logical_and(fg_points[:,0]>=V-border_size, fg_points[:,1]<=U//2)]
+    border_bottom_pts_right=fg_points[np.logical_and(fg_points[:,0]>=V-border_size, fg_points[:,1]>U//2)]
+    
+    border_bottom_labels_left = np.setdiff1d(np.unique(uv_labels[border_bottom_pts_left[:,0], border_bottom_pts_left[:,0]]),0)
+    border_bottom_labels_right = np.setdiff1d(np.unique(uv_labels[border_bottom_pts_right[:,0], border_bottom_pts_right[:,0]]),[0]+list(border_bottom_labels_left))
+    
+    # try pairing
+    pairings_bottom_left_right = _check_border_uv_label_overlaps(uv_labels_pad,
+                                                                border_bottom_labels_left,
+                                                                border_bottom_labels_right,
+                                                                dilate_ksize=dilate_ksize,
+                                                                min_size=min_size,
+                                                                S_uv=S_uv,
+                                                                use_real_size=use_real_size)
+    all_pairs+=pairings_bottom_left_right
+    
+    # print(all_pairs) # only for checking.
+    uv_labels_corrected = uv_labels.copy() # make a copy for saving
+    
+    if len(all_pairs)>0:
+        """
+        2. find clique -> assign all of those regions to new id 
+        """
+        uniq_cliques = []
+
+        for pair in all_pairs:
+            if len(uniq_cliques) == 0: # first iter
+                uniq_cliques.append(pair)
+            else:
+                # check for intersection 
+                add_cliq = True
+                for cliq_ii in np.arange(len(uniq_cliques)):
+                    cliq=uniq_cliques[cliq_ii]
+                    intersect = np.intersect1d(cliq, pair) # does it intersect
+                    if len(intersect)>0:
+                        uniq_cliques[cliq_ii] = np.unique(np.hstack([cliq, pair]))
+                        add_cliq = False
+                        break
+                if add_cliq:
+                    uniq_cliques.append(pair) # start anew
+
+        # print('found unique cliques')
+        # print(uniq_cliques)
+        """
+        3. implement joining in clique, without loss assign rest to first label in a clique
+        """
+        for cliq in uniq_cliques:
+            primary = cliq[0]
+            rest = cliq[1:]
+            
+            for rr in rest:
+                uv_labels_corrected[uv_labels==rr] = primary # set to primary's label
+        
+    return uv_labels_corrected
+
 def impute_2D_spherical(img, method='linear', pad_size=None, blank_pixels=None):
     r""" Imputes an image with spherical boundary conditions using interpolation 
 

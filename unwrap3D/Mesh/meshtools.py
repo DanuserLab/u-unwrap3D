@@ -4833,10 +4833,18 @@ def area_distortion_flow_relax_disk(mesh, mesh_orig,
             A2 = np.abs(A2)
             A1 = np.abs(A1)
 
+            # A1 may be greater than A2 or vice versa, making this optimization unstable, to ensure stability, 
+            # we need to take the maximum 
+            numerator = np.maximum(A1,A2)
+            denominator = np.minimum(A1,A2)
+
             # B = np.log10(A1/(A2)) # - 1
             B = (A1+eps)/(A2+eps) - 1 # adding regularizer to top and bottom is better!. 
-    
-            area_distortion_mesh = (A1+eps)/(A2+eps) - 1.
+
+
+            area_distortion_mesh = (numerator+eps)/(denominator+eps) - 1
+            # area_distortion_mesh = B
+            # area_distortion_mesh = np.abs(area_distortion_mesh)
             area_distortion_mesh_vertex = igl.average_onto_vertices(v, 
                                                                     f, 
                                                                     np.vstack([area_distortion_mesh,area_distortion_mesh,area_distortion_mesh]).T)[:,0]

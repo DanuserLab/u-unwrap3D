@@ -14,7 +14,7 @@ with open("requirements.txt", "r") as fp:
     install_requires = list(fp.read().splitlines())
 
 setup(name='u-Unwrap3D',
-	  version='0.1.0',
+	  version='1.0.0',
 	  description='Surface-guided computing of arbitrary 3D surfaces and volumes by bidirectional mapping to lower dimensions',
 	  author='Felix Y. Zhou',
 	  packages=['unwrap3D'] + ['unwrap3D.'+ pkg for pkg in subpkgs],
