@@ -192,7 +192,11 @@ def build_topography_space_from_Suv(Sref_uv,
                                             zoom =[1./ds, 1./ds, 1./ds],
                                             order=1)/255. > 0.5 # perform linear down. 
         if inner_source_mask is not None:
-            inner_source_mask_pad = np.pad(inner_source_mask, pad_width=[[pad_size,pad_size], [pad_size, pad_size], [pad_size, pad_size]])
+            if external_gradient_field is None:
+                # then pad. 
+                inner_source_mask_pad = np.pad(inner_source_mask, pad_width=[[pad_size,pad_size], [pad_size, pad_size], [pad_size, pad_size]])
+            else:
+                inner_source_mask_pad = inner_source_mask.copy() # assume the shapes are already correct. 
             inner_source_mask_pad_ds = ndimage.zoom( inner_source_mask_pad*255., 
                                                     zoom =[1./ds, 1./ds, 1./ds],
                                                     order=1)/255. > 0.5 # perform linear down. 
@@ -250,20 +254,25 @@ def build_topography_space_from_Suv(Sref_uv,
 
 
     # combine both.
-    N_out = len(uv_unwrap_params_depth_in) - 1
-    N_in = len(uv_unwrap_params_depth_out) - 1 
+    N_out = len(uv_unwrap_params_depth_out) - 1
+    N_in = len(uv_unwrap_params_depth_in) - 1 
     
     
     uv_unwrap_params_depth_all = np.vstack([uv_unwrap_params_depth_in[::-1], 
                                             uv_unwrap_params_depth_out[1:]])
     
     # reverse the pad_size.
-    uv_unwrap_params_depth_all = uv_unwrap_params_depth_all - pad_size
+    if external_gradient_field is None:
+        # this is the only time padding was added. 
+        uv_unwrap_params_depth_all = uv_unwrap_params_depth_all - pad_size
+    
     uv_unwrap_params_depth_all[...,0] = np.clip(uv_unwrap_params_depth_all[...,0], 0, vol_lims[0]-1)
     uv_unwrap_params_depth_all[...,1] = np.clip(uv_unwrap_params_depth_all[...,1], 0, vol_lims[1]-1)
     uv_unwrap_params_depth_all[...,2] = np.clip(uv_unwrap_params_depth_all[...,2], 0, vol_lims[2]-1)
     
-    return uv_unwrap_params_depth_all, (N_in, N_out)
+    return uv_unwrap_params_depth_all, (N_in, N_out), alpha_step
+
+
 def prop_ref_surface(unwrap_params_ref, 
                          vol_size,  
                          preupsample=3, 

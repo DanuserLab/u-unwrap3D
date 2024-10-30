@@ -63,7 +63,7 @@ if __name__=="__main__":
                                                                 presmooth=1., # applies a presmooth
                                                                 contourlevel=.5,
                                                                 remesh=True,
-                                                                remesh_method='pyacvd', 
+                                                                remesh_method='CGAL', 
                                                                 remesh_samples=.9, # remeshing with a target #vertices = 90% of original
                                                                 predecimate=True, # this applies quadric mesh simplication to remove very small edges before remeshing
                                                                 min_mesh_size=10000,
@@ -273,7 +273,7 @@ if __name__=="__main__":
                                                                 presmooth=1., 
                                                                 contourlevel=.5, 
                                                                 remesh=True, 
-                                                                remesh_method='pyacvd', 
+                                                                remesh_method='CGAL', 
                                                                 remesh_samples=0.25, # lower downsampling will give a smoother mesh, see below on voxelization artifacts.
                                                                 predecimate=True, 
                                                                 min_mesh_size=10000) # don't need a lot   
@@ -481,21 +481,21 @@ if __name__=="__main__":
     """
     Step 5: build topography space., using euclidean distance for exterior and harmonic distance for interior 
     """
-    topography_space, (N_in, N_out) = uzip.build_topography_space_from_Suv(S_uv_opt, 
-                                                                            smooth_img_binary, # this must be in the same geometric space as S_uv.
-                                                                            external_gradient_field = None, # build if none. 
-                                                                            pad_size=50, 
-                                                                            alpha_step=None,
-                                                                            outer_surf_pts = img_binary_surf_mesh.vertices[:,::-1], # this is the input mesh, must also live in same space.  
-                                                                            outer_n_dists = None, # let this be auto determined. 
-                                                                            outer_pad_dist=10, # the leeway.
-                                                                            outer_method='forward_euler',
-                                                                            outer_smooth_win_factor=16, # we will smooth by minimum length of uv divide this factor. 
-                                                                            inner_n_dists = 25, # in voxels.
-                                                                            inner_sdf_method = 'harmonic',
-                                                                            inner_source_mask = None, 
-                                                                            inner_harmonic_ds = 4., # 4x downsample by default. 
-                                                                            inner_method='active_contours')
+    topography_space, (N_in, N_out), alpha_step = uzip.build_topography_space_from_Suv(S_uv_opt, 
+                                                                                    smooth_img_binary, # this must be in the same geometric space as S_uv.
+                                                                                    external_gradient_field = None, # build if none. 
+                                                                                    pad_size=50, 
+                                                                                    alpha_step=None,
+                                                                                    outer_surf_pts = img_binary_surf_mesh.vertices[:,::-1], # this is the input mesh, must also live in same space.  
+                                                                                    outer_n_dists = None, # let this be auto determined. 
+                                                                                    outer_pad_dist=10, # the leeway.
+                                                                                    outer_method='forward_euler',
+                                                                                    outer_smooth_win_factor=16, # we will smooth by minimum length of uv divide this factor. 
+                                                                                    inner_n_dists = 25, # in voxels.
+                                                                                    inner_sdf_method = 'harmonic',
+                                                                                    inner_source_mask = None, 
+                                                                                    inner_harmonic_ds = 4., # 4x downsample by default. 
+                                                                                    inner_method='active_contours')
     
     
     """
