@@ -119,8 +119,10 @@ def build_topography_space_from_Suv(Sref_uv,
     # create a pad. 
     
     outer_surf_pts_bound = None
+    pad_image = False # check for whether we padded or not. 
 
     if external_gradient_field is None:
+        pad_image = True # set as padding. 
         Sref_binary_pad = np.pad(Sref_binary, pad_width=[[pad_size,pad_size], 
                                                          [pad_size,pad_size],
                                                          [pad_size,pad_size]])
@@ -192,7 +194,7 @@ def build_topography_space_from_Suv(Sref_uv,
                                             zoom =[1./ds, 1./ds, 1./ds],
                                             order=1)/255. > 0.5 # perform linear down. 
         if inner_source_mask is not None:
-            if external_gradient_field is None:
+            if pad_image:
                 # then pad. 
                 inner_source_mask_pad = np.pad(inner_source_mask, pad_width=[[pad_size,pad_size], [pad_size, pad_size], [pad_size, pad_size]])
             else:
@@ -262,9 +264,11 @@ def build_topography_space_from_Suv(Sref_uv,
                                             uv_unwrap_params_depth_out[1:]])
     
     # reverse the pad_size.
-    if external_gradient_field is None:
+    if pad_image:
         # this is the only time padding was added. 
         uv_unwrap_params_depth_all = uv_unwrap_params_depth_all - pad_size
+    else: # nothing to do, if false. 
+        pass
     
     uv_unwrap_params_depth_all[...,0] = np.clip(uv_unwrap_params_depth_all[...,0], 0, vol_lims[0]-1)
     uv_unwrap_params_depth_all[...,1] = np.clip(uv_unwrap_params_depth_all[...,1], 0, vol_lims[1]-1)
@@ -1578,6 +1582,113 @@ def gradient_uv(surface_uv_params, eps=1e-12, pad=False):
         dS_dv = np.gradient(surface_uv_params, axis=0); 
 
     return dS_du, dS_dv
+
+
+def find_stop_inner_topography_and_resample(topography_space,
+                                            stop_S_ref, 
+                                            alpha_step,
+                                            n_samples=None, 
+                                            n_cpu=None,
+                                            convergence_tol = 1,
+                                            invert_direction=True):
+
+
+    import point_cloud_utils as pcu 
+    import multiprocess as mp
+    import numpy as np 
+    import scipy.interpolate as sinterp
+    import time 
+
+
+    if invert_direction: 
+        Suv_prop_inside = topography_space[::-1].copy()
+    else:
+        Suv_prop_inside = topography_space.copy()
+
+    if n_samples is None:
+        # used if n_samples = None
+        dist_moved_total = np.sum(np.linalg.norm(np.diff(Suv_prop_inside, axis=0), axis=-1) , axis=0) 
+
+    """
+    #   criteria 1: find the cutoffs based on the deviation from the final point
+    """
+    # compute this final distance ( and find the first cutoff to hit within a tol)
+    dist_to_final = np.linalg.norm(Suv_prop_inside - Suv_prop_inside[-1][None,...], axis=-1)
+    dist_to_final_bool = dist_to_final > convergence_tol
+    dist_to_final_zeros = np.sum(dist_to_final_bool==0, axis=0)
+    
+    cutoff_dist = np.argmin(dist_to_final_bool, axis=0)  #### this works. 
+    
+    # fix for the case when the condition is never satisfied. 
+    if np.sum(dist_to_final_zeros==0) > 0: 
+        cutoff_dist[dist_to_final_zeros==0] = len(Suv_prop_inside)-1
+    
+    """
+    #   criteria 2: find the cutoffs to the ref 
+    """
+    dists_ref, _ = pcu.k_nearest_neighbors(Suv_prop_inside.reshape(-1,3), 
+                                              stop_S_ref, k=1)
+    dists_ref = dists_ref.reshape(Suv_prop_inside.shape[:3]) # get back in the same shape. 
+    dist_ref_bool = dists_ref > convergence_tol
+    dist_to_ref_zeros = np.sum(dist_ref_bool == 0, axis=0)
+        
+    cutoff_ref = np.argmin(dist_ref_bool, axis=0)
+        
+    if np.sum(dist_to_ref_zeros==0) > 0: 
+        cutoff_ref[dist_to_ref_zeros==0] = len(Suv_prop_inside)-1
+
+    """
+    # combine both criteria taking whichever is first satisfied. 
+    """    
+    cutoff_actual = np.minimum(cutoff_dist, cutoff_ref)
+        
+
+    """
+    interpolate - resample 
+    """
+    # flatten this so we can list everything. 
+    Suv_prop_inside_flat = Suv_prop_inside.reshape(Suv_prop_inside.shape[0], -1,3)
+    cutoffs_flat = cutoff_actual.ravel()
+    
+    t1 = time.time()
+    # build the interpolators (fast as list comprehension)    
+    all_fs = [sinterp.interp1d(np.arange(cutoffs_flat[iii]+1)/(cutoffs_flat[iii]), 
+                                Suv_prop_inside_flat[:cutoffs_flat[iii]+1,iii],
+                                kind='linear', 
+                                axis=0,
+                                copy=True,
+                                bounds_error=None,
+                                assume_sorted=True) for iii in np.arange(len(cutoffs_flat))]
+    print('building interpolators..., ', time.time()-t1, ' s')
+    
+    # this is much slower .... 
+    t1 = time.time()
+    # def _sample_new_coords(idx):
+    #     if n_samples is None:
+    #         return all_fs[idx](np.linspace(0,1.,int(np.nanmean(dist_moved_total)/alpha_step))) 
+    #     else:
+    #         return all_fs[idx](np.linspace(0,1.,int(n_samples))) 
+
+    # with mp.Pool(n_cpu) as pool:
+    #     Suv_prop_inside_flat = pool.map(_sample_new_coords, range(0, len(all_fs)))
+    if n_samples is None:
+        Suv_prop_inside_flat = [all_fs[iii](np.linspace(0,1.,int(np.nanmean(dist_moved_total)/alpha_step))) for iii in np.arange(len(all_fs))]
+    else:
+        Suv_prop_inside_flat = [all_fs[iii](np.linspace(0,1.,int(n_samples))) for iii in np.arange(len(all_fs))]
+    print('resampling unwrapping coordinates..., ', time.time()-t1, ' s')
+    
+    Suv_prop_inside_flat = np.array(Suv_prop_inside_flat)
+    Suv_prop_inside_flat = Suv_prop_inside_flat.transpose(1,0,2).reshape(Suv_prop_inside_flat.shape[1], Suv_prop_inside.shape[1], Suv_prop_inside.shape[2],3)
+
+    Suv_prop_inside = Suv_prop_inside_flat.copy()
+    
+    del Suv_prop_inside_flat
+
+    if invert_direction:
+        Suv_prop_inside = Suv_prop_inside[::-1]
+        cutoff_actual = (len(Suv_prop_inside)-1) - cutoff_actual # invert 
+
+    return cutoff_actual, Suv_prop_inside
 
 
 def gradient_uv_depth(depth_uv_params, eps=1e-12, pad=False):
