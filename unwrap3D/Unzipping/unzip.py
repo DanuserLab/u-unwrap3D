@@ -1,5 +1,7 @@
 
 import numpy as np 
+from ..Analysis_Functions import topography as topotools
+
         
 
 def voxelize_unwrap_params(unwrap_params, 
@@ -220,13 +222,17 @@ def build_topography_space_from_Suv(Sref_uv,
 
 
     if inner_method == 'forward_euler':
-        smooth_winsize = np.minimum(Sref_uv.shape[:2]) // int(outer_smooth_win_factor)
+        smooth_winsize = np.min(Sref_uv.shape[:2]) // int(outer_smooth_win_factor)
+        
+        inner_d_step_size = -1*alpha_step
+        if inner_sdf_method == 'harmonic':
+            inner_d_step_size = alpha_step
         
         uv_unwrap_params_depth_in = prop_ref_surface(Sref_uv_pad, 
                                                       vol_binary = None,
                                                       binary_vol_grad = external_gradient_field.transpose(1,2,3,0),
                                                       vol_size=Sref_binary_pad.shape,
-                                                      d_step=-1*alpha_step, # .5 pixel intervals.  ? 
+                                                      d_step=inner_d_step_size, # .5 pixel intervals.  ? 
                                                       n_dist=inner_n_dists, 
                                                       surf_pts_ref=None, # to do include this too ( we can do this by distance transform and voxelization)
                                                       pad_dist=0, # on top of the inference add some padding. 
@@ -1590,7 +1596,8 @@ def find_stop_inner_topography_and_resample(topography_space,
                                             n_samples=None, 
                                             n_cpu=None,
                                             convergence_tol = 1,
-                                            invert_direction=True):
+                                            invert_direction=True,
+                                            cutoff_ALS_smooth=1e2):
 
 
     import point_cloud_utils as pcu 
@@ -1642,7 +1649,41 @@ def find_stop_inner_topography_and_resample(topography_space,
     """    
     cutoff_actual = np.minimum(cutoff_dist, cutoff_ref)
         
-
+    
+    """
+    implement smoothing -> this is ensure continuity
+    """
+    cutoffs_pad = pad_unwrap_params_3D_spherical(cutoff_actual, pad=cutoff_actual.shape[0]//2)
+    
+    # detect bad values.
+    cutoff_gradients = np.array(np.gradient(cutoffs_pad))
+    invalid_mask = np.linalg.norm(cutoff_gradients, axis=0)>1.
+    valid_mask = np.logical_not(invalid_mask)
+    
+    from scipy.interpolate import griddata
+    # build interpolation space. 
+    # now create a griddata. 
+    rows, cols = np.indices(invalid_mask.shape)
+    rows_ = rows[valid_mask]
+    cols_ = cols[valid_mask]
+    
+    interp_cutoffs_pad = sinterp.griddata(np.hstack([cols_[:,None], rows_[:,None]]), 
+                                  cutoffs_pad[valid_mask],(cols, rows), method='linear', 
+                                  fill_value=np.nan, rescale=False)
+    
+    interp_cutoffs = interp_cutoffs_pad[cutoff_actual.shape[0]//2:-cutoff_actual.shape[0]//2, cutoff_actual.shape[0]//2:-cutoff_actual.shape[0]//2]
+    
+    # instead try an ALS? 
+    cutoff_actual = topotools.penalized_smooth_topography_uv_img(interp_cutoffs, 
+                                                                    ds=4, 
+                                                                    padding_multiplier=4, 
+                                                                    method='ALS', 
+                                                                    lam=cutoff_ALS_smooth,
+                                                                    p=0.5, 
+                                                                    niter=10,
+                                                                    uv_params=None)
+    cutoff_actual = cutoff_actual.astype(np.int32)
+    cutoff_actual = np.clip(cutoff_actual,0, len(topography_space)-1)
     """
     interpolate - resample 
     """

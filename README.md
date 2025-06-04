@@ -14,6 +14,10 @@
    * [Danuser Lab Links](#danuser-lab-links)
 <!-- TOC end -->
 
+#### June 2025 
+- installation through pypi: `pip install u-Unwrap3D`
+- introducing uniformization of area as a proxy loss for robustly achieving minimal equiareal spherical and disk parameterization via `unwrap3D.Mesh.meshtools.uniform_distortion_flow_relax_sphere` and `unwrap3D.Mesh.meshtools.uniform_distortion_flow_relax_disk` functions
+
 #### :star2: v1 (Oct 2024) :star2:
 
 major updates to code and functionality, preprint to come, now u-Unwrap3D works for any mesh :D, including:
@@ -93,11 +97,16 @@ You can also install directly from the github without cloning:
 ```
 pip install u-unwrap3D@git+https://github.com/DanuserLab/u-unwrap3D.git
 ```
+and also through pypi using pip:
+```
+pip install u-Unwrap3D
+```
 
 **encountered installation errors**:
 
 `scikit-fmm` does not have precompiled wheels in pip, therefore you may get compilation errors, particularly in Windows. Either remove `scikit-fmm` from requirements.txt or install first before pip through conda-forge into your environment, `conda install -c conda-forge scikit-fmm`.
 
+`libigl` may not yet have a wheel for your distibution, and your system fails to compile wheels. In this case try downgrading to an earlier version. We have encountered this on Linux.   
 
 ## New functionality
 New tools will be constantly added to improve useability and applicability. You can help by opening a GitHub issue.  

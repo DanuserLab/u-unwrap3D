@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+ 
+ 
+[tool.setuptools]
+packages = ["unwrap3D",
+            "unwrap3D.Analysis_Functions",
+            "unwrap3D.Features", 
+            "unwrap3D.Geometry", 
+            "unwrap3D.Image_Functions",
+            "unwrap3D.Mesh", 
+            "unwrap3D.Parameters",
+            "unwrap3D.Registration", 
+            "unwrap3D.Segmentation",
+            "unwrap3D.Tracking",
+            "unwrap3D.Unzipping",
+            "unwrap3D.Utility_Functions", 
+            "unwrap3D.Visualisation"]
+ 
+ 
+#[tool.setuptools.packages.find]
+#where = ["."]  # list of folders that contain the packages (["."] by default)
+#include = ["segment3D"]  # package names should match these glob patterns (["*"] by default)
+#exclude = ['__pycache__', '__init__.py']  # exclude packages matching these glob patterns (empty by default)
+#namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
+ 
+ 
+[project]
+name="u-Unwrap3D"
+description="Surface-guided computing of arbitrary 3D surfaces and volumes by bidirectional mapping to lower dimensions"
+authors = [{name='Felix Y. Zhou', email='felixzhou1@gmail.com'}]
+readme = "README.md"
+license={file = "LICENSE"}
+version = "1.0.0"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3.9",
+]
+
+
+requires-python = ">=3.8"
+dependencies = [
+    'cgal>=5.5',
+    'libigl<2.6',
+    'pyacvd==0.2.9',
+    'trimesh[easy]',
+    'SimpleITK',
+    'opencv-contrib-python==4.5.*',
+    'point-cloud-utils',
+    'optimesh',
+    'scikit-image',
+    'scikit-learn',
+    'scipy',
+    'numpy<2.0',
+    'matplotlib',
+    'intel_openmp==2023.1.0',
+    'mkl==2023.1.0',
+    'pypardiso==0.4.*',
+    'tqdm',
+    'transforms3d',
+    'robust-laplacian',
+    'pygeodesic',
+    'potpourri3d',
+    'scikit-fmm',
+    'POT',
+    'hausdorff',
+    'numba',
+    'dipy'
+    ]
+
+[project.urls]
+Homepage = "https://github.com/DanuserLab/u-unwrap3D"
+Issues = "https://github.com/DanuserLab/u-unwrap3D/issues"
+
