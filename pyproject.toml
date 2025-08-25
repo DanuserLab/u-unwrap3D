@@ -32,44 +32,50 @@ description="Surface-guided computing of arbitrary 3D surfaces and volumes by bi
 authors = [{name='Felix Y. Zhou', email='felixzhou1@gmail.com'}]
 readme = "README.md"
 license={file = "LICENSE"}
-version = "1.0.0"
+version = "1.0.1"
 classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 
-requires-python = ">=3.8"
+# updating the requires python in line with optimesh
+requires-python = ">=3.9"
 dependencies = [
-    'cgal>=5.5',
+    'numpy>=1.23,<2.0',
+    'cgal>=5.5', # requires 
     'libigl<2.6',
-    'pyacvd==0.2.9',
+    'contourpy<=1.2.0',
+    'pyacvd==0.2.10', # to satisfy issues with python>=3.11
     'trimesh[easy]',
     'SimpleITK',
-    'opencv-contrib-python==4.5.*',
+    'opencv-contrib-python==4.5.*', # works
     'point-cloud-utils',
-    'optimesh',
+    'matplotlib',
+    #'optimesh', # bad. 
     'scikit-image',
     'scikit-learn',
     'scipy',
-    'numpy<2.0',
-    'matplotlib',
     'intel_openmp==2023.1.0',
     'mkl==2023.1.0',
-    'pypardiso==0.4.*',
+    'pypardiso==0.4.*', #numpy>=1.23,<2.0',
     'tqdm',
     'transforms3d',
     'robust-laplacian',
-    'pygeodesic',
+    'pygeodesic',#, numpy>=1.23,<2.0',
     'potpourri3d',
-    'scikit-fmm',
+    #'scikit-fmm<=2025.01.29', # compilation depends numpy2. 
     'POT',
     'hausdorff',
-    'numba',
-    'dipy'
+    'numba<=0.60.0',
+    'dipy',
+    'lxml==5.4.0'
     ]
 
 [project.urls]

@@ -4750,6 +4750,7 @@ def area_distortion_flow_relax_sphere(mesh,
 def uniform_distortion_flow_relax_disk(mesh, 
                                     max_iter=50,
                                     # smooth_iters=5,  
+                                    method = 'median', 
                                     delta_h_bound=0.5, 
                                     stepsize=.1, 
                                     flip_delaunay=True, # do this in order to dramatically improve flow!. 
@@ -4770,6 +4771,8 @@ def uniform_distortion_flow_relax_disk(mesh,
         the input disk, square or rectangle mesh to relax. The first coordinate of all the vertices, i.e. mesh.vertices[:,0] should be uniformly set to a constant e.g. 0 to specify a 2D mesh    
     max_iter : int
         maximum number of iterations to run relaxation
+    method : str 'median' or 'mean'
+        method to compute the target area distortion, either taking the mean or median of the input mesh.
     delta_h_bound : scalar
         the maximum value of the absolute area difference between original and the relaxing mesh. This constrains the maximum gradient difference, avoiding updating local areas too fast which will then destroy local topology. 
     stepsize : scalar
@@ -4823,7 +4826,14 @@ def uniform_distortion_flow_relax_disk(mesh,
         pass
 
     area_distort = igl.doublearea(v/np.sqrt(np.nansum(igl.doublearea(v,f)*.5)), f)
-    A2 = np.nanmean(area_distort) * np.ones(len(area_distort))
+    
+    if method == 'median':
+        A2 = np.nanmedian(area_distort) * np.ones(len(area_distort))
+    elif method == 'mean':
+        A2 = np.nanmean(area_distort) * np.ones(len(area_distort))
+    else:
+        A2 = np.nanmedian(area_distort) * np.ones(len(area_distort))
+
 
     if robust_L:
         L, M = robust_laplacian.mesh_laplacian(np.array(v), np.array(f), mollify_factor=mollify_factor)

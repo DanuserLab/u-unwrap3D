@@ -14,6 +14,17 @@
    * [Danuser Lab Links](#danuser-lab-links)
 <!-- TOC end -->
 
+[![PyPI version](https://badge.fury.io/py/u-Unwrap3D.svg)](https://badge.fury.io/py/u-Unwrap3D)
+[![Downloads](https://pepy.tech/badge/u-Unwrap3D)](https://pepy.tech/project/u-Unwrap3D)
+[![Downloads](https://pepy.tech/badge/u-Unwrap3D/month)](https://pepy.tech/project/u-Unwrap3D)
+[![Python version](https://img.shields.io/pypi/pyversions/u-Unwrap3D)](https://pypistats.org/packages/u-Unwrap3D)
+[![GitHub stars](https://img.shields.io/github/stars/DanuserLab/u-Unwrap3D?style=social)](https://github.com/DanuserLab/u-Unwrap3D/)
+[![GitHub forks](https://img.shields.io/github/forks/DanuserLab/u-Unwrap3D?style=social)](https://github.com/DanuserLab/u-Unwrap3D/)
+[![Licence: GPL v3](https://img.shields.io/github/license/DanuserLab/u-Unwrap3D)](https://github.com/DanuserLab/u-Unwrap3D/blob/master/LICENSE)
+
+#### Aug 2025 
+- fixed installation issues due to upstream packages defaulting to numpy 2 versions
+
 #### June 2025 
 - installation through pypi: `pip install u-Unwrap3D`
 - introducing uniformization of area as a proxy loss for robustly achieving minimal equiareal spherical and disk parameterization via `unwrap3D.Mesh.meshtools.uniform_distortion_flow_relax_sphere` and `unwrap3D.Mesh.meshtools.uniform_distortion_flow_relax_disk` functions
@@ -89,7 +100,7 @@ More optional / certain functions:
 - [potpourri3d](https://github.com/nmwsharp/potpourri3d) - `pip install potpourri3d` : for using heat method to compute approximate geodesic distance on triangle meshes with multiple sources
 
 ## Installation
-The above dependencies and library can be installed by git cloning the repository and running pip in the cloned folder with python>=3.8. We have tested and recommend 3.9, 3.10, 3.11.
+The above dependencies and library can be installed by git cloning the repository and running pip in the cloned folder with python>=3.8. We have tested and recommend Python 3.9-3.12.
 ```
 pip install .
 ```
@@ -103,10 +114,10 @@ pip install u-Unwrap3D
 ```
 
 **encountered installation errors**:
-
-`scikit-fmm` does not have precompiled wheels in pip, therefore you may get compilation errors, particularly in Windows. Either remove `scikit-fmm` from requirements.txt or install first before pip through conda-forge into your environment, `conda install -c conda-forge scikit-fmm`.
+If you happen to use a function requiring the package `scikit-fmm`. Please install through conda-forge into your environment, i.e.`conda install -c conda-forge scikit-fmm`. `scikit-fmm` does not provide precompiled wheels in recent versions and gives compilation errors. Since `scikit-fmm` are only used for fast marching computation of distance transform, we have removed its requirement in `pyproject.toml` and its use can be replaced by the poisson distance transform or Euclidean distance transform.
 
 `libigl` may not yet have a wheel for your distibution, and your system fails to compile wheels. In this case try downgrading to an earlier version. We have encountered this on Linux.   
+
 
 ## New functionality
 New tools will be constantly added to improve useability and applicability. You can help by opening a GitHub issue.  
