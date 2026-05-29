@@ -47,7 +47,7 @@ major updates to code and functionality, preprint to come, now u-Unwrap3D works 
 #### April 10, 2023
 u-unwrap3D is a Python library of functions designed to map 3D surface and volume data into different representations which are more optimal for the desired computing task. For example it is far easier to track surface features on the 3D sphere or 2D plane. Similarly the 3D reference surface enables comparison of global shape across cells and the topography surface specifically highlight surface protrusions. We pay particular attention to minimize conformal and equiareal distortion errors and avoid surface-cutting and restitching. The representations were chosen to preserve the full surface and simplify downstream quantitative characterization of surface features with particular attention to single cell biology.
 
-It is associated with the paper currently under review, [**Surface-guided computing to analyze subcellular morphology and membrane-associated signals in 3D**](https://doi.org/10.1101/2023.04.12.536640), *bioRxiv*, 2023, written by Felix Y. Zhou, Andrew Weems, Gabriel M. Gihana, Bingying Chen, Bo-Jui Chang, Meghan K. Driscoll and [Gaudenz Danuser](https://www.danuserlab-utsw.org/).
+It is associated with the paper currently under review, [**Surface-guided computing to analyze subcellular morphology and membrane-associated signals in 3D**](https://doi.org/10.1101/2023.04.12.536640), *bioRxiv*, 2023, written by Felix Y. Zhou, Andrew Weems, Gabriel M. Gihana, Bingying Chen, Bo-Jui Chang, Meghan K. Driscoll and Gaudenz Danuser.
 
 
 ## Example of u-unwrap3D applied to complex cell surfaces
@@ -126,6 +126,4 @@ New tools will be constantly added to improve useability and applicability. You 
 Feel free to open a GitHub issue or email me at felixzhou1@gmail.com.
 
 ## Danuser Lab Links
-[Danuser Lab Website](https://www.danuserlab-utsw.org/)
-
 [Software Links](https://github.com/DanuserLab/)
