@@ -82,7 +82,7 @@ def largest_component_vol_labels(vol_labels, connectivity=1, bg_label=0):
     
     # now do a round well each only keeps the largest component. 
     uniq_labels = np.setdiff1d(np.unique(vol_labels), bg_label)
-    vol_labels_new = vol_labels.copy()
+    vol_labels_new = np.zeros_like(vol_labels)
 
     for lab in uniq_labels:
         mask = vol_labels == lab 
@@ -90,6 +90,49 @@ def largest_component_vol_labels(vol_labels, connectivity=1, bg_label=0):
         vol_labels_new[mask>0] = lab # put this. 
     
     return vol_labels_new
+
+
+def detect_and_relabel_multi_component_labels(labels, min_size=100):
+    
+    import skimage.measure as skmeasure
+    import skimage.morphology as skmorph
+    
+    labels_filt = np.zeros_like(labels)
+    
+    max_id = 1
+
+    regionprops = skmeasure.regionprops(labels)
+    
+    for cc, re in enumerate(regionprops[:]):
+        
+        bbox = re.bbox
+        coords = re.coords
+        
+        x1,y1,z1 = bbox[:3]
+        bbox_size = np.hstack(bbox[3:]) - np.hstack(bbox[:3])
+        
+        mask = np.zeros(bbox_size, dtype=bool)
+        mask[coords[:,0]-x1,
+             coords[:,1]-y1,
+             coords[:,2]-z1] = 1
+        
+        mask = skmorph.remove_small_objects(mask, min_size=min_size)
+        label_mask = skmeasure.label(mask>0)
+        
+        label_ids = np.setdiff1d(np.unique(label_mask),0)
+        
+        for ll in label_ids:
+            coords_ll = np.argwhere(label_mask==ll)
+            coords_ll = coords_ll + np.hstack(bbox[:3])
+            
+            labels_filt[coords_ll[:,0], 
+                        coords_ll[:,1], 
+                        coords_ll[:,2]] = max_id
+            max_id += 1
+    
+    return labels_filt
+
+
 
 def _distance_to_heat_affinity_matrix(Dmatrix, gamma=None):
     r""" Convert any distance matrix to an affinity matrix by applying a heat kernel.
@@ -783,24 +826,28 @@ def get_label_distance_transform(labelled, bg_label=0, normalise=False, rev_sign
 
 def gradient_watershed2D_binary(binary, 
                                 gradient_img=None, 
+                                momenta = 0.0,
+                                divergence_rescale=True, 
                                 smooth_sigma=1, 
                                 smooth_gradient=1, 
                                 delta=.5, 
                                 n_iter=10, 
                                 min_area=5, 
-                                eps=1e-12, 
+                                gradient_decay=0.0,
+                                eps=1e-20, 
+                                interp=True,
                                 thresh_factor=None, 
+                                track_flow=False, # if track_flow then we record!. 
                                 mask=None,
                                 return_tracks=False,
-                                interp_bool=False):
+				binary_mask_gradient=False,
+                                debug_viz=False):
     
     r""" Parses the instance level segmentation implicitly given as an input binary or a vector field. 
     The algorithm works as an inverse watershed.
     
-    Step 1: a grid of points is seeds on the image 
-
+    Step 1: a grid of points is seeds on the image
     Step 2: points are propagated for n_iter according to the gradient_img, condensing towards cell centers implicitly implied by the gradient image.
-    
     Step 3: individual cluster centers are found by binarisation and connected component, removing objects < min_area
     
     result is an integer image the same size as binary. 
@@ -811,6 +858,8 @@ def gradient_watershed2D_binary(binary,
         input binary image defining the voxels that need labeling
     gradient_img :  (MxNx2) numpy array
         This is a gradient field such as that from applying np.array(np.gradient(img)).transpose(1,2,0) where img is a potential such as a distance transform or probability map. 
+    divergence_rescale : 
+        If True, the gradient_img is scaled by the divergence which is equivalent to the mean curvature, this helps to prevent early breakage for tube-like structures.   
     smooth_sigma : scalar
         controls the catchment area for identifying distinct cells at the final propagation position. Smaller smooth_sigma leads to more oversegmentation. 
     smooth_gradient : scalar
@@ -823,15 +872,19 @@ def gradient_watershed2D_binary(binary,
         volume of cells < min_area are removed. 
     eps: float
         a small number for numerical stability
+    interp: bool
+	if True, interpolate the gradient field when advecting at the cost of speed. If False, point positions are clipped and this is much faster. 
     thresh_factor: scalar
         The final cells are identified by thresholding on a threshold mean+thresh_factor*std. Thresh_factor controls what is an object prior to connected components analysis 
     mask: (MxN) numpy array
         optional binary mask to gate the region to parse labels for.
     return_tracks : bool
         if True, return the grid point trajectories 
-    interp_bool : bool
-        if True, interpolate the gradient field when advecting at the cost of speed. If False, point positions are clipped and this is much faster. 
-
+    binary_mask_gradient: bool
+        if True, multiply the gradient to zero out all gradients outside of the foreground binary
+    debug_viz: bool
+        if True, visualise the position of the points at every algorithm iteration. 
+        
     Returns
     -------
     cell_seg_connected_original : (MxN)
@@ -868,54 +921,252 @@ def gradient_watershed2D_binary(binary,
             I_query = np.uint8(I_query)
         
         return I_query
-
+    
+    
     # compute the signed distance transform
     if gradient_img is not None:
         sdf_normals = gradient_img.transpose(2,0,1) # use the supplied gradients! 
-        sdf_normals = sdf_normals * binary[None,...]
+        if binary_mask_gradient:
+            sdf_normals = sdf_normals * binary[None,...]
     else:
         sdf_normals, sdf_binary = surf_normal_sdf(binary, smooth_gradient=smooth_gradient, eps=eps, norm_vectors=True)
-        sdf_normals = sdf_normals * binary[None,...]
+        if binary_mask_gradient:
+            sdf_normals = sdf_normals * binary[None,...]
+        
+    # if divergence_rescale:
+    #     # rescale the speed
+    #     curvature_2D = mean_curvature_sdf(sdf_normals/(np.linalg.norm(sdf_normals, axis=0)[None,...]+eps))
+    #     curvature_2D = _normalize99(curvature_2D) # rescales to a factor between 0-1
+    #     sdf_normals = sdf_normals * curvature_2D[None,...] # multiplicative factor rescaling 
+        
         
     # print(sdf_normals.shape)
     grid =  np.zeros(binary.shape, dtype=np.int32)
     pts = np.argwhere(binary>0) # (N,ndim)
-    # print(pts.shape)
-    # plt.figure(figsize=(10,10))
-    # plt.imshow(binary)
-    # plt.plot(pts[:,1], pts[:,0], 'r.')
-    # plt.show()
+    
+    mu = momenta # momentum
+    # g0 = np.zeros(pts.shape)
+    g0 = np.zeros_like(pts)
     
     tracks = [pts]
     
     for ii in tqdm(np.arange(n_iter)):
         pt_ii = tracks[-1].copy()
         
-        if interp_bool:
+        if interp:
             pts_vect_ii = np.array([interp2(pt_ii, binary.shape, I_ref=sdf_normals[ch], method='linear', cast_uint8=False) for ch in np.arange(len(sdf_normals))]).T
         else:
-            pts_vect_ii = np.array([sdf_normals[ch][pt_ii[:,0].astype(np.int32), pt_ii[:,1].astype(np.int32)] for ch in np.arange(len(sdf_normals))]).T
+            pts_vect_ii = sdf_normals[:,np.rint(pt_ii[:,0]).astype(np.int32), np.rint(pt_ii[:,1]).astype(np.int32)].T
         
-        pts_vect_ii = pts_vect_ii / (np.linalg.norm(pts_vect_ii, axis=-1)[:,None] + 1e-12)
-        pt_ii_next = pt_ii + delta*pts_vect_ii
-            
+        pts_vect_ii = pts_vect_ii / (np.linalg.norm(pts_vect_ii, axis=-1)[:,None] + eps)
+        # pt_ii_next = pt_ii + delta*pts_vect_ii
+        pt_ii_next = pt_ii + (delta*pts_vect_ii + mu*g0) * (1./(delta+mu))   * (delta/(1.+ii*gradient_decay)) # add momentum + connectivity. 
+        g0 = pts_vect_ii.copy() # copy this into the past history....     
+        
         pt_ii_next[:,0] = np.clip(pt_ii_next[:,0], 0, binary.shape[0]-1)
         pt_ii_next[:,1] = np.clip(pt_ii_next[:,1], 0, binary.shape[1]-1)
         
-        tracks.append(pt_ii_next)
-        # plt.figure(figsize=(10,10))
-        # plt.imshow(binary)
-        # plt.plot(pt_ii_next[:,1], pt_ii_next[:,0], 'r.')
-        # plt.show()
-
+        if track_flow:
+            tracks.append(pt_ii_next)
+        else:
+            tracks[-1] = pt_ii_next.copy() # copy over. 
+        
+        if debug_viz:
+            plt.figure(figsize=(10,10))
+            plt.imshow(binary)
+            plt.plot(pt_ii_next[:,1], pt_ii_next[:,0], 'r.')
+            plt.show(block=False)
+        
     tracks = np.array(tracks)
+    
+    cell_seg_connected_original, cell_seg_connected, votes_grid_acc = connected_components_pts_2D( pts=tracks[-1], 
+                                                                                                    pts0=pts, 
+                                                                                                    shape=binary.shape[:2], 
+                                                                                                    smooth_sigma=smooth_sigma, 
+                                                                                                    thresh_factor=thresh_factor, 
+                                                                                                    mask=mask,
+                                                                                                    min_area=min_area)
+
+    return cell_seg_connected_original, cell_seg_connected, tracks, votes_grid_acc
+
+
+def gradient_watershed2D_binary_delta_field(binary, 
+                                            delta_field=None,
+                                            gradient_img=None, 
+                                            momenta = 0.0,
+                                            divergence_rescale=True, 
+                                            smooth_sigma=1, 
+                                            smooth_gradient=1, 
+                                            n_iter=10, 
+                                            min_area=5, 
+                                            gradient_decay=0.0,
+                                            eps=1e-20, 
+                                            interp=True,
+                                            thresh_factor=None, 
+                                            track_flow=True, # if track_flow then we record!. 
+                                            mask=None,
+                                            binary_mask_gradient=False,
+                                            debug_viz=False):
+    
+    """ parses the instance level segmentation implicitly given as an input binary or a vector field. 
+    The algorithm works as an inverse watershed.
+    
+    Step 1: a grid of points is seeds on the image
+    Step 2: points are propagated for n_iter according to the gradient_img, condensing towards cell centers implicitly implied by the gradient image.
+    Step 3: individual cluster centers are found by binarisation and connected component, removing objects < min_area
+    
+    result is an integer image the same size as binary. 
+
+    Parameters
+    ----------
+    binary : (MxNxL) numpy array
+        input binary image defining the voxels that need labeling
+    gradient_img :  (MxNxLx3) numpy array
+        This is a gradient field such as that from applying np.array(np.gradient(img)).transpose(1,2,3,0) where img is a potential such as a distance transform or probability map. 
+    divergence_rescale : 
+        If True, the gradient_img is scaled by the divergence which is equivalent to the mean curvature, this helps to prevent early breakage for tube-like structures.   
+    smooth_sigma : scalar
+        controls the catchment area for identifying distinct cells at the final propagation position. Smaller smooth_sigma leads to more oversegmentation. 
+    smooth_gradient : scalar
+        the isotropic sigma value controlling the Gaussian smoothing of the gradient field. More smoothing results in more cells grouped together
+    delta: scalar
+        the voxel size to propagate grid points per iteration. Related to the stability. If too small takes too long. If too large, might not converge. if delta=1, takes a 1 voxel step. 
+    n_iter: int 
+        the number of iterations to run. (To do: monitor convergence and break early to improve speed)
+    min_area: scalar
+        volume of cells < min_area are removed. 
+    eps: float
+        a small number for numerical stability
+    thresh_factor: scalar
+        The final cells are identified by thresholding on a threshold mean+thresh_factor*std. Thresh_factor controls what is an object prior to connected components analysis 
+    mask: (MxNxL) numpy array
+        optional binary mask to gate the region to parse labels for.
+    binary_mask_gradient: bool
+        if True, multiply the gradient to zero out all gradients outside of the foreground binary
+    debug_viz: bool
+        if True, visualise the position of the points at every algorithm iteration. 
+        
+    Returns
+    -------
+    cell_seg_connected_original : (MxNxL)
+        an integer image where each unique int > 0 relates to a unique object such that object 1 is retrieved by cell_seg_connected_original==1.
+        
     """
-    a radius neighbor graph or kNN graph here may be much more optimal here.... or use hdbscan? 
-    """
+    import scipy.ndimage as ndimage
+    import numpy as np 
+    import skimage.morphology as skmorph
+    import pylab as plt 
+    import skimage.measure as skmeasure 
+    import skimage.segmentation as sksegmentation 
+    from tqdm import tqdm 
+    
+    
+    def interp2(query_pts, grid_shape, I_ref, method='linear', cast_uint8=False):
+        
+        import numpy as np 
+        from scipy.interpolate import RegularGridInterpolator 
+        
+        spl = RegularGridInterpolator((np.arange(grid_shape[0]), 
+                                        np.arange(grid_shape[1])), 
+                                        I_ref, method=method, bounds_error=False, fill_value=0)
+        I_query = spl((query_pts[...,0], 
+                        query_pts[...,1]))
+
+        if cast_uint8:
+            I_query = np.uint8(I_query)
+        
+        return I_query
+    
+    
+    # compute the signed distance transform
+    if gradient_img is not None:
+        sdf_normals = gradient_img.transpose(2,0,1) # use the supplied gradients! 
+        if binary_mask_gradient:
+            sdf_normals = sdf_normals #* binary[None,...]
+    else:
+        sdf_normals, sdf_binary = surf_normal_sdf(binary, return_sdf=True, smooth_gradient=smooth_gradient, eps=eps, norm_vectors=True)
+        if binary_mask_gradient:
+            sdf_normals = sdf_normals #* binary[None,...]
+            
+            
+    if delta_field is None:
+        delta_field = np.ones((len(binary.shape),)+binary.shape[:2])
+        
+    # if divergence_rescale:
+    #     # rescale the speed
+    #     curvature_2D = mean_curvature_sdf(sdf_normals/(np.linalg.norm(sdf_normals, axis=0)[None,...]+eps))
+    #     curvature_2D = _normalize99(curvature_2D) # rescales to a factor between 0-1
+    #     sdf_normals = sdf_normals * curvature_2D[None,...] # multiplicative factor rescaling 
+        
+    # print(sdf_normals.shape)
+    grid =  np.zeros(binary.shape, dtype=np.int32)
+    pts = np.argwhere(binary>0) # (N,ndim)
+    
+    mu = momenta # momentum
+    # g0 = np.zeros(pts.shape)
+    g0 = np.zeros_like(pts)
+    
+    tracks = [pts]
+    
+    for ii in tqdm(np.arange(n_iter)):
+        pt_ii = tracks[-1].copy()
+        
+        if interp:
+            pts_vect_ii = np.array([interp2(pt_ii, binary.shape, I_ref=sdf_normals[ch], method='linear', cast_uint8=False) for ch in np.arange(len(sdf_normals))]).T
+            pts_delta_ii = np.array([interp2(pt_ii, binary.shape, I_ref=delta_field[ch], method='linear', cast_uint8=False) for ch in np.arange(len(delta_field))]).T
+        else:
+            pts_vect_ii = sdf_normals[:,np.rint(pt_ii[:,0]).astype(np.int32), np.rint(pt_ii[:,1]).astype(np.int32)].T
+            pts_delta_ii = delta_field[:,np.rint(pt_ii[:,0]).astype(np.int32), np.rint(pt_ii[:,1]).astype(np.int32)].T
+        
+        pts_vect_ii = pts_vect_ii / (np.linalg.norm(pts_vect_ii, axis=-1)[:,None] + eps)
+        # pt_ii_next = pt_ii + delta*pts_vect_ii
+        pt_ii_next = pt_ii + (pts_delta_ii*pts_vect_ii + mu*g0) * (1./(pts_delta_ii+mu))   * (pts_delta_ii/(1.+ii*gradient_decay)) # add momentum + connectivity. 
+        g0 = pts_vect_ii.copy() # copy this into the past history....     
+        
+        pt_ii_next[:,0] = np.clip(pt_ii_next[:,0], 0, binary.shape[0]-1)
+        pt_ii_next[:,1] = np.clip(pt_ii_next[:,1], 0, binary.shape[1]-1)
+        
+        if track_flow:
+            tracks.append(pt_ii_next)
+        else:
+            tracks[-1] = pt_ii_next.copy() # copy over. 
+        
+        if debug_viz:
+            plt.figure(figsize=(10,10))
+            plt.imshow(binary)
+            plt.plot(pt_ii_next[:,1], pt_ii_next[:,0], 'r.')
+            plt.show(block=False)
+        
+    tracks = np.array(tracks)
+    
+    cell_seg_connected_original, cell_seg_connected, votes_grid_acc = connected_components_pts_2D( pts=tracks[-1], 
+                                                                                                    pts0=pts, 
+                                                                                                    shape=binary.shape[:2], 
+                                                                                                    smooth_sigma=smooth_sigma, 
+                                                                                                    thresh_factor=thresh_factor, 
+                                                                                                    mask=mask,
+                                                                                                    min_area=min_area)
+
+    return cell_seg_connected_original, cell_seg_connected, tracks, votes_grid_acc
+
+
+def connected_components_pts_2D( pts, pts0, shape, 
+                                smooth_sigma=1, 
+                                thresh_factor=None, 
+                                mask=None,
+                                min_area=1) : 
+
+    import numpy as np 
+    import scipy.ndimage as ndimage
+    import skimage.measure as skmeasure
+    import skimage.segmentation as sksegmentation 
+    
     # parse ... 
-    votes_grid_acc = np.zeros(binary.shape)
-    votes_grid_acc[(tracks[-1][:,0]).astype(np.int32), 
-                   (tracks[-1][:,1]).astype(np.int32)] += 1. # add a vote. 
+    votes_grid_acc = np.zeros(shape)
+    
+    # count
+    votes_grid_acc[(pts[:,0]).astype(np.int32), 
+                   (pts[:,1]).astype(np.int32)] += 1. # add a vote. 
                    
     # smooth to get a density (fast KDE estimation)
     votes_grid_acc = ndimage.gaussian_filter(votes_grid_acc, sigma=smooth_sigma)  
@@ -941,25 +1192,18 @@ def gradient_watershed2D_binary(binary,
     if cell_seg_connected.max() > 0:
         cell_seg_connected = sksegmentation.relabel_sequential(cell_seg_connected)[0]
     
+    
     cell_seg_connected_original = np.zeros_like(cell_seg_connected)
-    cell_seg_connected_original[(pts[:,0]).astype(np.int32), 
-                                (pts[:,1]).astype(np.int32)] = cell_seg_connected[(tracks[-1][:,0]).astype(np.int32), 
-                                                                                  (tracks[-1][:,1]).astype(np.int32)]
+    cell_seg_connected_original[(pts0[:,0]).astype(np.int32), 
+                                (pts0[:,1]).astype(np.int32)] = cell_seg_connected[(pts[:,0]).astype(np.int32), 
+                                                                                   (pts[:,1]).astype(np.int32)]
     
     if mask is not None:
         cell_seg_connected[mask == 0] = 0
-        
-    # plt.figure(figsize=(10,10))
-    # plt.imshow(cell_seg_connected)
-    # plt.show()
-    
-    # plt.figure(figsize=(10,10))
-    # plt.imshow(cell_seg_connected_original)
-    # plt.show()
-    if return_tracks:
-        return cell_seg_connected_original, tracks
-    else:
-        return cell_seg_connected_original    
+        cell_seg_connected_original[mask==0] = 0 # also mask the predicted. 
+
+    return cell_seg_connected_original, cell_seg_connected, votes_grid_acc # return the accumulator.!    
+
 
 
 def gradient_watershed3D_binary(binary, 
@@ -1516,6 +1760,114 @@ def fmm_source3D(binary_mask, source_mask, shape, norm=False, eps=1e-20):
     return dist_image, dist_gradient
 
 
+# 2d functions for poisson dtform.
+def _laplacian_matrix(n, m, mask=None): # this is the only working solution! 
+    
+    import scipy.sparse
+    from scipy.sparse.linalg import spsolve
+    import numpy as np 
+    
+    mat_D = scipy.sparse.lil_matrix((m, m))
+    mat_D.setdiag(-1, -1)
+    mat_D.setdiag(4)
+    mat_D.setdiag(-1, 1)
+    
+    mat_A = scipy.sparse.block_diag([mat_D] * n).tolil()
+    
+    mat_A.setdiag(-1, 1*m)
+    mat_A.setdiag(-1, -1*m)
+    
+    if mask is not None:
+        y_range = mask.shape[0]
+        x_range = mask.shape[1]
+        # find the masked i.e. zeros
+        zeros = np.argwhere(mask==0) # in (y,x)
+        k = zeros[:,1] + zeros[:,0] * x_range
+        mat_A[k,k] = 1
+        mat_A[k, k + 1] = 0
+        mat_A[k, k - 1] = 0
+        mat_A[k, k + x_range] = 0
+        mat_A[k, k - x_range] = 0
+        
+        mat_A = mat_A.tocsc()
+    else:
+        mat_A = mat_A.tocsc()
+    
+    return mat_A
+
+
+def poisson_dist_tform(binary, pt=None):
+    """
+    Computation for a single binary image. 
+    """
+    import scipy.sparse
+    from scipy.sparse.linalg import spsolve
+    import numpy as np 
+    
+    mask = np.pad(binary, [1,1], mode='constant', constant_values=1) # pad with ones.  # ones need for connectivity....
+    
+    mat_A = _laplacian_matrix(mask.shape[0], mask.shape[1], mask=mask) # this is correct!
+
+    if pt is not None:
+        mask = np.zeros_like(mask)
+        mask[pt[:,0], pt[:,1]] = 1
+        
+        mask_flat = mask.flatten()    
+        mat_b = np.zeros(len(mask_flat))
+        mat_b[mask_flat == 1] = 1
+        
+    else:
+        # now we need to zero the padding
+        mask[0,:]=0
+        mask[:,-1]=0
+        mask[-1,:]=0
+        mask[:,0]=0
+        
+        # solve within the mask!    
+        mask_flat = mask.flatten()    
+        # inside the mask:
+        # \Delta f = div v = \Delta g       
+        mat_b = np.ones(len(mask_flat)) # does this matter -> the amount... 
+        mat_b[mask_flat == 0] = 0
+        
+    x = spsolve(mat_A, mat_b, permc_spec='MMD_AT_PLUS_A') 
+    x = x.reshape(mask.shape)
+    x = x[1:-1,1:-1].copy()
+    x = x - x.min() # solution is only positive!.
+    
+    return x 
+
+
+def sdf_poisson(mask, pt=None):
+    
+    import numpy as np 
+    import scipy.ndimage as ndimage
+    import skimage.morphology as skmorph
+    import pylab as plt 
+    # import unwrap3D.Segmentation.segmentation as unwrap3D_segmentation 
+    # all_ones = np.ones(mask.shape, dtype=bool)
+    border_pts = np.zeros(mask.shape, dtype=bool)
+    border_pts[:1] = 1
+    border_pts[-1:] = 1
+    border_pts[:,:1] = 1
+    border_pts[:,-1:] = 1
+    border_coords = np.argwhere(border_pts>0)
+    
+    # print(border_coords.shape)
+    
+    sdf = np.zeros(mask.shape[:2]) 
+    sdf_inner = poisson_dist_tform(mask, pt=pt)
+    # sdf_outer = ndimage.distance_transform_edt(np.logical_not(mask>0))
+    sdf_outer = poisson_dist_tform(np.logical_not(mask), pt=border_coords)
+    # plt.figure()
+    # plt.imshow(sdf_outer)
+    # plt.show()
+    sdf[np.logical_not(mask>0)] = -sdf_outer[np.logical_not(mask>0)]
+    sdf[mask>0] = sdf_inner[mask>0]
+    
+    return sdf 
+
+
 def poisson_dist_tform_3D(binary, pts=None):
     """
     Computation for a single binary image. 
@@ -1563,8 +1915,10 @@ def poisson_dist_tform_3D(binary, pts=None):
         mat_b[mask_flat == 0] = 0
         
     # why is this failed? 
-    x = pypardiso.spsolve(mat_A, mat_b) # so this is definitely faster... (for 3d may need an iterative solver)
-    # x = spsolve(mat_A, mat_b)
+    try:
+        x = pypardiso.spsolve(mat_A, mat_b) # so this is definitely faster... (for 3d may need an iterative solver)
+    except:
+        x = spsolve(mat_A, mat_b)
     # x = spsolve(mat_A, mat_b)
     x = x.reshape(mask.shape)
     x = x[1:-1,1:-1,1:-1].copy() # remove the padding 
@@ -1639,6 +1993,45 @@ def laplacian_3D_kron(shape, mask=None):
         A = A.tocsc()
     
     return A 
+
+
+def detect_and_relabel_multi_component_labels2D(labels, min_size=100):
+    
+    import skimage.measure as skmeasure
+    import skimage.morphology as skmorph
+    
+    labels_filt = np.zeros_like(labels)
+    
+    max_id = 1
+
+    regionprops = skmeasure.regionprops(labels)
+    
+    for cc, re in enumerate(regionprops[:]):
+        
+        bbox = re.bbox
+        coords = re.coords
+        
+        x1,y1 = bbox[:2]
+        bbox_size = np.hstack(bbox[2:]) - np.hstack(bbox[:2])
+        
+        mask = np.zeros(bbox_size, dtype=bool)
+        mask[coords[:,0]-x1,
+             coords[:,1]-y1] = 1
+        
+        mask = skmorph.remove_small_objects(mask, min_size=min_size)
+        label_mask = skmeasure.label(mask>0)
+        
+        label_ids = np.setdiff1d(np.unique(label_mask),0)
+        
+        for ll in label_ids:
+            coords_ll = np.argwhere(label_mask==ll)
+            coords_ll = coords_ll + np.hstack(bbox[:2])
+            
+            labels_filt[coords_ll[:,0], 
+                        coords_ll[:,1]] = max_id
+            max_id += 1
+    
+    return labels_filt
 
 
 

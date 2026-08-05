@@ -46,7 +46,7 @@ classifiers = [
 
 
 # updating the requires python in line with optimesh
-requires-python = ">=3.9"
+requires-python = ">=3.9, <3.13"
 dependencies = [
     'numpy>=1.23,<2.0',
     'cgal>=5.5', # requires 
