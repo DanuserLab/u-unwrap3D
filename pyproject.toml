@@ -32,7 +32,7 @@ description="Surface-guided computing of arbitrary 3D surfaces and volumes by bi
 authors = [{name='Felix Y. Zhou', email='felixzhou1@gmail.com'}]
 readme = "README.md"
 license={file = "LICENSE"}
-version = "1.0.1"
+version = "1.0.2"
 classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: POSIX :: Linux",
